@@ -3,11 +3,18 @@
 #include <assert.h>
 #include <stdio.h>
 #include <arpa/inet.h>
+#include <crypto_box.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <tinycthread.h>
+
+typedef struct SNMessage_ {
+	unsigned char dst[crypto_box_PUBLICKEYBYTES];
+	unsigned short ttl;
+	unsigned int len;
+} SNMessage;
 
 void sndnet_log(SNState* sns, const char* msg);
 int sndnet_background(void* arg);
@@ -99,7 +106,7 @@ void sndnet_log(SNState* sns, const char* msg) {
 
 int sndnet_background(void* arg) {
 	SNState* sns = (SNState*)arg;
-	char buff[1024];
+	SNMessage msg;
 	struct sockaddr remaddr;
 	socklen_t addrlen = sizeof(remaddr);
 	int recv_count;
@@ -109,13 +116,7 @@ int sndnet_background(void* arg) {
 	do {
 		memset(buff, 0, 1024);
 		
-		recv_count = recvfrom(sns->socket_fd, buff, 1024, 0, &remaddr, &addrlen);
-		
-		sndnet_log(sns, buff);
-		
-		if(strncasecmp(buff, "quit", 4) == 0) {
-			break;
-		}
+		recv_count = recvfrom(sns->socket_fd, &msg, sizeof(msg), 0, &remaddr, &addrlen);
 	} while(recv_count > 0);
 	
 	return 0;
