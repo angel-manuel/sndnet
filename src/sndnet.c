@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include <threads.h>
+#include <tinycthread.h>
 
 void sndnet_log(SNState* sns, const char* msg);
 
