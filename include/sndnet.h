@@ -1,14 +1,18 @@
 #ifndef SNDNET_SNDNET_H_
 #define SNDNET_SNDNET_H_
 
+#include <tinycthread.h>
+
 /**
  * Callback for logging
  * */
 typedef void (*sndnet_log_callback)(const char* msg);
 
 typedef struct SNState_ {
-	short port;
+	thrd_t bg_thrd;
 	sndnet_log_callback log_cb;
+	unsigned short port;
+	int socket_fd;
 } SNState;
 
 /**
@@ -17,7 +21,7 @@ typedef struct SNState_ {
  * @param[in] port UDP listening port
  * @return 0 if OK, -1 otherwise
  * */
-int sndnet_init(SNState* sns, short port);
+int sndnet_init(SNState* sns, unsigned short port);
 
 /**
  * Destroys a node

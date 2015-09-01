@@ -3,7 +3,7 @@
 solution "sndnet"
 	configurations { "Debug", "Release" }
 	targetdir "bin"
-	buildoptions { "-std=c11 -pthread" }
+	buildoptions { "-std=c11" }
 
 	configuration "Debug"
 		defines "DEBUG"
@@ -23,7 +23,7 @@ solution "sndnet"
 		location "build/testclient"
 		kind "ConsoleApp"
 		language "C"
-		links "sndnet"
+		links { "sndnet", "pthread" }
 		includedirs "include"
 		files { "testclient/**.c" }
 
@@ -31,6 +31,6 @@ solution "sndnet"
 		location "build/test"
 		kind "ConsoleApp"
 		language "C++"
-		links "sndnet"
+		links { "sndnet", "pthread" }
 		includedirs "include"
 		files { "test/**.hpp", "test/**.cpp" }
