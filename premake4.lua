@@ -3,7 +3,7 @@
 solution "sndnet"
 	configurations { "Debug", "Release" }
 	targetdir "bin"
-	buildoptions { "-std=c11" }
+	buildoptions { "-std=c11 -pthread" }
 
 	configuration "Debug"
 		defines "DEBUG"
