@@ -3,7 +3,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <arpa/inet.h>
-#include <crypto_box.h>
+#include <nacl/crypto_box.h>
+#include <stdarg.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -12,11 +13,12 @@
 
 typedef struct SNMessage_ {
 	unsigned char dst[crypto_box_PUBLICKEYBYTES];
+	unsigned char src[crypto_box_PUBLICKEYBYTES];
 	unsigned short ttl;
 	unsigned int len;
 } SNMessage;
 
-void sndnet_log(SNState* sns, const char* msg);
+void sndnet_log(SNState* sns, const char* format, ...);
 int sndnet_background(void* arg);
 
 void default_log_cb(const char* msg) {
@@ -96,12 +98,19 @@ void sndnet_set_log_callback(SNState* sns, sndnet_log_callback cb) {
 	sndnet_log(sns, "Log callback changed");
 }
 
-void sndnet_log(SNState* sns, const char* msg) {
+void sndnet_log(SNState* sns, const char* format, ...) {
+	char str[1024];
+	va_list args;
+	
 	assert(sns != NULL);
 	assert(sns->log_cb != NULL);
-	assert(msg != NULL);
+	assert(format != NULL);
 	
-	sns->log_cb(msg);
+	va_start(args, format);
+	vsnprintf(str, 1024, format, args);
+	va_end(args);
+	
+	sns->log_cb(str);
 }
 
 int sndnet_background(void* arg) {
@@ -114,9 +123,16 @@ int sndnet_background(void* arg) {
 	assert(sns != NULL);
 	
 	do {
-		memset(buff, 0, 1024);
+		memset(&msg, 0, sizeof(msg));
 		
 		recv_count = recvfrom(sns->socket_fd, &msg, sizeof(msg), 0, &remaddr, &addrlen);
+		
+		sndnet_log(sns, "msg\n"
+		"dst = %.32s\n"
+		"src = %.32s\n"
+		"ttl = %hu\n"
+		"len = %u\n",
+		msg.dst, msg.src, msg.ttl, msg.len);
 	} while(recv_count > 0);
 	
 	return 0;
