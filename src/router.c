@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <sys/socket.h>
 
 void sndnet_router_init(SNRouter* snr, const SNAddress* self) {
 	assert(snr != 0);
@@ -9,12 +10,6 @@ void sndnet_router_init(SNRouter* snr, const SNAddress* self) {
 	
 	memset(snr, 0, sizeof(SNRouter));
 	sndnet_address_copy(&(snr->self), self);
-}
-
-void sndnet_router_destroy(SNRouter* snr) {
-	assert(snr != 0);
-	
-	memset(snr, 0, sizeof(SNRouter));
 }
 
 void sndnet_router_add(SNRouter* snr, const SNEntry* sne) {
@@ -37,10 +32,10 @@ void sndnet_router_add(SNRouter* snr, const SNEntry* sne) {
 	//TODO: Add to leafset
 }
 
-void sndnet_router_nexthop(SNRouter* snr, const SNAddress* dst, SNEntry* nexthop) {
+void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* nexthop) {
 	int level, column, i;
-	SNEntry* e;
-	SNEntry* best;
+	const SNEntry* e;
+	const SNEntry* best;
 	SNEntry eself;
 	SNAddress min_dist;
 	SNAddress tmp_dist;
@@ -103,7 +98,7 @@ void sndnet_router_nexthop(SNRouter* snr, const SNAddress* dst, SNEntry* nexthop
 	}
 	
 	for(i = 0; i < SNDNET_ROUTER_NEIGHBOURHOOD; ++i) {
-		e = &(snr->neighbourdhood[i]);
+		e = &(snr->neighbourhood[i]);
 		
 		if(e->is_set) {
 			sndnet_address_dist(&(e->sn_addr), dst, &tmp_dist);

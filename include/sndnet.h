@@ -8,11 +8,15 @@
  * */
 typedef void (*sndnet_log_callback)(const char* msg);
 
+/**
+ * Holds the state of a node.
+ * Should NOT be modified directly.
+ * */
 typedef struct SNState_ {
-	pthread_t bg_thrd;
-	sndnet_log_callback log_cb;
-	unsigned short port;
-	int socket_fd;
+	pthread_t bg_thrd; /**< Background thread for routing */
+	sndnet_log_callback log_cb; /**< Callback for logging */
+	unsigned short port; /**< Listening port */
+	int socket_fd; /**< Listening socket file descriptor */
 } SNState;
 
 /**

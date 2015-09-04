@@ -13,14 +13,14 @@ void sndnet_address_init(SNAddress* snk, unsigned char key[SNDNET_ADDRESS_LENGTH
 	bytestring_to_hexstring(snk->key, SNDNET_ADDRESS_LENGTH, snk->hex_key);
 }
 
-const unsigned char* sndnet_address_get(const SNAddress* snk) {
-	assert(snk != 0);
-	return snk->key;
+const unsigned char* sndnet_address_get(const SNAddress* sna) {
+	assert(sna != 0);
+	return sna->key;
 }
 
-const unsigned char* sndnet_address_get_hex(const SNAddress* snk) {
-	assert(snk != 0);
-	return snk->hex_key;
+const unsigned char* sndnet_address_get_hex(const SNAddress* sna) {
+	assert(sna != 0);
+	return sna->hex_key;
 }
 
 int sndnet_address_cmp(const SNAddress* a, const SNAddress* b) {
@@ -68,18 +68,18 @@ void sndnet_address_copy(SNAddress* dst, const SNAddress* src) {
 	memcpy(dst, src, sizeof(SNAddress));
 }
 
-void sndnet_address_index(const SNAddress* self, const SNAddress* _addr, int* level, int* column) {
+void sndnet_address_index(const SNAddress* self, const SNAddress* addr, int* level, int* column) {
 	int l = 0;
 	int i;
 	const unsigned char *hex_a, *hex_b;
 	
 	assert(self != 0);
-	assert(_addr != 0);
+	assert(addr != 0);
 	assert(level != 0);
 	assert(column != 0);
 	
 	hex_a = sndnet_address_get_hex(self);
-	hex_b = sndnet_address_get_hex(_addr);
+	hex_b = sndnet_address_get_hex(addr);
 	
 	*column = -1;
 	
