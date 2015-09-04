@@ -85,6 +85,7 @@ void sndnet_destroy(SNState* sns) {
 	/* Thread closing */
 	
 	pthread_cancel(sns->bg_thrd);
+	pthread_join(sns->bg_thrd, 0);
 	
 	sndnet_log(sns, "Destroyed");
 }
