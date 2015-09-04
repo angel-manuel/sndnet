@@ -27,9 +27,9 @@ void default_log_cb(const char* msg) {
 
 int sndnet_init(SNState* sns, unsigned short port) {
 	int socket_fd;
-	struct sockaddr_in servaddr;
+	struct sockaddr_in serv_addr;
 	
-	assert(sns != NULL);
+	assert(sns != 0);
 	
 	/* Copying */
 	
@@ -47,12 +47,12 @@ int sndnet_init(SNState* sns, unsigned short port) {
 		return 1;
 	}
 	
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servaddr.sin_port = htons(port);
+	memset(&serv_addr, 0, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serv_addr.sin_port = htons(port);
 	
-	if(bind(socket_fd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1) {
+	if(bind(socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) {
 		sndnet_log(sns, "Error while initializing socket");
 		close(socket_fd);
 		return 1;
@@ -74,7 +74,7 @@ int sndnet_init(SNState* sns, unsigned short port) {
 }
 
 void sndnet_destroy(SNState* sns) {
-	assert(sns != NULL);
+	assert(sns != 0);
 	
 	sndnet_log(sns, "Destroying");
 	
@@ -88,7 +88,7 @@ void sndnet_destroy(SNState* sns) {
 }
 
 void sndnet_set_log_callback(SNState* sns, sndnet_log_callback cb) {
-	assert(sns != NULL);
+	assert(sns != 0);
 	
 	if(cb)
 		sns->log_cb = cb;
@@ -102,9 +102,9 @@ void sndnet_log(SNState* sns, const char* format, ...) {
 	char str[1024];
 	va_list args;
 	
-	assert(sns != NULL);
-	assert(sns->log_cb != NULL);
-	assert(format != NULL);
+	assert(sns != 0);
+	assert(sns->log_cb != 0);
+	assert(format != 0);
 	
 	va_start(args, format);
 	vsnprintf(str, 1024, format, args);
@@ -116,16 +116,16 @@ void sndnet_log(SNState* sns, const char* format, ...) {
 int sndnet_background(void* arg) {
 	SNState* sns = (SNState*)arg;
 	SNMessage msg;
-	struct sockaddr remaddr;
-	socklen_t addrlen = sizeof(remaddr);
+	struct sockaddr rem_addr;
+	socklen_t addrlen = sizeof(rem_addr);
 	int recv_count;
 	
-	assert(sns != NULL);
+	assert(sns != 0);
 	
 	do {
 		memset(&msg, 0, sizeof(msg));
 		
-		recv_count = recvfrom(sns->socket_fd, &msg, sizeof(msg), 0, &remaddr, &addrlen);
+		recv_count = recvfrom(sns->socket_fd, &msg, sizeof(msg), 0, &rem_addr, &addrlen);
 		
 		sndnet_log(sns, "msg\n"
 		"dst = %.32s\n"
