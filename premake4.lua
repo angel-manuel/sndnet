@@ -19,13 +19,13 @@ solution "sndnet"
 		includedirs "include"
 		files { "src/**.c"}
 
-	project "testclient"
-		location "build/testclient"
+	project "prototype"
+		location "build/prototype"
 		kind "ConsoleApp"
 		language "C"
 		links { "sndnet", "pthread" }
 		includedirs "include"
-		files { "testclient/**.c" }
+		files { "prototype/**.c" }
 
 	project "test"
 		location "build/test"
