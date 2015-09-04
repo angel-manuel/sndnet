@@ -1,7 +1,7 @@
 #ifndef SNDNET_SNDNET_H_
 #define SNDNET_SNDNET_H_
 
-#include <tinycthread.h>
+#include <pthread.h>
 
 /**
  * Callback for logging
@@ -9,7 +9,7 @@
 typedef void (*sndnet_log_callback)(const char* msg);
 
 typedef struct SNState_ {
-	thrd_t bg_thrd;
+	pthread_t bg_thrd;
 	sndnet_log_callback log_cb;
 	unsigned short port;
 	int socket_fd;

@@ -1,15 +1,14 @@
 #include "sndnet.h"
 
+#include <pthread.h>
 #include <stdio.h>
-
-#include <tinycthread.h>
 
 int main() {
 	SNState sns;
 	
 	sndnet_init(&sns, 7777);
 	
-	thrd_join(sns.bg_thrd, NULL);
+	pthread_join(sns.bg_thrd, 0);
 	
 	sndnet_destroy(&sns);
 	

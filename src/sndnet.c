@@ -1,15 +1,15 @@
 #include "sndnet.h"
 
 #include <assert.h>
-#include <stdio.h>
 #include <arpa/inet.h>
 #include <nacl/crypto_box.h>
+#include <pthread.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <tinycthread.h>
 
 typedef struct SNMessage_ {
 	unsigned char dst[crypto_box_PUBLICKEYBYTES];
@@ -19,7 +19,7 @@ typedef struct SNMessage_ {
 } SNMessage;
 
 void sndnet_log(SNState* sns, const char* format, ...);
-int sndnet_background(void* arg);
+void* sndnet_background(void* arg);
 
 void default_log_cb(const char* msg) {
 	fprintf(stderr, "sndnet: %s\n", msg);
@@ -62,7 +62,7 @@ int sndnet_init(SNState* sns, unsigned short port) {
 	
 	/* Background thread initialization */
 	
-	if(thrd_create(&(sns->bg_thrd), sndnet_background, sns) != thrd_success) {
+	if(pthread_create(&(sns->bg_thrd), 0, sndnet_background, sns)) {
 		sndnet_log(sns, "Error while starting thread");
 		close(socket_fd);
 		return 1;
@@ -83,6 +83,8 @@ void sndnet_destroy(SNState* sns) {
 	close(sns->socket_fd);
 	
 	/* Thread closing */
+	
+	pthread_cancel(sns->bg_thrd);
 	
 	sndnet_log(sns, "Destroyed");
 }
@@ -113,7 +115,7 @@ void sndnet_log(SNState* sns, const char* format, ...) {
 	sns->log_cb(str);
 }
 
-int sndnet_background(void* arg) {
+void* sndnet_background(void* arg) {
 	SNState* sns = (SNState*)arg;
 	SNMessage msg;
 	struct sockaddr rem_addr;
@@ -126,6 +128,10 @@ int sndnet_background(void* arg) {
 		memset(&msg, 0, sizeof(msg));
 		
 		recv_count = recvfrom(sns->socket_fd, &msg, sizeof(msg), 0, &rem_addr, &addrlen);
+		
+		/*if(strncmp(msg.dst, "quit", 4) == 0) {
+			return 0;
+		}*/
 		
 		sndnet_log(sns, "msg\n"
 		"dst = %.32s\n"
