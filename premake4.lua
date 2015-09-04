@@ -3,7 +3,6 @@
 solution "sndnet"
 	configurations { "Debug", "Release" }
 	targetdir "bin"
-	buildoptions { "-std=c11" }
 
 	configuration "Debug"
 		defines "DEBUG"
@@ -16,6 +15,7 @@ solution "sndnet"
 		location "build/sndnet"
 		kind "StaticLib"
 		language "C"
+		buildoptions { "-std=c11" }
 		includedirs "include"
 		files { "src/**.c"}
 
@@ -23,6 +23,7 @@ solution "sndnet"
 		location "build/prototype"
 		kind "ConsoleApp"
 		language "C"
+		buildoptions { "-std=c11" }
 		links { "sndnet", "pthread" }
 		includedirs "include"
 		files { "prototype/**.c" }
