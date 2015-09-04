@@ -5,12 +5,14 @@
 
 void bytestring_to_hexstring(const unsigned char* bytestring, int n, unsigned char* hexstring);
 void bytestring_negate(const unsigned char* bytestring, int n, unsigned char* negated);
+void hexstring_to_printable(const unsigned char* hexstring, int n, char* printable);
 
 void sndnet_address_init(SNAddress* snk, unsigned char key[SNDNET_ADDRESS_LENGTH]) {
 	assert(snk != 0);
 	
 	memcpy(snk->key, key, SNDNET_ADDRESS_LENGTH);
 	bytestring_to_hexstring(snk->key, SNDNET_ADDRESS_LENGTH, snk->hex_key);
+	hexstring_to_printable(snk->hex_key, SNDNET_ADDRESS_LENGTH*2, snk->printable);
 }
 
 const unsigned char* sndnet_address_get(const SNAddress* sna) {
@@ -98,6 +100,12 @@ void sndnet_address_index(const SNAddress* self, const SNAddress* addr, int* lev
 	*level = l;
 }
 
+const char* sndnet_address_tostr(const SNAddress* sna) {
+	assert(sna != 0);
+	
+	return sna->printable;
+}
+
 //Private
 
 void bytestring_to_hexstring(const unsigned char* bytestring, int n, unsigned char* hexstring) {
@@ -118,8 +126,31 @@ void bytestring_negate(const unsigned char* bytestring, int n, unsigned char* ne
 	int i;
 	
 	assert(bytestring != 0);
+	assert(negated != 0);
 	
 	for(i = 0; i < n; ++i) {
 		negated[i] = 255 ^ bytestring[i];
 	}
+}
+
+void hexstring_to_printable(const unsigned char* hexstring, int n, char* printable) {
+	int i;
+	char c;
+	
+	assert(hexstring != 0);
+	assert(printable != 0);
+	
+	for(i = 0; i < n; ++i) {
+		c = (char)hexstring[i];
+		
+		assert(c >= 0 && c < 16);
+		
+		if(c >= 0 && c < 10) {
+			printable[i] = '0' + c;
+		} else {
+			printable[i] = 'W' + c;
+		}
+	}
+	
+	printable[i] = '\0';
 }

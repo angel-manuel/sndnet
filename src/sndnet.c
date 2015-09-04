@@ -11,6 +11,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "address.h"
+
 typedef struct SNMessage_ {
 	unsigned char dst[crypto_box_PUBLICKEYBYTES];
 	unsigned char src[crypto_box_PUBLICKEYBYTES];
@@ -122,6 +124,7 @@ void* sndnet_background(void* arg) {
 	struct sockaddr rem_addr;
 	socklen_t addrlen = sizeof(rem_addr);
 	int recv_count;
+	SNAddress dst, src;
 	
 	assert(sns != 0);
 	
@@ -130,16 +133,17 @@ void* sndnet_background(void* arg) {
 		
 		recv_count = recvfrom(sns->socket_fd, &msg, sizeof(msg), 0, &rem_addr, &addrlen);
 		
-		/*if(strncmp(msg.dst, "quit", 4) == 0) {
-			return 0;
-		}*/
+		sndnet_address_init(&dst, msg.dst);
+		sndnet_address_init(&src, msg.src);
 		
 		sndnet_log(sns, "msg\n"
-		"dst = %.32s\n"
-		"src = %.32s\n"
+		"dst = %s\n"
+		"src = %s\n"
 		"ttl = %hu\n"
 		"len = %u\n",
-		msg.dst, msg.src, msg.ttl, msg.len);
+		sndnet_address_tostr(&dst),
+		sndnet_address_tostr(&src),
+		msg.ttl, msg.len);
 	} while(recv_count > 0);
 	
 	return 0;

@@ -12,6 +12,7 @@
 typedef struct _SNAddress {
 	unsigned char key[SNDNET_ADDRESS_LENGTH]; /**< Address key */
 	unsigned char hex_key[SNDNET_ADDRESS_LENGTH*2]; /**< Precalculated hex representation of the key*/
+	char printable[SNDNET_ADDRESS_LENGTH*2 + 1];
 } SNAddress;
 
 /**
@@ -68,5 +69,12 @@ void sndnet_address_copy(SNAddress* dst, const SNAddress* src);
  * @param[out] column The first diferent nibble of the second address
  * */
 void sndnet_address_index(const SNAddress* self, const SNAddress* addr, int* level, int* column);
+
+/**
+ * Returns a hex printable string
+ * @param sna Address
+ * @return Printable hex address
+ * */
+const char* sndnet_address_tostr(const SNAddress* sna);
 
 #endif/*SNDNET_ADDRESS_H_*/
