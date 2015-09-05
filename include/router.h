@@ -1,3 +1,8 @@
+/**
+ * @file
+ * Provides routing logic
+ * */
+
 #ifndef SNDNET_ROUTER_H_
 #define SNDNET_ROUTER_H_
 

@@ -1,3 +1,9 @@
+/**
+ * @file
+ * SecondNet main header
+ * */
+
+
 #ifndef SNDNET_SNDNET_H_
 #define SNDNET_SNDNET_H_
 

@@ -1,3 +1,8 @@
+/**
+ * @file
+ * Provides functions for managing SecondNet addresses
+ * */
+
 #ifndef SNDNET_ADDRESS_H_
 #define SNDNET_ADDRESS_H_
 
