@@ -39,7 +39,7 @@ void sndnet_router_add(SNRouter* snr, const SNEntry* sne) {
 }
 
 void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* nexthop) {
-	int level, column, i;
+	int level, column, i, level2;
 	const SNEntry* e;
 	const SNEntry* best;
 	SNEntry eself;
@@ -103,6 +103,11 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
 		e = &(snr->leafset[i]);
 		
 		if(e->is_set) {
+			sndnet_address_index(&(snr->self), &(e->sn_addr), &level2, 0);
+			
+			if(level2 < level)
+				continue;
+			
 			sndnet_address_dist(&(e->sn_addr), dst, &tmp_dist);
 			
 			if(sndnet_address_cmp(&tmp_dist, &min_dist) < 0) {
@@ -115,7 +120,7 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
 	for(i = 0; i < SNDNET_ROUTER_COLUMNS; ++i) {
 		e = &(snr->table[level][i]);
 		
-		if(e->is_set) {
+		if(e->is_set) {			
 			sndnet_address_dist(&(e->sn_addr), dst, &tmp_dist);
 			
 			if(sndnet_address_cmp(&tmp_dist, &min_dist) < 0) {
@@ -129,6 +134,11 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
 		e = &(snr->neighbourhood[i]);
 		
 		if(e->is_set) {
+			sndnet_address_index(&(snr->self), &(e->sn_addr), &level2, 0);
+			
+			if(level2 < level)
+				continue;
+			
 			sndnet_address_dist(&(e->sn_addr), dst, &tmp_dist);
 			
 			if(sndnet_address_cmp(&tmp_dist, &min_dist) < 0) {
