@@ -77,27 +77,31 @@ void sndnet_address_index(const SNAddress* self, const SNAddress* addr, int* lev
 	
 	assert(self != 0);
 	assert(addr != 0);
-	assert(level != 0);
-	assert(column != 0);
+	assert(level != 0 || column != 0);
 	
 	hex_a = sndnet_address_get_hex(self);
 	hex_b = sndnet_address_get_hex(addr);
 	
-	*column = -1;
+	if(column)
+		*column = -1;
 	
 	for(i = 0; i < (SNDNET_ADDRESS_LENGTH*2); ++i) {
 		if(hex_a[i] == hex_b[i]) {
 			++l;
 		} else {
-			*column = (int)hex_b[i];
+			if(column)
+				*column = (int)hex_b[i];
 			break;
 		}
 	}
 	
-	assert(*column != -1);
-	assert(level >= 0);
+	if(column)
+		assert(*column != -1);
+		
+	assert(l >= 0);
 	
-	*level = l;
+	if(level)
+		*level = l;
 }
 
 const char* sndnet_address_tostr(const SNAddress* sna) {
