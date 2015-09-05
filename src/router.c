@@ -4,6 +4,9 @@
 #include <string.h>
 #include <sys/socket.h>
 
+int sndnet_router_get_leafset_size(const SNRouter* snr);
+int sndnet_router_is_on_leafset_range(const SNRouter* snr, const SNAddress* addr);
+
 void sndnet_router_init(SNRouter* snr, const SNAddress* self) {
 	assert(snr != 0);
 	assert(self != 0);
@@ -15,11 +18,14 @@ void sndnet_router_init(SNRouter* snr, const SNAddress* self) {
 void sndnet_router_add(SNRouter* snr, const SNEntry* sne) {
 	int level, column;
 	SNEntry* insert;
+	const SNAddress* addr;
 	
 	assert(snr != 0);
 	assert(sne != 0);
 	
-	sndnet_address_index(&(snr->self), &(sne->sn_addr), &level, &column);
+	addr = &(sne->sn_addr);
+	
+	sndnet_address_index(&(snr->self), addr, &level, &column);
 
 	if(column >= 0) {
 		insert = &(snr->table[level][column]);
@@ -46,7 +52,29 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
 	
 	nexthop->is_set = 0;
 	
-	//TODO: Check leafset
+	//Leafset routing
+	
+	if(sndnet_router_is_on_leafset_range(snr, dst)) {
+		best = &(snr->leafset[0]);
+		sndnet_address_dist(&(eself.sn_addr), dst, &min_dist);
+		
+		for(i = 0; i < SNDNET_ROUTER_LEAFSET; ++i) {
+			e = &(snr->leafset[i]);
+			
+			if(e->is_set) {
+				sndnet_address_dist(&(e->sn_addr), dst, &tmp_dist);
+				
+				if(sndnet_address_cmp(&tmp_dist, &min_dist) < 0) {
+					min_dist = tmp_dist;
+					best = e;
+				}
+			}
+		}
+		
+		memcpy(nexthop, best, sizeof(SNEntry));
+		
+		return;
+	}
 	
 	//Table routing
 	
@@ -111,4 +139,31 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
 	}
 	
 	memcpy(nexthop, best, sizeof(SNEntry));
+}
+
+int sndnet_router_get_leafset_size(const SNRouter* snr) {
+	int count;
+	
+	assert(snr != NULL);
+	
+	if(!snr)
+		return -1;
+	
+	for(count = 0; count < SNDNET_ROUTER_LEAFSET; ++count) {
+		if(snr->leafset[count].is_set == 0)
+			break;
+	}
+}
+
+int sndnet_router_is_on_leafset_range(const SNRouter* snr, const SNAddress* addr) {
+	int leaf_count;
+	
+	assert(snr != NULL);
+	assert(addr != NULL);
+	
+	leaf_count = sndnet_router_get_leafset_size(snr);
+	
+	return leaf_count >= 2 &&
+	sndnet_address_cmp(&(snr->leafset[0].sn_addr), addr) <= 0 &&
+	sndnet_address_cmp(addr, &(snr->leafset[leaf_count-1].sn_addr)) <= 0;
 }
