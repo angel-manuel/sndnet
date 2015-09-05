@@ -6,7 +6,7 @@ solution "sndnet"
 
 	configuration "Debug"
 		defines "DEBUG"
-		flags { "Symbols" }
+		flags { "Symbols", "ExtraWarnings" }
 
 	configuration "Release"
 		flags { "Optimize" }

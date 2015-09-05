@@ -69,7 +69,7 @@ void sndnet_address_copy(SNAddress* dst, const SNAddress* src);
  * @param[out] level The number of matching nibbles from the beggining
  * @param[out] column The first diferent nibble of the second address
  * */
-void sndnet_address_index(const SNAddress* self, const SNAddress* addr, int* level, int* column);
+void sndnet_address_index(const SNAddress* self, const SNAddress* addr, unsigned int* level, unsigned char* column);
 
 /**
  * Returns a hex printable string
