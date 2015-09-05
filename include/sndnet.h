@@ -12,12 +12,7 @@ typedef void (*sndnet_log_callback)(const char* msg);
  * Holds the state of a node.
  * Should NOT be modified directly.
  * */
-typedef struct SNState_ {
-	pthread_t bg_thrd; /**< Background thread for routing */
-	sndnet_log_callback log_cb; /**< Callback for logging */
-	unsigned short port; /**< Listening port */
-	int socket_fd; /**< Listening socket file descriptor */
-} SNState;
+typedef struct SNState_ SNState;
 
 /**
  * Initialization of a node
@@ -39,5 +34,12 @@ void sndnet_destroy(SNState* sns);
  * @param[in] cb The new callback. If it is NULL, default logging(stderr) will be used
  * */
 void sndnet_set_log_callback(SNState* sns, sndnet_log_callback cb);
+
+struct SNState_ {
+	pthread_t bg_thrd; /**< Background thread for routing */
+	sndnet_log_callback log_cb; /**< Callback for logging */
+	unsigned short port; /**< Listening port */
+	int socket_fd; /**< Listening socket file descriptor */
+};
 
 #endif/*SNDNET_SNDNET_H_*/

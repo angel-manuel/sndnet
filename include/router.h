@@ -20,22 +20,13 @@
 /**
  * Holds a routing table entry(sndnet addr + normal addr)
  * */
-typedef struct SNEntry_ {
-	unsigned char is_set; /**< Is this entry set? */
-	SNAddress sn_addr; /**< SecondNet address */
-	struct sockaddr net_addr; /**< Traditional network address */
-} SNEntry;
+typedef struct SNEntry_ SNEntry;
 
 /**
  * Holds all the state relevant to routing.
  * Should NOT be used directly.
  * */
-typedef struct SNRouter_ {
-	SNAddress self; /**< Our address */
-	SNEntry table[SNDNET_ROUTER_LEVELS][SNDNET_ROUTER_COLUMNS]; /**< Routing table */
-	SNEntry leafset[SNDNET_ROUTER_LEAFSET]; /**< Leafset */
-	SNEntry neighbourhood[SNDNET_ROUTER_NEIGHBOURHOOD]; /**< Neighbourhood */
-} SNRouter;
+typedef struct SNRouter_ SNRouter;
 
 /**
  * Initializes routing state
@@ -58,5 +49,18 @@ void sndnet_router_add(SNRouter* snr, const SNEntry* sne);
  * @param[out] nexthop Entry to store the result
  * */
 void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* nexthop);
+
+struct SNEntry_ {
+	unsigned char is_set; /**< Is this entry set? */
+	SNAddress sn_addr; /**< SecondNet address */
+	struct sockaddr net_addr; /**< Traditional network address */
+};
+
+struct SNRouter_ {
+	SNAddress self; /**< Our address */
+	SNEntry table[SNDNET_ROUTER_LEVELS][SNDNET_ROUTER_COLUMNS]; /**< Routing table */
+	SNEntry leafset[SNDNET_ROUTER_LEAFSET]; /**< Leafset */
+	SNEntry neighbourhood[SNDNET_ROUTER_NEIGHBOURHOOD]; /**< Neighbourhood */
+};
 
 #endif/*SNDNET_ROUTER_H_*/

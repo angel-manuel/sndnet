@@ -9,11 +9,7 @@
 /**
  * Holds an address
  * */
-typedef struct _SNAddress {
-	unsigned char key[SNDNET_ADDRESS_LENGTH]; /**< Address key */
-	unsigned char hex_key[SNDNET_ADDRESS_LENGTH*2]; /**< Precalculated hex representation of the key*/
-	char printable[SNDNET_ADDRESS_LENGTH*2 + 1];
-} SNAddress;
+typedef struct SNAddress_ SNAddress;
 
 /**
  * Initializes an address
@@ -76,5 +72,11 @@ void sndnet_address_index(const SNAddress* self, const SNAddress* addr, int* lev
  * @return Printable hex address
  * */
 const char* sndnet_address_tostr(const SNAddress* sna);
+
+struct SNAddress_ {
+	unsigned char key[SNDNET_ADDRESS_LENGTH]; /**< Address key */
+	unsigned char hex_key[SNDNET_ADDRESS_LENGTH*2]; /**< Precalculated hex representation of the key*/
+	char printable[SNDNET_ADDRESS_LENGTH*2 + 1];
+};
 
 #endif/*SNDNET_ADDRESS_H_*/
