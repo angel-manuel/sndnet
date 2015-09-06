@@ -44,7 +44,7 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
 	unsigned int level;
 	unsigned char column;
 	const SNEntry* e;
-	SNEntry bests[3];
+	SNEntry bests[4];
 	
 	assert(snr != 0);
 	assert(dst != 0);
@@ -74,10 +74,17 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
 	
 	//Best answer
 	
+	bests[3].is_set = 1;
+	sndnet_address_copy(&(bests[3].sn_addr), &(snr->self));
+	
 	sndnet_router_closest(dst, snr->table[level], SNDNET_ROUTER_COLUMNS, 0, 0, &(bests[0]));
 	sndnet_router_closest(dst, snr->leafset, SNDNET_ROUTER_LEAFSET, &(snr->self), level, &(bests[1]));
 	sndnet_router_closest(dst, snr->neighbourhood, SNDNET_ROUTER_NEIGHBOURHOOD, &(snr->self), level, &(bests[2]));
-	sndnet_router_closest(dst, bests, 3, 0, 0, nexthop);
+	sndnet_router_closest(dst, bests, 4, 0, 0, nexthop);
+	
+	if(sndnet_address_cmp(&(nexthop->sn_addr), &(snr->self)) == 0) {
+		nexthop->is_set = 0;
+	}
 }
 
 int sndnet_router_get_leafset_size(const SNRouter* snr) {
