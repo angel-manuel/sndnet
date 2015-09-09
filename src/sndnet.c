@@ -20,7 +20,7 @@
 typedef struct SNMessage_ {
 	unsigned char dst[crypto_box_PUBLICKEYBYTES];
 	unsigned char src[crypto_box_PUBLICKEYBYTES];
-	unsigned short ttl;
+	uint16_t ttl;
 	uint16_t len;
 } SNMessage;
 
