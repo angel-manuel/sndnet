@@ -55,7 +55,7 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
 	//Leafset routing
 	
 	if(sndnet_router_is_on_leafset_range(snr, dst)) {
-		sndnet_router_closest(dst, snr->leafset, SNDNET_ROUTER_LEAFSET, 0, 0, nexthop);
+		sndnet_router_closest(dst, snr->leafset, SNDNET_ROUTER_LEAFSET_SIZE, 0, 0, nexthop);
 		return;
 	}
 	
@@ -78,8 +78,8 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
 	sndnet_address_copy(&(bests[3].sn_addr), &(snr->self));
 	
 	sndnet_router_closest(dst, snr->table[level], SNDNET_ROUTER_COLUMNS, 0, 0, &(bests[0]));
-	sndnet_router_closest(dst, snr->leafset, SNDNET_ROUTER_LEAFSET, &(snr->self), level, &(bests[1]));
-	sndnet_router_closest(dst, snr->neighbourhood, SNDNET_ROUTER_NEIGHBOURHOOD, &(snr->self), level, &(bests[2]));
+	sndnet_router_closest(dst, snr->leafset, SNDNET_ROUTER_LEAFSET_SIZE, &(snr->self), level, &(bests[1]));
+	sndnet_router_closest(dst, snr->neighbourhood, SNDNET_ROUTER_NEIGHBOURHOOD_SIZE, &(snr->self), level, &(bests[2]));
 	sndnet_router_closest(dst, bests, 4, 0, 0, nexthop);
 	
 	if(sndnet_address_cmp(&(nexthop->sn_addr), &(snr->self)) == 0) {
@@ -95,7 +95,7 @@ int sndnet_router_get_leafset_size(const SNRouter* snr) {
 	if(!snr)
 		return -1;
 	
-	for(count = 0; count < SNDNET_ROUTER_LEAFSET; ++count) {
+	for(count = 0; count < SNDNET_ROUTER_LEAFSET_SIZE; ++count) {
 		if(snr->leafset[count].is_set == 0)
 			break;
 	}
