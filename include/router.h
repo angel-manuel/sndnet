@@ -27,8 +27,13 @@ extern "C" {
 #define SNDNET_ROUTER_NEIGHBOURHOOD_SIZE 8
 
 /**
- * Holds a routing table entry(sndnet addr + normal addr)
+ * Underlying network address
  * */
+typedef struct sockaddr SNRealAddress;
+
+/**
+ * Holds a routing table entry(sndnet addr + normal addr)
+ */
 typedef struct SNEntry_ SNEntry;
 
 /**
@@ -45,11 +50,19 @@ typedef struct SNRouter_ SNRouter;
 void sndnet_router_init(SNRouter* snr, const SNAddress* self);
 
 /**
- * Adds or removes an entry of the routing info
+ * Adds an entry to the routing info
  * @param snr Router state
- * @param sne Entry to be added(if is_set = 1) or deleted(if is_set = 0)
+ * @param addr Second Net address
+ * @param net_addr Underlying network address
  * */
-void sndnet_router_add(SNRouter* snr, const SNEntry* sne);
+void sndnet_router_add(SNRouter* snr, const SNAddress* addr, const SNRealAddress* net_addr);
+
+/**
+ * Removes an entry from the routing info
+ * @param snr Router state
+ * @param addr Second Net address
+ * */
+void sndnet_router_remove(SNRouter* snr, const SNAddress* addr);
 
 /**
  * Tells the best nexthop
@@ -60,9 +73,9 @@ void sndnet_router_add(SNRouter* snr, const SNEntry* sne);
 void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* nexthop);
 
 struct SNEntry_ {
-	unsigned char is_set; /**< Is this entry set? */
-	SNAddress sn_addr; /**< SecondNet address */
-	struct sockaddr net_addr; /**< Traditional network address */
+    unsigned char is_set; /**< Is this entry set? */
+    SNAddress sn_addr; /**< SecondNet address */
+    SNRealAddress net_addr; /**< Traditional network address */
 };
 
 struct SNRouter_ {

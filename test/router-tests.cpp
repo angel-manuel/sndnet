@@ -26,15 +26,14 @@ SCENARIO("routing is correct", "[router]") {
 	GIVEN("A router on 4f5e22 that knows of 888888") {
 		SNRouter r;
 		SNAddress self;
-		SNEntry rem;
+		SNAddress rem;
 		
 		sndnet_address_from_hexstr(&self, "4f5e22");
 		sndnet_router_init(&r, &self);
 
-		sndnet_address_from_hexstr(&(rem.sn_addr), "888888");
-		rem.is_set = 1;
+		sndnet_address_from_hexstr(&rem, "888888");
 
-		sndnet_router_add(&r, &rem);
+		sndnet_router_add(&r, &rem, NULL);
 		
 		WHEN("Asking for next hop to 888888") {
 			SNAddress dst;
@@ -45,7 +44,7 @@ SCENARIO("routing is correct", "[router]") {
 			sndnet_router_nexthop(&r, &dst, &nexthop);
 
 			REQUIRE(nexthop.is_set == 1);
-			REQUIRE(sndnet_address_cmp(&(rem.sn_addr), &(nexthop.sn_addr)) == 0);
+			REQUIRE(sndnet_address_cmp(&rem, &(nexthop.sn_addr)) == 0);
 		}
 
 		WHEN("Asking for next hop to 488888") {
@@ -69,15 +68,14 @@ SCENARIO("routing is correct", "[router]") {
 			sndnet_router_nexthop(&r, &dst, &nexthop);
 
 			REQUIRE(nexthop.is_set == 1);
-			REQUIRE(sndnet_address_cmp(&(rem.sn_addr), &(nexthop.sn_addr)) == 0);
+			REQUIRE(sndnet_address_cmp(&rem, &(nexthop.sn_addr)) == 0);
 		}
 
 		WHEN("Removing 888888 and asking 788888") {
 			SNAddress dst;
 			SNEntry nexthop;
 
-			rem.is_set = 0;
-			sndnet_router_add(&r, &rem);
+			sndnet_router_remove(&r, &rem);
 
 			sndnet_address_from_hexstr(&dst, "788888");
 

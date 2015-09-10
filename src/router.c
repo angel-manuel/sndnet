@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/socket.h>
 
+void sndnet_router_set(SNRouter* snr, const SNEntry* sne);
 int sndnet_router_get_leafset_size(const SNRouter* snr);
 int sndnet_router_is_on_leafset_range(const SNRouter* snr, const SNAddress* addr);
 void sndnet_router_closest(const SNAddress* dst, const SNEntry candidates[], size_t max, const SNAddress* self, unsigned int min_level, SNEntry* closest);
@@ -16,28 +17,31 @@ void sndnet_router_init(SNRouter* snr, const SNAddress* self) {
 	sndnet_address_copy(&(snr->self), self);
 }
 
-void sndnet_router_add(SNRouter* snr, const SNEntry* sne) {
-	unsigned int level;
-	unsigned char column;
-	SNEntry* insert;
-	const SNAddress* addr;
-	
-	assert(snr != 0);
-	assert(sne != 0);
-	
-	addr = &(sne->sn_addr);
-	
-	sndnet_address_index(&(snr->self), addr, &level, &column);
+void sndnet_router_add(SNRouter* snr, const SNAddress* addr, const SNRealAddress* net_addr) {
+	SNEntry e;
 
-	if(column >= 0) {
-		insert = &(snr->table[level][column]);
-		
-		assert(sndnet_address_cmp(&(snr->self), &(insert->sn_addr)) != 0); //Should be impossible
-		
-		memcpy(insert, sne, sizeof(SNEntry));
-	}
-	
-	//TODO: Add to leafset
+	assert(addr != 0);
+
+	e.is_set = 1;
+	sndnet_address_copy(&(e.sn_addr), addr);
+
+	if(net_addr)
+		memcpy(&(e.net_addr), net_addr, sizeof(SNRealAddress));
+	else
+		memset(&(e.net_addr), 0, sizeof(SNRealAddress));
+
+	sndnet_router_set(snr, &e);
+}
+
+void sndnet_router_remove(SNRouter* snr, const SNAddress* addr) {
+	SNEntry e;
+
+	assert(addr != 0);
+
+	e.is_set = 0;
+	sndnet_address_copy(&(e.sn_addr), addr);
+
+	sndnet_router_set(snr, &e);
 }
 
 void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* nexthop) {
@@ -160,4 +164,28 @@ void sndnet_router_closest(const SNAddress* dst, const SNEntry candidates[], siz
 	} else {
 		closest->is_set = 0;
 	}
+}
+
+void sndnet_router_set(SNRouter* snr, const SNEntry* sne) {
+	unsigned int level;
+	unsigned char column;
+	SNEntry* insert;
+	const SNAddress* addr;
+	
+	assert(snr != 0);
+	assert(sne != 0);
+	
+	addr = &(sne->sn_addr);
+	
+	sndnet_address_index(&(snr->self), addr, &level, &column);
+
+	if(column >= 0) {
+		insert = &(snr->table[level][column]);
+		
+		assert(sndnet_address_cmp(&(snr->self), &(insert->sn_addr)) != 0); //Should be impossible
+		
+		memcpy(insert, sne, sizeof(SNEntry));
+	}
+	
+	//TODO: Add to leafset
 }
