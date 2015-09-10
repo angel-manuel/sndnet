@@ -71,5 +71,20 @@ SCENARIO("routing is correct", "[router]") {
 			REQUIRE(nexthop.is_set == 1);
 			REQUIRE(sndnet_address_cmp(&(rem.sn_addr), &(nexthop.sn_addr)) == 0);
 		}
+
+		WHEN("Removing 888888 and asking 788888") {
+			SNAddress dst;
+			SNEntry nexthop;
+
+			rem.is_set = 0;
+			sndnet_router_add(&r, &rem);
+
+			sndnet_address_from_hexstr(&dst, "788888");
+
+			sndnet_router_nexthop(&r, &dst, &nexthop);
+
+			REQUIRE(nexthop.is_set == 0);
+			REQUIRE(sndnet_address_cmp(&self, &(nexthop.sn_addr)) == 0);
+		}
 	}
 }
