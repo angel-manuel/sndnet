@@ -9,6 +9,10 @@
 
 #include <pthread.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Callback for logging
  * */
@@ -47,5 +51,9 @@ struct SNState_ {
 	unsigned short port; /**< Listening port */
 	int socket_fd; /**< Listening socket file descriptor */
 };
+
+#ifdef __cplusplus
+} /*extern "C"*/
+#endif
 
 #endif/*SNDNET_SNDNET_H_*/

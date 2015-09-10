@@ -6,6 +6,10 @@
 #ifndef SNDNET_ADDRESS_H_
 #define SNDNET_ADDRESS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * SecondNet address length
  * */
@@ -22,6 +26,14 @@ typedef struct SNAddress_ SNAddress;
  * @param key Naked address key(the public key or some hash of it, TBD)
  * */
 void sndnet_address_init(SNAddress* snk, unsigned char key[SNDNET_ADDRESS_LENGTH]);
+
+/**
+ * Initializes an address from the hexadecimal string
+ * @param snk SNAddress to be initialized
+ * @param hexstr NULL-terminated strin with the hexadecimal representation of the key. If shorter than address length
+ * 				 the rest is assumed to be "0x0"
+ * */
+void sndnet_address_from_hexstr(SNAddress* snk, const char* hexstr);
 
 /**
  * Gets the address key
@@ -83,5 +95,9 @@ struct SNAddress_ {
 	unsigned char hex_key[SNDNET_ADDRESS_LENGTH*2]; /**< Precalculated hex representation of the key*/
 	char printable[SNDNET_ADDRESS_LENGTH*2 + 1];
 };
+
+#ifdef __cplusplus
+} /*extern "C"*/
+#endif
 
 #endif/*SNDNET_ADDRESS_H_*/

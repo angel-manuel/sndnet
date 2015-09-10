@@ -10,6 +10,10 @@
 
 #include <sys/socket.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Number of levels in the routing table */
 #define SNDNET_ROUTER_LEVELS (SNDNET_ADDRESS_LENGTH*2)
 
@@ -67,5 +71,9 @@ struct SNRouter_ {
 	SNEntry leafset[SNDNET_ROUTER_LEAFSET]; /**< Leafset */
 	SNEntry neighbourhood[SNDNET_ROUTER_NEIGHBOURHOOD]; /**< Neighbourhood */
 };
+
+#ifdef __cplusplus
+} /*extern "C"*/
+#endif
 
 #endif/*SNDNET_ROUTER_H_*/
