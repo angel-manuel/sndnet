@@ -79,10 +79,10 @@ struct SNEntry_ {
 };
 
 struct SNRouter_ {
-	SNAddress self; /**< Our address */
-	SNEntry table[SNDNET_ROUTER_LEVELS][SNDNET_ROUTER_COLUMNS]; /**< Routing table */
-	SNEntry leafset[SNDNET_ROUTER_LEAFSET_SIZE]; /**< Leafset */
-	SNEntry neighbourhood[SNDNET_ROUTER_NEIGHBOURHOOD_SIZE]; /**< Neighbourhood */
+    SNAddress self; /**< Our address */
+    SNEntry table[SNDNET_ROUTER_LEVELS][SNDNET_ROUTER_COLUMNS]; /**< Routing table */
+    SNEntry leafset[SNDNET_ROUTER_LEAFSET_SIZE]; /**< Leafset */
+    SNEntry neighbourhood[SNDNET_ROUTER_NEIGHBOURHOOD_SIZE]; /**< Neighbourhood */
 };
 
 #ifdef __cplusplus

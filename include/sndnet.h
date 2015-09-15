@@ -46,10 +46,10 @@ void sndnet_destroy(SNState* sns);
 void sndnet_set_log_callback(SNState* sns, sndnet_log_callback cb);
 
 struct SNState_ {
-	pthread_t bg_thrd; /**< Background thread for routing */
-	sndnet_log_callback log_cb; /**< Callback for logging */
-	unsigned short port; /**< Listening port */
-	int socket_fd; /**< Listening socket file descriptor */
+    pthread_t bg_thrd; /**< Background thread for routing */
+    sndnet_log_callback log_cb; /**< Callback for logging */
+    unsigned short port; /**< Listening port */
+    int socket_fd; /**< Listening socket file descriptor */
 };
 
 #ifdef __cplusplus
