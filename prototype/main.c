@@ -13,6 +13,9 @@ int main() {
     
     while(fgets(line, 1024, stdin)) {
         command = strtok(line, " \n");
+
+        if(!command)
+            continue;
         
         if(strcmp(command, "quit") == 0) {
             break;
