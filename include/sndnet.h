@@ -7,6 +7,8 @@
 #ifndef SNDNET_SNDNET_H_
 #define SNDNET_SNDNET_H_
 
+#include "address.h"
+
 #include <pthread.h>
 
 #ifdef __cplusplus
@@ -44,6 +46,16 @@ void sndnet_destroy(SNState* sns);
  * @param[in] cb The new callback. If it is NULL, default logging(stderr) will be used
  * */
 void sndnet_set_log_callback(SNState* sns, sndnet_log_callback cb);
+
+/**
+ * Sends a message without need for acknowledgement
+ * @param sns Node state
+ * @param dst Destination address
+ * @param len Message length
+ * @param payload Message payload
+ * @return -1 if error
+ */
+int sndnet_send(const SNState* sns, const SNAddress* dst, size_t len, const char* payload);
 
 struct SNState_ {
     pthread_t bg_thrd; /**< Background thread for routing */

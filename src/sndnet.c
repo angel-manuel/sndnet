@@ -16,10 +16,11 @@
 #include "address.h"
 
 #define SNDNET_MAX_MSG_LEN 1000
+#define SNDNET_TTL_DEFAULT 32
 
 typedef struct SNMessage_ {
-    unsigned char dst[crypto_box_PUBLICKEYBYTES];
-    unsigned char src[crypto_box_PUBLICKEYBYTES];
+    unsigned char dst[SNDNET_ADDRESS_LENGTH];
+    unsigned char src[SNDNET_ADDRESS_LENGTH];
     uint16_t ttl;
     uint16_t len;
 } SNMessage;
@@ -106,6 +107,49 @@ void sndnet_set_log_callback(SNState* sns, sndnet_log_callback cb) {
     
     sndnet_log(sns, "Log callback changed");
 }
+
+int sndnet_send(const SNState* sns, const SNAddress* dst, size_t len, const char* payload) {
+    char *buffer;
+    SNMessage *msg;
+    char *msgbuf;
+    SNEntry nexthop;
+
+    assert(sns != 0);
+    assert(dst != 0);
+    assert(msg != 0 || len == 0);
+
+    if(len > SNDNET_MAX_MSG_LEN)
+        return -1;
+
+    buffer = (char*)malloc(sizeof(SNMessage) + len);
+
+    if(!buffer)
+        return -1;
+
+    msg = (SNMessage*)buffer;
+    msgbuf = (char*)(msg + 1);
+
+    memcpy(&(msg->dst), sndnet_address_get(dst), SNDNET_ADDRESS_LENGTH);
+    memcpy(&(msg->src), sndnet_address_get(&(sns->self)), SNDNET_ADDRESS_LENGTH);
+    msg->ttl = SNDNET_TTL_DEFAULT;
+    msg->len = len;
+
+    memcpy(msgbuf, payload, len);
+
+    sndnet_router_nexthop(&(sns->router), dst, &nexthop);
+
+    if(nexthop.is_set) {
+        //TODO: forward
+    } else {
+        //TODO: deliver
+    }
+
+    free(buffer);
+
+    return 0;
+}
+
+/*Private functions*/
 
 void sndnet_log(SNState* sns, const char* format, ...) {
     char str[1024];
