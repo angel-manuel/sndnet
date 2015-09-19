@@ -15,6 +15,8 @@ extern "C" {
  * */
 #define SNDNET_ADDRESS_LENGTH 32
 
+#define SNDNET_ADDRESS_PRINTABLE_LENGTH ((SNDNET_ADDRESS_LENGTH*2)+1)
+
 /**
  * Holds an address
  * */

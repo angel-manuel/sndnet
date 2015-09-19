@@ -2,7 +2,7 @@
 
 #include <router.h>
 
-SCENARIO("routing is correct", "[router]") {
+SCENARIO("routing is correct", "router") {
     GIVEN("An empty router on 4f5e22") {
         SNRouter r;
         SNAddress self;

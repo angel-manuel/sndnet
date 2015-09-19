@@ -1,6 +1,7 @@
 #include "address.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <string.h>
 
 void bytestring_to_hexstring(const unsigned char* bytestring, unsigned char* hexstring);
@@ -37,10 +38,19 @@ const unsigned char* sndnet_address_get_hex(const SNAddress* sna) {
 }
 
 int sndnet_address_cmp(const SNAddress* a, const SNAddress* b) {
+    int d, i;
+
     assert(a != 0);
     assert(b != 0);
     
-    return strncmp((char*)a->key, (char*)b->key, SNDNET_ADDRESS_LENGTH);
+    for(i = 0; i < SNDNET_ADDRESS_LENGTH; ++i) {
+        d = (int)a->key[i] - (int)b->key[i];
+
+        if(d)
+            return d;
+    }
+
+    return 0;
 }
 
 void sndnet_address_dist(const SNAddress* a, const SNAddress* b, SNAddress* dist) {
@@ -56,10 +66,10 @@ void sndnet_address_dist(const SNAddress* a, const SNAddress* b, SNAddress* dist
     
     carry = 0;
     for(i = (SNDNET_ADDRESS_LENGTH - 1); i >= 0; --i) {
-        ca = a->key[i] - carry;
-        cb = b->key[i];
+        ca = a->key[i];
+        cb = b->key[i] + carry;
         
-        carry = (ca >= cb);
+        carry = (cb > ca);
         cc = ca - cb;
         
         sub[i] = cc;
@@ -99,7 +109,7 @@ void sndnet_address_index(const SNAddress* self, const SNAddress* addr, unsigned
             ++l;
         } else {
             if(column)
-                *column = (int)hex_b[i];
+                *column = hex_b[i];
             break;
         }
     }
@@ -170,18 +180,22 @@ void hexstring_to_printable(const unsigned char* hexstring, char* printable) {
 
 void printable_to_bytestring(const char* printable, unsigned char* bytestring) {
     int i;
-    char c;
+    int c;
     unsigned char ac = 0;
     
     memset(bytestring, 0, SNDNET_ADDRESS_LENGTH);
     
     for(i = 0; printable[i] != '\0' && i < SNDNET_ADDRESS_LENGTH*2; ++i) {
-        c = printable[i];
+        c = (int)printable[i];
+
+        assert(isalnum(c));
         
-        if(c >= '0' && c <= '9') {
+        if(isdigit(c)) {
             ac += (c - '0');
-        } else {
-            ac += (c - 'W');
+        } else if(islower(c)) {
+            ac += (c - 'a' + 10);
+        } else if(isupper(c)) {
+            ac += (c - 'A' + 10);
         }
         
         if(i % 2) {
