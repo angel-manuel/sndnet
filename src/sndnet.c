@@ -14,23 +14,18 @@
 #include <unistd.h>
 
 #include "address.h"
+#include "message.h"
 
 #define SNDNET_MAX_MSG_LEN 1000
 #define SNDNET_TTL_DEFAULT 32
 
-typedef struct SNMessage_ {
-    unsigned char dst[SNDNET_ADDRESS_LENGTH];
-    unsigned char src[SNDNET_ADDRESS_LENGTH];
-    uint16_t ttl;
-    uint16_t len;
-} SNMessage;
 
 void sndnet_log(SNState* sns, const char* format, ...);
 void* sndnet_background(void* arg);
 
-void default_log_cb(const char* msg) {
-    fprintf(stderr, "sndnet: %s\n", msg);
-}
+void default_log_cb(const char* msg);
+void default_forward_cb(const SNMessage* msg, SNState* sns, SNEntry* nexthop);
+void default_deliver_cb(const SNMessage* msg, SNState* sns);
 
 int sndnet_init(SNState* sns, unsigned short port) {
     int socket_fd;
@@ -108,9 +103,31 @@ void sndnet_set_log_callback(SNState* sns, sndnet_log_callback cb) {
     sndnet_log(sns, "Log callback changed");
 }
 
+void sndnet_set_forward_callback(SNState* sns, sndnet_forward_callback cb) {
+    assert(sns != 0);
+
+    if(cb)
+        sns->forward_cb = cb;
+    else
+        sns->forward_cb = default_forward_cb;
+
+    sndnet_log(sns, "Forwarding callback changed");
+}
+
+void sndnet_set_deliver_callback(SNState* sns, sndnet_deliver_callback cb) {
+    assert(sns != 0);
+
+    if(cb)
+        sns->deliver_cb = cb;
+    else
+        sns->deliver_cb = default_deliver_cb;
+
+    sndnet_log(sns, "Delivering callback changed");
+}
+
 int sndnet_send(const SNState* sns, const SNAddress* dst, size_t len, const char* payload) {
     char *buffer;
-    SNMessage *msg;
+    SNHeader *msg;
     char *msgbuf;
     SNEntry nexthop;
 
@@ -121,12 +138,12 @@ int sndnet_send(const SNState* sns, const SNAddress* dst, size_t len, const char
     if(len > SNDNET_MAX_MSG_LEN)
         return -1;
 
-    buffer = (char*)malloc(sizeof(SNMessage) + len);
+    buffer = (char*)malloc(sizeof(SNHeader) + len);
 
     if(!buffer)
         return -1;
 
-    msg = (SNMessage*)buffer;
+    msg = (SNHeader*)buffer;
     msgbuf = (char*)(msg + 1);
 
     memcpy(&(msg->dst), sndnet_address_get(dst), SNDNET_ADDRESS_LENGTH);
@@ -168,65 +185,19 @@ void sndnet_log(SNState* sns, const char* format, ...) {
 
 void* sndnet_background(void* arg) {
     SNState* sns = (SNState*)arg;
-    SNMessage msg;
-    struct sockaddr rem_addr;
-    socklen_t addrlen = sizeof(rem_addr);
-    int recv_count;
     SNAddress dst, src;
-    unsigned char* buffer;
-    uint16_t size;
+    SNMessage* msg;
     
     assert(sns != 0);
     
     do {
-        memset(&msg, 0, sizeof(msg));
-        
-        recv_count = recvfrom(sns->socket_fd, &msg, sizeof(msg), MSG_PEEK, &rem_addr, &addrlen);
-        
-        if(recv_count < sizeof(msg)) {
-            if(recv_count < 0) {
-                sndnet_log(sns, "Error on recvfrom()");
-                return 0;
-            } else if(recv_count) {
-                sndnet_log(sns, "Message too short");
-            }
-            recvfrom(sns->socket_fd, &msg, sizeof(msg), 0, 0, 0);
+        msg = sndnet_message_recv(sns->socket_fd);
+
+        if(!msg)
             continue;
-        }
         
-        if(msg.len > SNDNET_MAX_MSG_LEN) {
-            sndnet_log(sns, "Message too large: %zu bytes", msg.len);
-            recvfrom(sns->socket_fd, &msg, sizeof(msg), 0, 0, 0);
-            continue;
-        }
-        
-        size = sizeof(SNMessage) + (size_t)msg.len;
-        
-        sndnet_log(sns, "Allocating %zu bytes", size + 1);
-        buffer = (unsigned char*)malloc(size + 1);
-        
-        if(!buffer) {
-            sndnet_log(sns, "Error on malloc");
-            return 0;
-        }
-        
-        recv_count = recvfrom(sns->socket_fd, buffer, size, 0, 0, 0);
-        
-        if(recv_count < size) {
-            if(recv_count < 0) {
-                sndnet_log(sns, "Error on recvfrom()");
-                return 0;
-            } else if(recv_count) {
-                sndnet_log(sns, "Message shorter than specified in header");
-            }
-            free(buffer);
-            continue;
-        }
-        
-        buffer[size] = '\0';
-        
-        sndnet_address_init(&dst, msg.dst);
-        sndnet_address_init(&src, msg.src);
+        sndnet_address_init(&dst, msg->header.dst);
+        sndnet_address_init(&src, msg->header.src);
         
         sndnet_log(sns, "msg\n"
         "dst = %s\n"
@@ -236,10 +207,25 @@ void* sndnet_background(void* arg) {
         "buf = %s\n",
         sndnet_address_tostr(&dst),
         sndnet_address_tostr(&src),
-        msg.ttl, msg.len, buffer + sizeof(SNMessage));
+        msg->header.ttl, msg->header.len, msg->payload);
         
-        free(buffer);
-    } while(recv_count > 0);
+        free(msg);
+    } while(1);
     
     return sns;
+}
+
+/*Default callbacks*/
+
+
+void default_log_cb(const char* msg) {
+    fprintf(stderr, "sndnet: %s\n", msg);
+}
+
+void default_forward_cb(const SNMessage* msg, SNState* sns, SNEntry* nexthop) {
+
+}
+
+void default_deliver_cb(const SNMessage* msg, SNState* sns) {
+
 }

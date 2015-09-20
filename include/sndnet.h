@@ -8,6 +8,8 @@
 #define SNDNET_SNDNET_H_
 
 #include "address.h"
+#include "message.h"
+#include "router.h"
 
 #include <pthread.h>
 
@@ -16,15 +18,25 @@ extern "C" {
 #endif
 
 /**
+ * Holds the state of a node.
+ * Should NOT be modified directly.
+ * */
+typedef struct SNState_ SNState;
+
+/**
  * Callback for logging
  * */
 typedef void (*sndnet_log_callback)(const char* msg);
 
 /**
- * Holds the state of a node.
- * Should NOT be modified directly.
+ * Callback for forward
  * */
-typedef struct SNState_ SNState;
+typedef void (*sndnet_forward_callback)(const SNMessage* msg, SNState* sns, SNEntry* nexthop);
+
+/**
+ * Callback for delivery
+ * */
+typedef void (*sndnet_deliver_callback)(const SNMessage* msg, SNState* sns);
 
 /**
  * Initialization of a node
@@ -48,6 +60,20 @@ void sndnet_destroy(SNState* sns);
 void sndnet_set_log_callback(SNState* sns, sndnet_log_callback cb);
 
 /**
+ * Changes the forwarding callback
+ * @param sns Node state
+ * @param[in] cb The new callback. If it is NULL default forwarding will be used.
+ * */
+void sndnet_set_forward_callback(SNState* sns, sndnet_forward_callback cb);
+
+/**
+ * Changes the delivering callback
+ * @param sns Node state
+ * @param[in] cb The new callback. If it is NULL, message will be just logged.
+ * */
+void sndnet_set_deliver_callback(SNState* sns, sndnet_deliver_callback cb);
+
+/**
  * Sends a message without need for acknowledgement
  * @param sns Node state
  * @param dst Destination address
@@ -58,8 +84,12 @@ void sndnet_set_log_callback(SNState* sns, sndnet_log_callback cb);
 int sndnet_send(const SNState* sns, const SNAddress* dst, size_t len, const char* payload);
 
 struct SNState_ {
+    SNAddress self;
+    SNRouter router;
     pthread_t bg_thrd; /**< Background thread for routing */
     sndnet_log_callback log_cb; /**< Callback for logging */
+    sndnet_forward_callback forward_cb; /**< Callback for forward */
+    sndnet_deliver_callback deliver_cb; /**< Callback for deliver */
     unsigned short port; /**< Listening port */
     int socket_fd; /**< Listening socket file descriptor */
 };
