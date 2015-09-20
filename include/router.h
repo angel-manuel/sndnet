@@ -27,11 +27,6 @@ extern "C" {
 #define SNDNET_ROUTER_NEIGHBOURHOOD_SIZE 8
 
 /**
- * Underlying network address
- * */
-typedef struct sockaddr sndnet_realaddr_t;
-
-/**
  * Holds a routing table entry(sndnet addr + normal addr)
  */
 typedef struct sndnet_entry_t_ sndnet_entry_t;

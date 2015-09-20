@@ -23,6 +23,11 @@ extern "C" {
 typedef struct sndnet_addr_t_ sndnet_addr_t;
 
 /**
+ * Underlying network address
+ * */
+typedef struct sockaddr sndnet_realaddr_t;
+
+/**
  * Initializes an address
  * @param snk sndnet_addr_t to be initialized
  * @param key Naked address key(the public key or some hash of it, TBD)

@@ -16,10 +16,6 @@
 #include "address.h"
 #include "message.h"
 
-#define SNDNET_MAX_MSG_LEN 1000
-#define SNDNET_TTL_DEFAULT 32
-
-
 void sndnet_log(sndnet_state_t* sns, const char* format, ...);
 void* sndnet_background(void* arg);
 
@@ -126,32 +122,17 @@ void sndnet_set_deliver_callback(sndnet_state_t* sns, sndnet_deliver_callback cb
 }
 
 int sndnet_send(const sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len, const char* payload) {
-    char *buffer;
-    sndnet_header_t *msg;
-    char *msgbuf;
+    sndnet_message_t* msg;
     sndnet_entry_t nexthop;
 
     assert(sns != 0);
     assert(dst != 0);
     assert(msg != 0 || len == 0);
 
-    if(len > SNDNET_MAX_MSG_LEN)
+    msg = sndnet_message_pack(dst, &(sns->self), len, payload);
+
+    if(!msg)
         return -1;
-
-    buffer = (char*)malloc(sizeof(sndnet_header_t) + len);
-
-    if(!buffer)
-        return -1;
-
-    msg = (sndnet_header_t*)buffer;
-    msgbuf = (char*)(msg + 1);
-
-    memcpy(&(msg->dst), sndnet_address_get(dst), SNDNET_ADDRESS_LENGTH);
-    memcpy(&(msg->src), sndnet_address_get(&(sns->self)), SNDNET_ADDRESS_LENGTH);
-    msg->ttl = SNDNET_TTL_DEFAULT;
-    msg->len = len;
-
-    memcpy(msgbuf, payload, len);
 
     sndnet_router_nexthop(&(sns->router), dst, &nexthop);
 
@@ -161,7 +142,7 @@ int sndnet_send(const sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len,
         //TODO: deliver
     }
 
-    free(buffer);
+    free(msg);
 
     return 0;
 }
@@ -186,12 +167,13 @@ void sndnet_log(sndnet_state_t* sns, const char* format, ...) {
 void* sndnet_background(void* arg) {
     sndnet_state_t* sns = (sndnet_state_t*)arg;
     sndnet_addr_t dst, src;
+    sndnet_realaddr_t rem_addr;
     sndnet_message_t* msg;
     
     assert(sns != 0);
     
     do {
-        msg = sndnet_message_recv(sns->socket_fd);
+        msg = sndnet_message_recv(sns->socket_fd, &rem_addr);
 
         if(!msg)
             continue;

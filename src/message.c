@@ -4,11 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-sndnet_message_t* sndnet_message_recv(int socket_fd) {
+sndnet_message_t* sndnet_message_recv(int socket_fd, sndnet_realaddr_t* rem_addr) {
     sndnet_header_t header;
     sndnet_message_t* msg;
-    struct sockaddr rem_addr;
-    socklen_t addrlen = sizeof(rem_addr);
+    socklen_t addrlen = sizeof(sndnet_realaddr_t);
     int recv_count;
     uint16_t size;
 
@@ -16,7 +15,7 @@ sndnet_message_t* sndnet_message_recv(int socket_fd) {
 
     memset(&header, 0, sizeof(header));
 
-    recv_count = recvfrom(socket_fd, &header, sizeof(header), MSG_PEEK, &rem_addr, &addrlen);
+    recv_count = recvfrom(socket_fd, &header, sizeof(header), MSG_PEEK, rem_addr, &addrlen);
 
     if(recv_count < sizeof(header)) {
         if(recv_count < 0) {
@@ -52,7 +51,27 @@ sndnet_message_t* sndnet_message_recv(int socket_fd) {
     }
 
     msg->payload[header.len] = '\0';
-    memcpy(&(msg->rem_addr), &rem_addr, sizeof(rem_addr));
+
+    return msg;
+}
+
+sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_addr_t* src, size_t len, const char* payload) {
+    sndnet_message_t* msg;
+
+    assert(dst != 0);
+    assert(src != 0);
+    assert(payload != 0 || len == 0);
+
+    msg = (sndnet_message_t*)malloc(sizeof(sndnet_message_t) + len);
+
+    if(!msg)
+        return 0;
+
+    memcpy(&(msg->header.dst), sndnet_address_get(dst), sizeof(SNDNET_ADDRESS_LENGTH));
+    memcpy(&(msg->header.src), sndnet_address_get(src), sizeof(SNDNET_ADDRESS_LENGTH));
+    msg->header.ttl = SNDNET_MESSAGE_DEFAULT_TTL;
+    msg->header.len = len;
+    memcpy(&(msg->payload), payload, len);
 
     return msg;
 }
