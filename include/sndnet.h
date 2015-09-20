@@ -81,7 +81,7 @@ void sndnet_set_deliver_callback(sndnet_state_t* sns, sndnet_deliver_callback cb
  * @param payload Message payload
  * @return -1 if error
  */
-int sndnet_send(const sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len, const char* payload);
+int sndnet_send(sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len, const char* payload);
 
 struct sndnet_state_t_ {
     sndnet_addr_t self;
