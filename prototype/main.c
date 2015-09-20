@@ -5,7 +5,7 @@
 #include <string.h>
 
 int main() {
-    SNState sns;
+    sndnet_state_t sns;
     char line[1024];
     char* command;
     

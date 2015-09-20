@@ -6,7 +6,7 @@
 #include <string.h>
 
 TEST_CASE("Uppercase initialization", "[address]") {
-    SNAddress addr;
+    sndnet_addr_t addr;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
     const char hex_lower[] = "0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff";
 
@@ -17,8 +17,8 @@ TEST_CASE("Uppercase initialization", "[address]") {
 }
 
 TEST_CASE("Comparison", "address") {
-    SNAddress addr;
-    SNAddress addr2;
+    sndnet_addr_t addr;
+    sndnet_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
     const char hex2[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeAfffe";
 
@@ -29,10 +29,10 @@ TEST_CASE("Comparison", "address") {
 }
 
 TEST_CASE("Distance", "address") {
-    SNAddress addr;
-    SNAddress addr2;
-    SNAddress dist;
-    SNAddress exp_dist;
+    sndnet_addr_t addr;
+    sndnet_addr_t addr2;
+    sndnet_addr_t dist;
+    sndnet_addr_t exp_dist;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
     const char hex2[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeAfffe";
     const char hex_dist[] = "0000000000000000000000000000000000000000000000000000000000040001";
@@ -47,8 +47,8 @@ TEST_CASE("Distance", "address") {
 }
 
 TEST_CASE("Indexing", "address") {
-    SNAddress addr;
-    SNAddress addr2;
+    sndnet_addr_t addr;
+    sndnet_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
     const char hex_lower[] = "0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff";
     const char hex2[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeAfffe";
@@ -64,8 +64,8 @@ TEST_CASE("Indexing", "address") {
 }
 
 TEST_CASE("Copy", "address") {
-    SNAddress addr;
-    SNAddress addr2;
+    sndnet_addr_t addr;
+    sndnet_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
 
     sndnet_address_from_hexstr(&addr, hex);
@@ -75,7 +75,7 @@ TEST_CASE("Copy", "address") {
 }
 
 TEST_CASE("Short initialization", "address") {
-    SNAddress addr;
+    sndnet_addr_t addr;
     const char hex[] = "abcd";
     const char hex_full[] = "abcd000000000000000000000000000000000000000000000000000000000000";
 

@@ -4,15 +4,15 @@
 
 SCENARIO("routing is correct", "router") {
     GIVEN("An empty router on 4f5e22") {
-        SNRouter r;
-        SNAddress self;
+        sndnet_router_t r;
+        sndnet_addr_t self;
         
         sndnet_address_from_hexstr(&self, "4f5e22");
         sndnet_router_init(&r, &self);
         
         WHEN("Asking for next hop to 888888(shouldn't return one)") {
-            SNAddress dst;
-            SNEntry nexthop;
+            sndnet_addr_t dst;
+            sndnet_entry_t nexthop;
 
             sndnet_address_from_hexstr(&dst, "888888");
 
@@ -24,9 +24,9 @@ SCENARIO("routing is correct", "router") {
     }
 
     GIVEN("A router on 4f5e22 that knows of 888888") {
-        SNRouter r;
-        SNAddress self;
-        SNAddress rem;
+        sndnet_router_t r;
+        sndnet_addr_t self;
+        sndnet_addr_t rem;
         
         sndnet_address_from_hexstr(&self, "4f5e22");
         sndnet_router_init(&r, &self);
@@ -36,8 +36,8 @@ SCENARIO("routing is correct", "router") {
         sndnet_router_add(&r, &rem, NULL);
         
         WHEN("Asking for next hop to 888888") {
-            SNAddress dst;
-            SNEntry nexthop;
+            sndnet_addr_t dst;
+            sndnet_entry_t nexthop;
 
             sndnet_address_from_hexstr(&dst, "888888");
 
@@ -48,8 +48,8 @@ SCENARIO("routing is correct", "router") {
         }
 
         WHEN("Asking for next hop to 488888") {
-            SNAddress dst;
-            SNEntry nexthop;
+            sndnet_addr_t dst;
+            sndnet_entry_t nexthop;
 
             sndnet_address_from_hexstr(&dst, "488888");
 
@@ -60,8 +60,8 @@ SCENARIO("routing is correct", "router") {
         }
 
         WHEN("Asking for next hop to 788888") {
-            SNAddress dst;
-            SNEntry nexthop;
+            sndnet_addr_t dst;
+            sndnet_entry_t nexthop;
 
             sndnet_address_from_hexstr(&dst, "788888");
 
@@ -72,8 +72,8 @@ SCENARIO("routing is correct", "router") {
         }
 
         WHEN("Removing 888888 and asking 788888") {
-            SNAddress dst;
-            SNEntry nexthop;
+            sndnet_addr_t dst;
+            sndnet_entry_t nexthop;
 
             sndnet_router_remove(&r, &rem);
 

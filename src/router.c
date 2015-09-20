@@ -4,21 +4,21 @@
 #include <string.h>
 #include <sys/socket.h>
 
-void sndnet_router_set(SNRouter* snr, const SNEntry* sne);
-int sndnet_router_get_leafset_size(const SNRouter* snr);
-int sndnet_router_is_on_leafset_range(const SNRouter* snr, const SNAddress* addr);
-void sndnet_router_closest(const SNAddress* dst, const SNEntry candidates[], size_t max, const SNAddress* self, unsigned int min_level, SNEntry* closest);
+void sndnet_router_set(sndnet_router_t* snr, const sndnet_entry_t* sne);
+int sndnet_router_get_leafset_size(const sndnet_router_t* snr);
+int sndnet_router_is_on_leafset_range(const sndnet_router_t* snr, const sndnet_addr_t* addr);
+void sndnet_router_closest(const sndnet_addr_t* dst, const sndnet_entry_t candidates[], size_t max, const sndnet_addr_t* self, unsigned int min_level, sndnet_entry_t* closest);
 
-void sndnet_router_init(SNRouter* snr, const SNAddress* self) {
+void sndnet_router_init(sndnet_router_t* snr, const sndnet_addr_t* self) {
     assert(snr != 0);
     assert(self != 0);
     
-    memset(snr, 0, sizeof(SNRouter));
+    memset(snr, 0, sizeof(sndnet_router_t));
     sndnet_address_copy(&(snr->self), self);
 }
 
-void sndnet_router_add(SNRouter* snr, const SNAddress* addr, const SNRealAddress* net_addr) {
-    SNEntry e;
+void sndnet_router_add(sndnet_router_t* snr, const sndnet_addr_t* addr, const sndnet_realaddr_t* net_addr) {
+    sndnet_entry_t e;
 
     assert(addr != 0);
 
@@ -26,15 +26,15 @@ void sndnet_router_add(SNRouter* snr, const SNAddress* addr, const SNRealAddress
     sndnet_address_copy(&(e.sn_addr), addr);
 
     if(net_addr)
-        memcpy(&(e.net_addr), net_addr, sizeof(SNRealAddress));
+        memcpy(&(e.net_addr), net_addr, sizeof(sndnet_realaddr_t));
     else
-        memset(&(e.net_addr), 0, sizeof(SNRealAddress));
+        memset(&(e.net_addr), 0, sizeof(sndnet_realaddr_t));
 
     sndnet_router_set(snr, &e);
 }
 
-void sndnet_router_remove(SNRouter* snr, const SNAddress* addr) {
-    SNEntry e;
+void sndnet_router_remove(sndnet_router_t* snr, const sndnet_addr_t* addr) {
+    sndnet_entry_t e;
 
     assert(addr != 0);
 
@@ -44,11 +44,11 @@ void sndnet_router_remove(SNRouter* snr, const SNAddress* addr) {
     sndnet_router_set(snr, &e);
 }
 
-void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* nexthop) {
+void sndnet_router_nexthop(const sndnet_router_t* snr, const sndnet_addr_t* dst, sndnet_entry_t* nexthop) {
     unsigned int level;
     unsigned char column;
-    const SNEntry* e;
-    SNEntry bests[4];
+    const sndnet_entry_t* e;
+    sndnet_entry_t bests[4];
     
     assert(snr != 0);
     assert(dst != 0);
@@ -72,7 +72,7 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
     e = &(snr->table[level][column]);
     
     if(e->is_set) {
-        memcpy(nexthop, e, sizeof(SNEntry));
+        memcpy(nexthop, e, sizeof(sndnet_entry_t));
         return;
     }
     
@@ -91,7 +91,7 @@ void sndnet_router_nexthop(const SNRouter* snr, const SNAddress* dst, SNEntry* n
     }
 }
 
-int sndnet_router_get_leafset_size(const SNRouter* snr) {
+int sndnet_router_get_leafset_size(const sndnet_router_t* snr) {
     int count;
     
     assert(snr != NULL);
@@ -107,7 +107,7 @@ int sndnet_router_get_leafset_size(const SNRouter* snr) {
     return count;
 }
 
-int sndnet_router_is_on_leafset_range(const SNRouter* snr, const SNAddress* addr) {
+int sndnet_router_is_on_leafset_range(const sndnet_router_t* snr, const sndnet_addr_t* addr) {
     int leaf_count;
     
     assert(snr != NULL);
@@ -120,11 +120,11 @@ int sndnet_router_is_on_leafset_range(const SNRouter* snr, const SNAddress* addr
     sndnet_address_cmp(addr, &(snr->leafset[leaf_count-1].sn_addr)) <= 0;
 }
 
-void sndnet_router_closest(const SNAddress* dst, const SNEntry candidates[], size_t max, const SNAddress* self, unsigned int min_level, SNEntry* closest) {
-    const SNEntry* e;
-    const SNEntry* best = 0;
-    SNAddress min_dist;
-    SNAddress tmp_dist;
+void sndnet_router_closest(const sndnet_addr_t* dst, const sndnet_entry_t candidates[], size_t max, const sndnet_addr_t* self, unsigned int min_level, sndnet_entry_t* closest) {
+    const sndnet_entry_t* e;
+    const sndnet_entry_t* best = 0;
+    sndnet_addr_t min_dist;
+    sndnet_addr_t tmp_dist;
     int i;
     unsigned int level;
     
@@ -160,17 +160,17 @@ void sndnet_router_closest(const SNAddress* dst, const SNEntry candidates[], siz
     }
     
     if(best) {
-        memcpy(closest, best, sizeof(SNEntry));
+        memcpy(closest, best, sizeof(sndnet_entry_t));
     } else {
         closest->is_set = 0;
     }
 }
 
-void sndnet_router_set(SNRouter* snr, const SNEntry* sne) {
+void sndnet_router_set(sndnet_router_t* snr, const sndnet_entry_t* sne) {
     unsigned int level;
     unsigned char column;
-    SNEntry* insert;
-    const SNAddress* addr;
+    sndnet_entry_t* insert;
+    const sndnet_addr_t* addr;
     
     assert(snr != 0);
     assert(sne != 0);
@@ -184,7 +184,7 @@ void sndnet_router_set(SNRouter* snr, const SNEntry* sne) {
         
         assert(sndnet_address_cmp(&(snr->self), &(insert->sn_addr)) != 0); //Should be impossible
         
-        memcpy(insert, sne, sizeof(SNEntry));
+        memcpy(insert, sne, sizeof(sndnet_entry_t));
     }
     
     //TODO: Add to leafset
