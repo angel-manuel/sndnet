@@ -9,7 +9,7 @@ void bytestring_negate(const unsigned char* bytestring, unsigned char* negated);
 void hexstring_to_printable(const unsigned char* hexstring, char* printable);
 void printable_to_bytestring(const char* printable, unsigned char* bytestring);
 
-void sndnet_address_init(sndnet_addr_t* snk, unsigned char key[SNDNET_ADDRESS_LENGTH]) {
+void sndnet_address_init(sndnet_addr_t* snk, const unsigned char key[SNDNET_ADDRESS_LENGTH]) {
     assert(snk != 0);
     
     memcpy(snk->key, key, SNDNET_ADDRESS_LENGTH);

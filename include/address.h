@@ -32,7 +32,7 @@ typedef struct sockaddr sndnet_realaddr_t;
  * @param snk sndnet_addr_t to be initialized
  * @param key Naked address key(the public key or some hash of it, TBD)
  * */
-void sndnet_address_init(sndnet_addr_t* snk, unsigned char key[SNDNET_ADDRESS_LENGTH]);
+void sndnet_address_init(sndnet_addr_t* snk, const unsigned char key[SNDNET_ADDRESS_LENGTH]);
 
 /**
  * Initializes an address from the hexadecimal string
