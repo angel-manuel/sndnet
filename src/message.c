@@ -12,6 +12,7 @@ sndnet_message_t* sndnet_message_recv(int socket_fd, sndnet_realaddr_t* rem_addr
     uint16_t size;
 
     assert(socket_fd >= 0);
+    assert(rem_addr != 0);
 
     memset(&header, 0, sizeof(header));
 
@@ -74,4 +75,19 @@ sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_add
     memcpy(&(msg->payload), payload, len);
 
     return msg;
+}
+
+int sndnet_message_send(const sndnet_message_t* msg, int socket_fd, const sndnet_realaddr_t* rem_addr) {
+    size_t packet_size;
+    ssize_t sent;
+
+    assert(msg != 0);
+    assert(socket_fd >= 0);
+    assert(rem_addr != 0);
+
+    packet_size = sizeof(sndnet_header_t) + (size_t)msg->header.len;
+
+    sent = sendto(socket_fd, msg, packet_size, 0, rem_addr, sizeof(sndnet_realaddr_t));
+
+    return sent;
 }

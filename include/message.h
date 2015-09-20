@@ -53,6 +53,8 @@ sndnet_message_t* sndnet_message_recv(int socket_fd, sndnet_realaddr_t* rem_addr
  * */
 sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_addr_t* src, size_t len, const char* payload);
 
+int sndnet_message_send(const sndnet_message_t* msg, int socket_fd, const sndnet_realaddr_t* rem_addr);
+
 /*Struct definition*/
 
 struct sndnet_header_t_ {
