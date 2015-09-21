@@ -17,7 +17,7 @@ int main() {
     
     sndnet_init(&sns, &self, 7777);
     
-    while(fgets(line, 1024, stdin)) {
+    while(printf("> "), fgets(line, 1024, stdin)) {
         command = strtok(line, " \n");
 
         if(!command)
@@ -30,6 +30,7 @@ int main() {
         if(strcmp(command, "send") == 0) {
             char *dst, *payload;
             sndnet_addr_t sn_dst;
+            
             dst = strtok(0, " \n");
 
             if(!dst) {
@@ -47,6 +48,22 @@ int main() {
             }
 
             sndnet_send(&sns, &sn_dst, strlen(payload), payload);
+        }
+
+        if(strcmp(command, "insert") == 0) {
+            char *addr;
+            sndnet_addr_t sn_addr;
+
+            addr = strtok(0, " \n");
+
+            if(!addr) {
+                printf("insert <addr>\n");
+                continue;
+            }
+
+            sndnet_address_from_hexstr(&sn_addr, addr);
+
+            sndnet_router_add(&(sns.router), &sn_addr, 0);
         }
     }
     
