@@ -11,6 +11,7 @@ void printable_to_bytestring(const char* printable, unsigned char* bytestring);
 
 void sndnet_address_init(sndnet_addr_t* snk, const unsigned char key[SNDNET_ADDRESS_LENGTH]) {
     assert(snk != 0);
+    assert(key != 0);
     
     memcpy(snk->key, key, SNDNET_ADDRESS_LENGTH);
     bytestring_to_hexstring(snk->key, snk->hex_key);

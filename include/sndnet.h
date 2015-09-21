@@ -41,10 +41,11 @@ typedef void (*sndnet_deliver_callback)(const sndnet_message_t* msg, sndnet_stat
 /**
  * Initialization of a node
  * @param sns State to be initialized(must be already allocated)
+ * @param self Node address
  * @param[in] port UDP listening port
  * @return 0 if OK, -1 otherwise
  * */
-int sndnet_init(sndnet_state_t* sns, unsigned short port);
+int sndnet_init(sndnet_state_t* sns, const sndnet_addr_t* self, unsigned short port);
 
 /**
  * Destroys a node

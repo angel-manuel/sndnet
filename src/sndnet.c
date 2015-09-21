@@ -25,7 +25,7 @@ void default_log_cb(const char* msg);
 void default_forward_cb(const sndnet_message_t* msg, sndnet_state_t* sns, sndnet_entry_t* nexthop);
 void default_deliver_cb(const sndnet_message_t* msg, sndnet_state_t* sns);
 
-int sndnet_init(sndnet_state_t* sns, unsigned short port) {
+int sndnet_init(sndnet_state_t* sns, const sndnet_addr_t* self, unsigned short port) {
     int socket_fd;
     struct sockaddr_in serv_addr;
     
@@ -33,7 +33,11 @@ int sndnet_init(sndnet_state_t* sns, unsigned short port) {
     
     /* Copying */
     
+    sndnet_address_copy(&(sns->self), self);
+    sndnet_router_init(&(sns->router), &(sns->self));
     sns->log_cb = default_log_cb;
+    sns->deliver_cb = default_deliver_cb;
+    sns->forward_cb = default_forward_cb;
     sns->port = port;
     
     sndnet_log(sns, "Initializing");
@@ -128,7 +132,7 @@ int sndnet_send(sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len, const
 
     assert(sns != 0);
     assert(dst != 0);
-    assert(msg != 0 || len == 0);
+    assert(payload != 0 || len == 0);
 
     msg = sndnet_message_pack(dst, &(sns->self), len, payload);
 
@@ -197,6 +201,8 @@ void* sndnet_background(void* arg) {
 
         if(!msg)
             continue;
+
+        sndnet_forward(sns, msg);
         
         free(msg);
     } while(1);
