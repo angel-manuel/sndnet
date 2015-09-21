@@ -63,16 +63,17 @@ sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_add
     assert(src != 0);
     assert(payload != 0 || len == 0);
 
-    msg = (sndnet_message_t*)malloc(sizeof(sndnet_message_t) + len);
+    msg = (sndnet_message_t*)malloc(sizeof(sndnet_message_t) + len + 1);
 
     if(!msg)
         return 0;
 
-    memcpy(&(msg->header.dst), sndnet_address_get(dst), sizeof(SNDNET_ADDRESS_LENGTH));
-    memcpy(&(msg->header.src), sndnet_address_get(src), sizeof(SNDNET_ADDRESS_LENGTH));
+    memcpy(msg->header.dst, sndnet_address_get(dst), SNDNET_ADDRESS_LENGTH);
+    memcpy(msg->header.src, sndnet_address_get(src), SNDNET_ADDRESS_LENGTH);
     msg->header.ttl = SNDNET_MESSAGE_DEFAULT_TTL;
     msg->header.len = len;
-    memcpy(&(msg->payload), payload, len);
+    memcpy(msg->payload, payload, len);
+    msg->payload[len] = '\0';
 
     return msg;
 }
