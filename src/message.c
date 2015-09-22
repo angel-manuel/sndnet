@@ -18,7 +18,7 @@ sndnet_message_t* sndnet_message_recv(int socket_fd, sndnet_realaddr_t* rem_addr
 
     recv_count = recvfrom(socket_fd, &header, sizeof(header), MSG_PEEK, rem_addr, &addrlen);
 
-    if(recv_count < sizeof(header)) {
+    if(recv_count < (ssize_t)sizeof(header)) {
         if(recv_count < 0) {
             return 0;
         } else {
@@ -42,7 +42,7 @@ sndnet_message_t* sndnet_message_recv(int socket_fd, sndnet_realaddr_t* rem_addr
 
     recv_count = recvfrom(socket_fd, &(msg->header), size, 0, 0, 0);
 
-    if(recv_count < sizeof(sndnet_header_t) + (size_t)header.len) {
+    if(recv_count < (ssize_t)sizeof(sndnet_header_t) + (ssize_t)header.len) {
         if(recv_count < 0) {
             return 0;
         } else {

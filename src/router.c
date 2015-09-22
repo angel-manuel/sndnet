@@ -67,8 +67,6 @@ void sndnet_router_nexthop(const sndnet_router_t* snr, const sndnet_addr_t* dst,
     
     sndnet_address_index(&(snr->self), dst, &level, &column);
     
-    assert(column >= 0 && level < SNDNET_ROUTER_LEVELS);
-    
     e = &(snr->table[level][column]);
     
     if(e->is_set) {
@@ -125,7 +123,7 @@ void sndnet_router_closest(const sndnet_addr_t* dst, const sndnet_entry_t candid
     const sndnet_entry_t* best = 0;
     sndnet_addr_t min_dist;
     sndnet_addr_t tmp_dist;
-    int i;
+    unsigned int i;
     unsigned int level;
     
     assert(dst != 0);
@@ -179,13 +177,11 @@ void sndnet_router_set(sndnet_router_t* snr, const sndnet_entry_t* sne) {
     
     sndnet_address_index(&(snr->self), addr, &level, &column);
 
-    if(column >= 0) {
-        insert = &(snr->table[level][column]);
-        
-        assert(sndnet_address_cmp(&(snr->self), &(insert->sn_addr)) != 0); //Should be impossible
-        
-        memcpy(insert, sne, sizeof(sndnet_entry_t));
-    }
+    insert = &(snr->table[level][column]);
+
+    assert(sndnet_address_cmp(&(snr->self), &(insert->sn_addr)) != 0); //Should be impossible
+
+    memcpy(insert, sne, sizeof(sndnet_entry_t));
     
     //TODO: Add to leafset
 }

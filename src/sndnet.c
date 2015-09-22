@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <arpa/inet.h>
-#include <nacl/crypto_box.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -216,10 +215,16 @@ void* sndnet_background(void* arg) {
 
 
 void default_log_cb(const char* msg) {
+    assert(msg != 0);
+
     fprintf(stderr, "sndnet: %s\n", msg);
 }
 
 void default_forward_cb(const sndnet_message_t* msg, sndnet_state_t* sns, sndnet_entry_t* nexthop) {
+    assert(msg != 0);
+    assert(sns != 0);
+    assert(nexthop != 0);
+
     sndnet_log(sns, "Should forward to %s\n", sndnet_address_tostr(&(nexthop->sn_addr)));
 }
 

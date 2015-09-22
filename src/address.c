@@ -117,9 +117,9 @@ void sndnet_address_index(const sndnet_addr_t* self, const sndnet_addr_t* addr, 
     
     if(column)
         assert(*column != 255 || l < SNDNET_ADDRESS_LENGTH*2);
-        
-    assert(l >= 0);
     
+    assert(l < SNDNET_ADDRESS_LENGTH*2);
+
     if(level)
         *level = l;
 }
