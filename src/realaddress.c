@@ -12,6 +12,7 @@ int sndnet_realaddress_from_hostname(sndnet_realaddr_t* snra, const char* hostna
     struct addrinfo hints;
     struct addrinfo *res = 0;
     char port_str[6];
+    int ret;
 
     assert(snra != 0);
     assert(hostname != 0);
@@ -24,10 +25,12 @@ int sndnet_realaddress_from_hostname(sndnet_realaddr_t* snra, const char* hostna
     hints.ai_protocol = 0;
     hints.ai_flags = 
         AI_NUMERICHOST |
-        AI_NUMERICSERV |
-        AI_ADDRCONFIG;
+        AI_NUMERICSERV;
 
-    if(getaddrinfo(hostname, port_str, &hints, &res) || res == 0) {
+    ret = getaddrinfo(hostname, port_str, &hints, &res);
+
+    if(ret != 0 || res == 0) {
+        fprintf(stderr, "%s\n", gai_strerror(ret));
         return -1;
     }
 

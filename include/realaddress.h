@@ -15,11 +15,6 @@ extern "C" {
 #endif
 
 /**
- * SecondNet address length
- * */
-#define SNDNET_REALADDRESS_HOSTNAME_LENGTH 256
-
-/**
  * SO representation of a netowrk address
  * */
 typedef struct sockaddr sndnet_soaddr_t;
