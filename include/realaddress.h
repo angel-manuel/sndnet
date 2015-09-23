@@ -34,6 +34,14 @@ typedef sndnet_soaddr_t sndnet_realaddr_t;
 int sndnet_realaddress_from_hostname(sndnet_realaddr_t* snra, const char* hostname, uint16_t port);
 
 /**
+ * Initializes an address from its string representation(<ip>:<port>)
+ * @param snra sndnet_realaddr_t to be initialized
+ * @param str String representation
+ * @return 0 if OK, -1 if ERROR
+ * */
+int sndnet_realaddress_from_str(sndnet_realaddr_t* snra, const char* str);
+
+/**
  * Gets the hostname of an address
  * @param snra The address
  * @param[out] out_hostname Pointer to string where hostname should be stored

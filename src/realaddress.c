@@ -41,6 +41,32 @@ int sndnet_realaddress_from_hostname(sndnet_realaddr_t* snra, const char* hostna
     return 0;
 }
 
+int sndnet_realaddress_from_str(sndnet_realaddr_t* snra, const char* str) {
+    char copy_str[23];
+    char* hostname;
+    char* port_str;
+    uint16_t port;
+
+    assert(str != 0);
+
+    strncpy(copy_str, str, 23);
+
+    hostname = strtok(copy_str, ":");
+
+    if(!hostname)
+        return -1;
+
+    port_str = strtok(0, "");
+
+    if(!port_str)
+        return -1;
+
+    if(sscanf(port_str, "%hu", &port) < 1)
+        return -1;
+
+    return sndnet_realaddress_from_hostname(snra, hostname, port);
+}
+
 int sndnet_realaddress_get_hostname(const sndnet_realaddr_t* snra, char* out_hostname, size_t out_hostname_len) {
     assert(snra != 0);
     assert(out_hostname != 0);
