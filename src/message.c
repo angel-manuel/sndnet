@@ -68,8 +68,8 @@ sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_add
     if(!msg)
         return 0;
 
-    memcpy(msg->header.dst, sndnet_address_get(dst), SNDNET_ADDRESS_LENGTH);
-    memcpy(msg->header.src, sndnet_address_get(src), SNDNET_ADDRESS_LENGTH);
+    sndnet_address_get_raw(dst, msg->header.dst);
+    sndnet_address_get_raw(src, msg->header.src);
     msg->header.ttl = SNDNET_MESSAGE_DEFAULT_TTL;
     msg->header.len = len;
     memcpy(msg->payload, payload, len);

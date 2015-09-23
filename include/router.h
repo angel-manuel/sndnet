@@ -7,6 +7,7 @@
 #define SNDNET_ROUTER_H_
 
 #include "address.h"
+#include "realaddress.h"
 
 #include <sys/socket.h>
 

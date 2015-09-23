@@ -7,6 +7,7 @@
 #define SNDNET_MESSAGE_H_
 
 #include "address.h"
+#include "realaddress.h"
 
 #include <stdint.h>
 #include <sys/socket.h>

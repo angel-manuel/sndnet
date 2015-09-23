@@ -7,14 +7,14 @@ SCENARIO("routing is correct", "router") {
         sndnet_router_t r;
         sndnet_addr_t self;
         
-        sndnet_address_from_hexstr(&self, "4f5e22");
+        sndnet_address_from_hex(&self, "4f5e22");
         sndnet_router_init(&r, &self);
         
         WHEN("Asking for next hop to 888888(shouldn't return one)") {
             sndnet_addr_t dst;
             sndnet_entry_t nexthop;
 
-            sndnet_address_from_hexstr(&dst, "888888");
+            sndnet_address_from_hex(&dst, "888888");
 
             sndnet_router_nexthop(&r, &dst, &nexthop);
 
@@ -28,10 +28,10 @@ SCENARIO("routing is correct", "router") {
         sndnet_addr_t self;
         sndnet_addr_t rem;
         
-        sndnet_address_from_hexstr(&self, "4f5e22");
+        sndnet_address_from_hex(&self, "4f5e22");
         sndnet_router_init(&r, &self);
 
-        sndnet_address_from_hexstr(&rem, "888888");
+        sndnet_address_from_hex(&rem, "888888");
 
         sndnet_router_add(&r, &rem, NULL);
         
@@ -39,7 +39,7 @@ SCENARIO("routing is correct", "router") {
             sndnet_addr_t dst;
             sndnet_entry_t nexthop;
 
-            sndnet_address_from_hexstr(&dst, "888888");
+            sndnet_address_from_hex(&dst, "888888");
 
             sndnet_router_nexthop(&r, &dst, &nexthop);
 
@@ -51,7 +51,7 @@ SCENARIO("routing is correct", "router") {
             sndnet_addr_t dst;
             sndnet_entry_t nexthop;
 
-            sndnet_address_from_hexstr(&dst, "488888");
+            sndnet_address_from_hex(&dst, "488888");
 
             sndnet_router_nexthop(&r, &dst, &nexthop);
 
@@ -63,7 +63,7 @@ SCENARIO("routing is correct", "router") {
             sndnet_addr_t dst;
             sndnet_entry_t nexthop;
 
-            sndnet_address_from_hexstr(&dst, "788888");
+            sndnet_address_from_hex(&dst, "788888");
 
             sndnet_router_nexthop(&r, &dst, &nexthop);
 
@@ -77,7 +77,7 @@ SCENARIO("routing is correct", "router") {
 
             sndnet_router_remove(&r, &rem);
 
-            sndnet_address_from_hexstr(&dst, "788888");
+            sndnet_address_from_hex(&dst, "788888");
 
             sndnet_router_nexthop(&r, &dst, &nexthop);
 

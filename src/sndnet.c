@@ -221,18 +221,27 @@ void default_log_cb(const char* msg) {
 }
 
 void default_forward_cb(const sndnet_message_t* msg, sndnet_state_t* sns, sndnet_entry_t* nexthop) {
+    char nh_addr[SNDNET_ADDRESS_PRINTABLE_LENGTH];
+
     assert(msg != 0);
     assert(sns != 0);
     assert(nexthop != 0);
 
-    sndnet_log(sns, "Should forward to %s\n", sndnet_address_tostr(&(nexthop->sn_addr)));
+    sndnet_address_tostr(&(nexthop->sn_addr), nh_addr);
+
+    sndnet_log(sns, "Should forward to %s\n", nh_addr);
 }
 
 void default_deliver_cb(const sndnet_message_t* msg, sndnet_state_t* sns) {
     sndnet_addr_t dst, src;
+    char dst_str[SNDNET_ADDRESS_PRINTABLE_LENGTH];
+    char src_str[SNDNET_ADDRESS_PRINTABLE_LENGTH];
 
     sndnet_address_init(&dst, msg->header.dst);
     sndnet_address_init(&src, msg->header.src);
+
+    sndnet_address_tostr(&dst, dst_str);
+    sndnet_address_tostr(&src, src_str);
 
     sndnet_log(sns,
         "msg\n"
@@ -241,7 +250,7 @@ void default_deliver_cb(const sndnet_message_t* msg, sndnet_state_t* sns) {
         "ttl = %hu\n"
         "len = %u\n"
         "buf = %s\n",
-    sndnet_address_tostr(&dst),
-    sndnet_address_tostr(&src),
+    dst_str,
+    src_str,
     msg->header.ttl, msg->header.len, msg->payload);
 }

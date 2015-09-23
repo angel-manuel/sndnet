@@ -13,7 +13,7 @@ int main() {
     char line[1024];
     char* command;
 
-    sndnet_address_from_hexstr(&self, "abcd");
+    sndnet_address_from_hex(&self, "abcd");
     
     sndnet_init(&sns, &self, 7777);
     
@@ -38,7 +38,7 @@ int main() {
                 continue;
             }
 
-            sndnet_address_from_hexstr(&sn_dst, dst);
+            sndnet_address_from_hex(&sn_dst, dst);
 
             payload = strtok(0, "\n");
 
@@ -61,7 +61,7 @@ int main() {
                 continue;
             }
 
-            sndnet_address_from_hexstr(&sn_addr, addr);
+            sndnet_address_from_hex(&sn_addr, addr);
 
             sndnet_router_add(&(sns.router), &sn_addr, 0);
         }

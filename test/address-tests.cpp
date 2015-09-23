@@ -9,11 +9,14 @@ TEST_CASE("Uppercase initialization", "[address]") {
     sndnet_addr_t addr;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
     const char hex_lower[] = "0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff";
+    char ret_str[SNDNET_ADDRESS_PRINTABLE_LENGTH];
 
-    sndnet_address_from_hexstr(&addr, hex);
+    sndnet_address_from_hex(&addr, hex);
 
-    REQUIRE(strcasecmp(sndnet_address_tostr(&addr), hex) == 0);
-    REQUIRE(strcmp(sndnet_address_tostr(&addr), hex_lower) == 0);
+    sndnet_address_tostr(&addr, ret_str);
+
+    REQUIRE(strcasecmp(ret_str, hex) == 0);
+    REQUIRE(strcmp(ret_str, hex_lower) == 0);
 }
 
 TEST_CASE("Comparison", "address") {
@@ -22,8 +25,8 @@ TEST_CASE("Comparison", "address") {
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
     const char hex2[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeAfffe";
 
-    sndnet_address_from_hexstr(&addr, hex);
-    sndnet_address_from_hexstr(&addr2, hex2);
+    sndnet_address_from_hex(&addr, hex);
+    sndnet_address_from_hex(&addr2, hex2);
 
     REQUIRE(sndnet_address_cmp(&addr, &addr2) > 0);
 }
@@ -37,9 +40,9 @@ TEST_CASE("Distance", "address") {
     const char hex2[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeAfffe";
     const char hex_dist[] = "0000000000000000000000000000000000000000000000000000000000040001";
 
-    sndnet_address_from_hexstr(&addr, hex);
-    sndnet_address_from_hexstr(&addr2, hex2);
-    sndnet_address_from_hexstr(&exp_dist, hex_dist);
+    sndnet_address_from_hex(&addr, hex);
+    sndnet_address_from_hex(&addr2, hex2);
+    sndnet_address_from_hex(&exp_dist, hex_dist);
 
     sndnet_address_dist(&addr, &addr2, &dist);
 
@@ -55,8 +58,8 @@ TEST_CASE("Indexing", "address") {
     unsigned int level = 0;
     unsigned char column = 0;
 
-    sndnet_address_from_hexstr(&addr, hex);
-    sndnet_address_from_hexstr(&addr2, hex2);
+    sndnet_address_from_hex(&addr, hex);
+    sndnet_address_from_hex(&addr2, hex2);
 
     sndnet_address_index(&addr, &addr2, &level, &column);
     REQUIRE(level == 59);
@@ -68,7 +71,7 @@ TEST_CASE("Copy", "address") {
     sndnet_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
 
-    sndnet_address_from_hexstr(&addr, hex);
+    sndnet_address_from_hex(&addr, hex);
     sndnet_address_copy(&addr2, &addr);
 
     REQUIRE(sndnet_address_cmp(&addr, &addr2) == 0);
@@ -78,7 +81,11 @@ TEST_CASE("Short initialization", "address") {
     sndnet_addr_t addr;
     const char hex[] = "abcd";
     const char hex_full[] = "abcd000000000000000000000000000000000000000000000000000000000000";
+    char ret_str[SNDNET_ADDRESS_PRINTABLE_LENGTH];
 
-    sndnet_address_from_hexstr(&addr, hex);
-    REQUIRE(strcmp(sndnet_address_tostr(&addr), hex_full) == 0);
+    sndnet_address_from_hex(&addr, hex);
+
+    sndnet_address_tostr(&addr, ret_str);
+
+    REQUIRE(strcmp(ret_str, hex_full) == 0);
 }

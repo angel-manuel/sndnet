@@ -15,17 +15,14 @@ extern "C" {
  * */
 #define SNDNET_ADDRESS_LENGTH 32
 
+#define SNDNET_ADDRESS_HEX_LENGTH (SNDNET_ADDRESS_LENGTH*2)
+
 #define SNDNET_ADDRESS_PRINTABLE_LENGTH ((SNDNET_ADDRESS_LENGTH*2)+1)
 
 /**
  * Holds an address
  * */
 typedef struct sndnet_addr_t_ sndnet_addr_t;
-
-/**
- * Underlying network address
- * */
-typedef struct sockaddr sndnet_realaddr_t;
 
 /**
  * Initializes an address
@@ -40,21 +37,28 @@ void sndnet_address_init(sndnet_addr_t* snk, const unsigned char key[SNDNET_ADDR
  * @param hexstr NULL-terminated strin with the hexadecimal representation of the key. If shorter than address length
  *               the rest is assumed to be "0x0"
  * */
-void sndnet_address_from_hexstr(sndnet_addr_t* snk, const char* hexstr);
+void sndnet_address_from_hex(sndnet_addr_t* snk, const char* hexstr);
 
 /**
  * Gets the address key
  * @param sna The address
- * @return The address key
+ * @param[out] out_raw Pointer to place where save raw address. Must have at least SNDNET_ADDRESS_LENGTH size
  * */
-const unsigned char* sndnet_address_get(const sndnet_addr_t* sna);
+void sndnet_address_get_raw(const sndnet_addr_t* sna, unsigned char* out_raw);
 
 /**
  * Gets the address key in hexadecimal
  * @param sna The address
- * @return The address key in hexadecimal
+ * @param[out] out_hex Pointer to place where save hex address. Must have at least SNDNET_ADDRESS_HEX_LENGTH size
  * */
-const unsigned char* sndnet_address_get_hex(const sndnet_addr_t* sna);
+void sndnet_address_get_hex(const sndnet_addr_t* sna, unsigned char* out_hex);
+
+/**
+ * Returns a hex printable string
+ * @param sna Address
+ * @param[out] Printable hex address. Must have SNDNET_ADDRESS_PRINTABLE_LENGTH.
+ * */
+void sndnet_address_tostr(const sndnet_addr_t* sna, char* out_str);
 
 /**
  * Compares addresses(strcmp style)
@@ -90,17 +94,8 @@ void sndnet_address_copy(sndnet_addr_t* dst, const sndnet_addr_t* src);
  * */
 void sndnet_address_index(const sndnet_addr_t* self, const sndnet_addr_t* addr, unsigned int* level, unsigned char* column);
 
-/**
- * Returns a hex printable string
- * @param sna Address
- * @return Printable hex address
- * */
-const char* sndnet_address_tostr(const sndnet_addr_t* sna);
-
 struct sndnet_addr_t_ {
     unsigned char key[SNDNET_ADDRESS_LENGTH]; /**< Address key */
-    unsigned char hex_key[SNDNET_ADDRESS_LENGTH*2]; /**< Precalculated hex representation of the key*/
-    char printable[SNDNET_ADDRESS_LENGTH*2 + 1];
 };
 
 #ifdef __cplusplus
