@@ -157,6 +157,7 @@ void sndnet_deliver(sndnet_state_t* sns, const sndnet_message_t* msg) {
 int sndnet_forward(sndnet_state_t* sns, const sndnet_message_t* msg) {
     sndnet_addr_t dst;
     sndnet_entry_t nexthop;
+    int sent;
 
     assert(sns != 0);
     assert(msg != 0);
@@ -167,6 +168,12 @@ int sndnet_forward(sndnet_state_t* sns, const sndnet_message_t* msg) {
 
     if(nexthop.is_set) {
         (sns->forward_cb)(msg, sns, &nexthop);
+
+        sent = sndnet_message_send(msg, sns->socket_fd, &(nexthop.net_addr));
+
+        if(sent <= 0)
+            return -1;
+
         return 0;
         /*return sndnet_message_send(msg, sns->socket_fd, &(nexthop.net_addr));*/
     } else {
@@ -222,14 +229,16 @@ void default_log_cb(const char* msg) {
 
 void default_forward_cb(const sndnet_message_t* msg, sndnet_state_t* sns, sndnet_entry_t* nexthop) {
     char nh_addr[SNDNET_ADDRESS_PRINTABLE_LENGTH];
+    char nh_raddr[23];
 
     assert(msg != 0);
     assert(sns != 0);
     assert(nexthop != 0);
 
     sndnet_address_tostr(&(nexthop->sn_addr), nh_addr);
+    sndnet_realaddress_tostr(&(nexthop->net_addr), nh_raddr, 23);
 
-    sndnet_log(sns, "Should forward to %s\n", nh_addr);
+    sndnet_log(sns, "Forwarding to %s @ %s\n", nh_addr, nh_raddr);
 }
 
 void default_deliver_cb(const sndnet_message_t* msg, sndnet_state_t* sns) {

@@ -67,7 +67,13 @@ void sndnet_router_nexthop(const sndnet_router_t* snr, const sndnet_addr_t* dst,
     
     sndnet_address_index(&(snr->self), dst, &level, &column);
     
-    e = &(snr->table[level][column]);
+    if(level < SNDNET_ROUTER_LEVELS && column < SNDNET_ROUTER_COLUMNS)
+        e = &(snr->table[level][column]);
+    else {
+        nexthop->is_set = 0;
+        sndnet_address_copy(&(nexthop->sn_addr), &(snr->self));
+        return;
+    }
     
     if(e->is_set) {
         memcpy(nexthop, e, sizeof(sndnet_entry_t));
