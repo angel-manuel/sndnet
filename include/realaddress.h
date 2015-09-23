@@ -6,6 +6,7 @@
 #ifndef SNDNET_REALADDRESS_H_
 #define SNDNET_REALADDRESS_H_
 
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -19,33 +20,28 @@ extern "C" {
 #define SNDNET_REALADDRESS_HOSTNAME_LENGTH 256
 
 /**
- * Network address
- * */
-typedef struct sndnet_realaddr_t_ sndnet_realaddr_t;
-
-/**
  * SO representation of a netowrk address
  * */
 typedef struct sockaddr sndnet_soaddr_t;
 
 /**
+ * Network address
+ * */
+typedef sndnet_soaddr_t sndnet_realaddr_t;
+
+/**
  * Initializes an address from a hostname
  * @param snra sndnet_realaddr_t to be initialized
  * @param hostname Hostname
+ * @return 0 if OK, -1 if ERROR
  * */
-void sndnet_realaddress_from_hostname(sndnet_realaddr_t* snra, const char* hostname);
+int sndnet_realaddress_from_hostname(sndnet_realaddr_t* snra, const char* hostname, uint16_t port);
 
-/**
- * Gets the Hostname
- * @param snra The address
- * @return Hostname
- * */
-const unsigned char* sndnet_realaddress_get_hostname(const sndnet_addr_t* snra);
+int sndnet_realaddress_get_hostname(const sndnet_realaddr_t* snra, char* out_hostname, size_t out_hostname_len);
 
-struct sndnet_realaddr_t_ {
-    sndnet_soaddr_t soaddr;
-    char hostname[SNDNET_REALADDRESS_HOSTNAME_LENGTH];
-};
+int sndnet_realaddress_get_port(const sndnet_realaddr_t* snra, uint16_t* out_port);
+
+int sndnet_realaddress_tostr(const sndnet_realaddr_t* snra, char* out_str, size_t out_str_len);
 
 #ifdef __cplusplus
 } /*extern "C"*/
