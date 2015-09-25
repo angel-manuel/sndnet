@@ -24,9 +24,6 @@ extern "C" {
 /** Size of the leafset. */
 #define SNDNET_ROUTER_LEAFSET_SIZE 8
 
-/** Size of the neighbourhood */
-#define SNDNET_ROUTER_NEIGHBOURHOOD_SIZE 8
-
 /**
  * Holds a routing table entry(sndnet addr + normal addr)
  */
@@ -77,8 +74,8 @@ struct sndnet_entry_t_ {
 struct sndnet_router_t_ {
     sndnet_addr_t self; /**< Our address */
     sndnet_entry_t table[SNDNET_ROUTER_LEVELS][SNDNET_ROUTER_COLUMNS]; /**< Routing table */
-    sndnet_entry_t leafset[SNDNET_ROUTER_LEAFSET_SIZE]; /**< Leafset */
-    sndnet_entry_t neighbourhood[SNDNET_ROUTER_NEIGHBOURHOOD_SIZE]; /**< Neighbourhood */
+    sndnet_entry_t left_leafset[SNDNET_ROUTER_LEAFSET_SIZE]; /**< Leafset */
+    sndnet_entry_t right_leafset[SNDNET_ROUTER_LEAFSET_SIZE]; /**< Leafset */
 };
 
 #ifdef __cplusplus
