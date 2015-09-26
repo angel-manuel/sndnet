@@ -165,7 +165,7 @@ void sndnet_router_set(sndnet_router_t* snr, const sndnet_entry_t* sne) {
 
     assert(sndnet_address_cmp(&(snr->self), &(insert->sn_addr)) != 0); //Should be impossible
 
-    memcpy(insert, sne, sizeof(sndnet_entry_t));
+    *insert = *sne;
 }
 
 void leafset_add(sndnet_router_t* snr, const sndnet_entry_t* sne) {

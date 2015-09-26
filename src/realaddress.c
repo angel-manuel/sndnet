@@ -34,7 +34,7 @@ int sndnet_realaddress_from_hostname(sndnet_realaddr_t* snra, const char* hostna
         return -1;
     }
 
-    memcpy(snra, res[0].ai_addr, sizeof(struct sockaddr));
+    *snra = *res[0].ai_addr;
 
     freeaddrinfo(res);
 
