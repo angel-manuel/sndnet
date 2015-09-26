@@ -77,13 +77,6 @@ int sndnet_address_cmp(const sndnet_addr_t* a, const sndnet_addr_t* b);
 void sndnet_address_dist(const sndnet_addr_t* a, const sndnet_addr_t* b, sndnet_addr_t* dist);
 
 /**
- * Copies an address into another
- * @param[out] dst Destination
- * @param src Source
- * */
-void sndnet_address_copy(sndnet_addr_t* dst, const sndnet_addr_t* src);
-
-/**
  * Calculates the number of matching hex-chars from the beggining
  * between the two address and the first different hex of the second address.
  * Its useful for routing table lookup.

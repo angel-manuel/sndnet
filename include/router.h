@@ -7,6 +7,7 @@
 #define SNDNET_ROUTER_H_
 
 #include "address.h"
+#include "entry.h"
 #include "realaddress.h"
 
 #include <sys/socket.h>
@@ -64,12 +65,6 @@ void sndnet_router_remove(sndnet_router_t* snr, const sndnet_addr_t* addr);
  * @param[out] nexthop Entry to store the result
  * */
 void sndnet_router_nexthop(const sndnet_router_t* snr, const sndnet_addr_t* dst, sndnet_entry_t* nexthop);
-
-struct sndnet_entry_t_ {
-    unsigned char is_set; /**< Is this entry set? */
-    sndnet_addr_t sn_addr; /**< SecondNet address */
-    sndnet_realaddr_t net_addr; /**< Traditional network address */
-};
 
 struct sndnet_router_t_ {
     sndnet_addr_t self; /**< Our address */

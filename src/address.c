@@ -95,13 +95,6 @@ void sndnet_address_dist(const sndnet_addr_t* a, const sndnet_addr_t* b, sndnet_
     sndnet_address_init(dist, sub);
 }
 
-void sndnet_address_copy(sndnet_addr_t* dst, const sndnet_addr_t* src) {
-    assert(dst != 0);
-    assert(src != 0);
-    
-    memcpy(dst, src, sizeof(sndnet_addr_t));
-}
-
 void sndnet_address_index(const sndnet_addr_t* self, const sndnet_addr_t* addr, unsigned int* level, unsigned char* column) {
     unsigned int l = 0;
     unsigned int i;

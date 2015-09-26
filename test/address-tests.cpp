@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-TEST_CASE("Uppercase initialization", "[address]") {
+TEST_CASE("Address uppercase initialization", "[address]") {
     sndnet_addr_t addr;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
     const char hex_lower[] = "0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff";
@@ -19,7 +19,7 @@ TEST_CASE("Uppercase initialization", "[address]") {
     REQUIRE(strcmp(ret_str, hex_lower) == 0);
 }
 
-TEST_CASE("Comparison", "address") {
+TEST_CASE("Address comparison", "address") {
     sndnet_addr_t addr;
     sndnet_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
@@ -31,7 +31,7 @@ TEST_CASE("Comparison", "address") {
     REQUIRE(sndnet_address_cmp(&addr, &addr2) > 0);
 }
 
-TEST_CASE("Distance", "address") {
+TEST_CASE("Address distance", "address") {
     sndnet_addr_t addr;
     sndnet_addr_t addr2;
     sndnet_addr_t dist;
@@ -49,7 +49,7 @@ TEST_CASE("Distance", "address") {
     REQUIRE(sndnet_address_cmp(&dist, &exp_dist) == 0);
 }
 
-TEST_CASE("Indexing", "address") {
+TEST_CASE("Address indexing", "address") {
     sndnet_addr_t addr;
     sndnet_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
@@ -66,18 +66,18 @@ TEST_CASE("Indexing", "address") {
     REQUIRE(column == 10);
 }
 
-TEST_CASE("Copy", "address") {
+TEST_CASE("Address copy", "address") {
     sndnet_addr_t addr;
     sndnet_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
 
     sndnet_address_from_hex(&addr, hex);
-    sndnet_address_copy(&addr2, &addr);
+    addr2 = addr;
 
     REQUIRE(sndnet_address_cmp(&addr, &addr2) == 0);
 }
 
-TEST_CASE("Short initialization", "address") {
+TEST_CASE("Address short initialization", "address") {
     sndnet_addr_t addr;
     const char hex[] = "abcd";
     const char hex_full[] = "abcd000000000000000000000000000000000000000000000000000000000000";

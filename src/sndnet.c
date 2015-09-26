@@ -32,7 +32,7 @@ int sndnet_init(sndnet_state_t* sns, const sndnet_addr_t* self, unsigned short p
     
     /* Copying */
     
-    sndnet_address_copy(&(sns->self), self);
+    sns->self = *self;
     sndnet_router_init(&(sns->router), &(sns->self));
     sns->log_cb = default_log_cb;
     sns->deliver_cb = default_deliver_cb;
