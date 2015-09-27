@@ -42,7 +42,7 @@ int sndnet_realaddress_from_hostname(sndnet_realaddr_t* snra, const char* hostna
 }
 
 int sndnet_realaddress_from_str(sndnet_realaddr_t* snra, const char* str) {
-    char copy_str[23];
+    char copy_str[SNDNET_REALADDRESS_PRINTABLE_LENGTH];
     char* hostname;
     char* port_str;
     uint16_t port;
@@ -67,18 +67,18 @@ int sndnet_realaddress_from_str(sndnet_realaddr_t* snra, const char* str) {
     return sndnet_realaddress_from_hostname(snra, hostname, port);
 }
 
-int sndnet_realaddress_get_hostname(const sndnet_realaddr_t* snra, char* out_hostname, size_t out_hostname_len) {
+int sndnet_realaddress_get_hostname(const sndnet_realaddr_t* snra, char* out_hostname) {
     assert(snra != 0);
     assert(out_hostname != 0);
 
-    if(getnameinfo(snra, sizeof(struct sockaddr), out_hostname, out_hostname_len, 0, 0, NI_NUMERICHOST | NI_NUMERICSERV))
+    if(getnameinfo(snra, sizeof(struct sockaddr), out_hostname, SNDNET_REALADDRESS_HOSTNAME_PRINTABLE_LENGTH, 0, 0, NI_NUMERICHOST | NI_NUMERICSERV))
         return -1;
 
     return 0;
 }
 
 int sndnet_realaddress_get_port(const sndnet_realaddr_t* snra, uint16_t* out_port) {
-    char port_str[6];
+    char port_str[SNDNET_REALADDRESS_PORT_PRINTABLE_LENGTH];
 
     assert(snra != 0);
     assert(out_port != 0);
@@ -92,9 +92,9 @@ int sndnet_realaddress_get_port(const sndnet_realaddr_t* snra, uint16_t* out_por
     return 0;
 }
 
-int sndnet_realaddress_tostr(const sndnet_realaddr_t* snra, char* out_str, size_t out_str_len) {
-    char host_str[16];
-    char port_str[6];
+int sndnet_realaddress_tostr(const sndnet_realaddr_t* snra, char* out_str) {
+    char host_str[SNDNET_REALADDRESS_HOSTNAME_PRINTABLE_LENGTH];
+    char port_str[SNDNET_REALADDRESS_PORT_PRINTABLE_LENGTH];
     int written;
 
     assert(snra != 0);
@@ -103,7 +103,7 @@ int sndnet_realaddress_tostr(const sndnet_realaddr_t* snra, char* out_str, size_
     if(getnameinfo(snra, sizeof(struct sockaddr), host_str, 16, port_str, 6, NI_NUMERICHOST | NI_NUMERICSERV))
         return -1;
 
-    written = snprintf(out_str, out_str_len, "%s:%s", host_str, port_str);
+    written = snprintf(out_str, SNDNET_REALADDRESS_PRINTABLE_LENGTH, "%s:%s", host_str, port_str);
 
     if(written < (strlen(host_str) + strlen(port_str) + 1))
         return -1;

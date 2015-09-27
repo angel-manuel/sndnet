@@ -229,14 +229,14 @@ void default_log_cb(const char* msg) {
 
 void default_forward_cb(const sndnet_message_t* msg, sndnet_state_t* sns, sndnet_entry_t* nexthop) {
     char nh_addr[SNDNET_ADDRESS_PRINTABLE_LENGTH];
-    char nh_raddr[23];
+    char nh_raddr[SNDNET_REALADDRESS_PRINTABLE_LENGTH];
 
     assert(msg != 0);
     assert(sns != 0);
     assert(nexthop != 0);
 
     sndnet_address_tostr(&(nexthop->sn_addr), nh_addr);
-    sndnet_realaddress_tostr(&(nexthop->net_addr), nh_raddr, 23);
+    sndnet_realaddress_tostr(&(nexthop->net_addr), nh_raddr);
 
     sndnet_log(sns, "Forwarding to %s @ %s\n", nh_addr, nh_raddr);
 }

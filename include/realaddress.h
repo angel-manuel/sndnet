@@ -24,6 +24,10 @@ typedef struct sockaddr sndnet_soaddr_t;
  * */
 typedef sndnet_soaddr_t sndnet_realaddr_t;
 
+#define SNDNET_REALADDRESS_HOSTNAME_PRINTABLE_LENGTH 16
+#define SNDNET_REALADDRESS_PORT_PRINTABLE_LENGTH 5
+#define SNDNET_REALADDRESS_PRINTABLE_LENGTH (SNDNET_REALADDRESS_HOSTNAME_PRINTABLE_LENGTH+SNDNET_REALADDRESS_PORT_PRINTABLE_LENGTH+1)
+
 /**
  * Initializes an address from a hostname
  * @param snra sndnet_realaddr_t to be initialized
@@ -45,10 +49,9 @@ int sndnet_realaddress_from_str(sndnet_realaddr_t* snra, const char* str);
  * Gets the hostname of an address
  * @param snra The address
  * @param[out] out_hostname Pointer to string where hostname should be stored
- * @param out_hostname_len Length of out_hostname. Wont be surpassed, instead function willl return -1. 16 is the recommended length.
  * @return 0 if OK, -1 if ERROR
  * */
-int sndnet_realaddress_get_hostname(const sndnet_realaddr_t* snra, char* out_hostname, size_t out_hostname_len);
+int sndnet_realaddress_get_hostname(const sndnet_realaddr_t* snra, char* out_hostname);
 
 /**
  * Gets the port of an address
@@ -62,10 +65,9 @@ int sndnet_realaddress_get_port(const sndnet_realaddr_t* snra, uint16_t* out_por
  * Gets an string representation of the address(<ip>:<port> style)
  * @param snra The address
  * @param[out] out_str Pointer to string where representation shuld be stored
- * @param out_hostname_len Length of out_string. Wont be surpassed, instead function will return -1. 23 is the recommended length.
  * @return 0 if OK, -1 if ERROR
  * */
-int sndnet_realaddress_tostr(const sndnet_realaddr_t* snra, char* out_str, size_t out_str_len);
+int sndnet_realaddress_tostr(const sndnet_realaddr_t* snra, char* out_str);
 
 #ifdef __cplusplus
 } /*extern "C"*/

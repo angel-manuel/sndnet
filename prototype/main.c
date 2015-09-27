@@ -7,6 +7,7 @@
 #include "address.h"
 #include "message.h"
 #include "realaddress.h"
+#include "router.h"
 #include "sndnet.h"
 
 int main(int argc, char* argv[]) {
@@ -85,6 +86,19 @@ int main(int argc, char* argv[]) {
             sndnet_realaddress_from_str(&sn_raddr, raddr);
 
             sndnet_router_add(&(sns.router), &sn_addr, &sn_raddr);
+        }
+        
+        if(strcmp(command, "show") == 0) {
+            char* buffer = malloc(30000);
+            
+            if(!buffer)
+                return 1;
+            
+            sndnet_router_tostr(&sns.router, buffer, 30000);
+            
+            printf("%s\n", buffer);
+            
+            free(buffer);
         }
     }
     

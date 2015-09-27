@@ -66,6 +66,8 @@ void sndnet_router_remove(sndnet_router_t* snr, const sndnet_addr_t* addr);
  * */
 void sndnet_router_nexthop(const sndnet_router_t* snr, const sndnet_addr_t* dst, sndnet_entry_t* nexthop);
 
+int sndnet_router_tostr(const sndnet_router_t* snr, char* out_str, size_t out_str_len);
+
 struct sndnet_router_t_ {
     sndnet_addr_t self; /**< Our address */
     sndnet_entry_t table[SNDNET_ROUTER_LEVELS][SNDNET_ROUTER_COLUMNS]; /**< Routing table */

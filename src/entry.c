@@ -3,6 +3,8 @@
 #include "address.h"
 
 #include <assert.h>
+#include <stdio.h>
+#include <string.h>
 
 int sndnet_entry_cmp(const sndnet_entry_t* A, const sndnet_entry_t* B) {
 	return sndnet_address_cmp(&A->sn_addr, &B->sn_addr);
@@ -66,4 +68,34 @@ void sndnet_entry_closest(const sndnet_addr_t* dst, const sndnet_entry_t candida
     } else {
         closest->is_set = 0;
     }
+}
+
+int sndnet_entry_tostr(const sndnet_entry_t* sne, char* out_str, size_t sn_addr_precision) {
+    char sn_addr_str[SNDNET_ADDRESS_PRINTABLE_LENGTH];
+    char net_addr_str[SNDNET_REALADDRESS_PRINTABLE_LENGTH];
+    
+    assert(sne != 0);
+    assert(out_str != 0);
+    assert(sn_addr_precision < SNDNET_ADDRESS_PRINTABLE_LENGTH);
+    
+    if(sne->is_set == 0) {
+        if(snprintf(out_str, SNDNET_ENTRY_PRINTABLE_LENGTH, "NULL") < 4)
+            return -1;
+        
+        return 0;
+    }
+    
+    sndnet_address_tostr(&sne->sn_addr, sn_addr_str);
+    if(sn_addr_precision)
+        sn_addr_str[sn_addr_precision] = '\0';
+    
+    if(sndnet_realaddress_tostr(&sne->net_addr, net_addr_str))
+        return -1;
+    
+    
+    if(snprintf(out_str, SNDNET_ENTRY_PRINTABLE_LENGTH, "%s@%s", sn_addr_str, net_addr_str)
+        < strlen(sn_addr_str) + strlen(net_addr_str) + 1)
+        return -1;
+    
+    return 0;
 }

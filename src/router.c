@@ -1,6 +1,7 @@
 #include "router.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -110,17 +111,96 @@ void sndnet_router_nexthop(const sndnet_router_t* snr, const sndnet_addr_t* dst,
     }
 }
 
-size_t leafset_get_size(const sndnet_entry_t* leafset) {
-    size_t count;
-
-    assert(leafset != 0);
-
-    for(count = 0; count < SNDNET_ROUTER_LEAFSET_SIZE; ++count) {
-        if(leafset[count].is_set == 0)
-            break;
+int sndnet_router_tostr(const sndnet_router_t* snr, char* out_str, size_t out_str_len) {
+    size_t used_len = 0;
+    
+    assert(snr != 0);
+    assert(out_str != 0);
+    
+    {
+        char self_str[SNDNET_ADDRESS_PRINTABLE_LENGTH];
+        
+        sndnet_address_tostr(&snr->self, self_str);
+        
+        used_len += snprintf(out_str + used_len, out_str_len - used_len,
+        "Router @ %s\n", self_str);
     }
-
-    return count;
+    
+    {/*Left leafset*/
+        size_t left_leafset_size = sndnet_entry_array_len(snr->left_leafset);
+        unsigned int i;
+        
+        used_len += snprintf(out_str + used_len, out_str_len - used_len,
+        "Left leafset[%lu]\n", (uint64_t)left_leafset_size);
+        
+        if(used_len >= out_str_len)
+            return -1;
+        
+        for(i = 0; i < left_leafset_size; ++i) {
+            char entry[SNDNET_ENTRY_PRINTABLE_LENGTH];
+            
+            if(sndnet_entry_tostr(&snr->left_leafset[i], entry, 16))
+                return -1;
+            
+            used_len += snprintf(out_str + used_len, out_str_len - used_len,
+            "\t%s\n", entry);
+        }
+    }
+    
+    if(used_len >= out_str_len)
+        return -1;
+    
+    {/*Right leafset*/
+        size_t right_leafset_size = sndnet_entry_array_len(snr->right_leafset);
+        unsigned int i;
+        
+        used_len += snprintf(out_str + used_len, out_str_len - used_len,
+        "Right leafset[%lu]\n", (uint64_t)right_leafset_size);
+        
+        if(used_len >= out_str_len)
+            return -1;
+        
+        for(i = 0; i < right_leafset_size; ++i) {
+            char entry[SNDNET_ENTRY_PRINTABLE_LENGTH];
+            
+            if(sndnet_entry_tostr(&snr->right_leafset[i], entry, 16))
+                return -1;
+            
+            used_len += snprintf(out_str + used_len, out_str_len - used_len,
+            "\t%s\n", entry);
+        }
+    }
+    
+    if(used_len >= out_str_len)
+        return -1;
+    
+    {/*Routing table*/
+        unsigned int level;
+        
+        used_len += snprintf(out_str + used_len, out_str_len - used_len,
+        "Routing table\n");
+        
+        for(level = 0; level < SNDNET_ROUTER_LEVELS; ++level) {
+            unsigned int column;
+            
+            for(column = 0; column < SNDNET_ROUTER_COLUMNS; ++column) {
+                if(snr->table[level][column].is_set) {
+                    char entry[SNDNET_ENTRY_PRINTABLE_LENGTH];
+                    
+                    if(sndnet_entry_tostr(&snr->table[level][column], entry, 16))
+                        return -1;
+                        
+                    used_len += snprintf(out_str + used_len, out_str_len - used_len,
+                    "\t[%2u][%2u]:%s\n", level, column, entry);
+                }
+            }
+        }
+    }
+    
+    if(used_len >= out_str_len)
+        return -1;
+    
+    return 0;
 }
 
 int leafset_is_on_range(const sndnet_router_t* snr, const sndnet_addr_t* addr) {
@@ -132,8 +212,8 @@ int leafset_is_on_range(const sndnet_router_t* snr, const sndnet_addr_t* addr) {
     assert(snr != NULL);
     assert(addr != NULL);
     
-    left_count = leafset_get_size(snr->left_leafset);
-    right_count = leafset_get_size(snr->right_leafset);
+    left_count = sndnet_entry_array_len(snr->left_leafset);
+    right_count = sndnet_entry_array_len(snr->right_leafset);
 
     if(left_count)
         left_bound = &snr->left_leafset[left_count].sn_addr;
@@ -196,7 +276,7 @@ void leafset_insert(sndnet_entry_t* leafset, const sndnet_entry_t* sne, int righ
     assert(leafset != 0);
     assert(sne != 0);
 
-    ls = leafset_get_size(leafset);
+    ls = sndnet_entry_array_len(leafset);
 
     if(ls < SNDNET_ROUTER_LEAFSET_SIZE) {
         leafset[ls] = *sne;
@@ -217,7 +297,7 @@ void leafset_extract(sndnet_entry_t* leafset, const sndnet_entry_t* sne, int rig
     assert(leafset != 0);
     assert(sne != 0);
 
-    ls = leafset_get_size(leafset);
+    ls = sndnet_entry_array_len(leafset);
 
     for(i = 0; i < ls; ++i) {
         if(sndnet_entry_cmp(sne, &leafset[i]) == 0) {
@@ -234,6 +314,6 @@ void leafset_extract(sndnet_entry_t* leafset, const sndnet_entry_t* sne, int rig
 void leafset_sort(sndnet_entry_t* leafset, int right) {
     typedef int (*cmp_t)(const void*, const void*);
 
-    qsort(leafset, leafset_get_size(leafset), sizeof(sndnet_entry_t),
+    qsort(leafset, sndnet_entry_array_len(leafset), sizeof(sndnet_entry_t),
         (cmp_t)(right ? sndnet_entry_cmp : sndnet_entry_cmp_neg));
 }
