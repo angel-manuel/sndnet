@@ -15,6 +15,7 @@ solution "sndnet"
         location "build/sndnet"
         kind "StaticLib"
         language "C"
+        buildoptions { "-D_POSIX_C_SOURCE=200112L -std=c99" }
         includedirs "include"
         files { "src/**.c"}
 
@@ -22,6 +23,7 @@ solution "sndnet"
         location "build/prototype"
         kind "ConsoleApp"
         language "C"
+        buildoptions { "-std=c99" }
         links { "sndnet", "pthread" }
         includedirs "include"
         files { "prototype/**.c" }
