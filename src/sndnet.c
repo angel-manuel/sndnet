@@ -14,6 +14,7 @@
 
 #include "address.h"
 #include "message.h"
+#include "message_type.h"
 
 void sndnet_deliver(sndnet_state_t* sns, const sndnet_message_t* msg);
 int sndnet_forward(sndnet_state_t* sns, sndnet_message_t* msg);
@@ -133,7 +134,7 @@ int sndnet_send(sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len, const
     assert(dst != 0);
     assert(payload != 0 || len == 0);
 
-    msg = sndnet_message_pack(dst, &(sns->self), len, payload);
+    msg = sndnet_message_pack(dst, &(sns->self), SNDNET_MSG_TYPE_USER, len, payload);
 
     if(!msg)
         return -1;
@@ -142,6 +143,23 @@ int sndnet_send(sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len, const
 
     free(msg);
 
+    return 0;
+}
+
+int sndnet_join(sndnet_state_t* sns, const sndnet_realaddr_t* gateway) {
+    assert(sns != 0);
+    assert(gateway != 0);
+    
+    /*
+    Join steps:
+    1. Find m = owner(self)
+    2. Get m leafset
+    3. Fill our leafset
+    4. Inform m leafset of ourselves
+    5. Get traceroute to m
+    6. Construct routing table for m traceroute
+    */
+    
     return 0;
 }
 

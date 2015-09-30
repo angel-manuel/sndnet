@@ -56,7 +56,7 @@ sndnet_message_t* sndnet_message_recv(int socket_fd, sndnet_realaddr_t* rem_addr
     return msg;
 }
 
-sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_addr_t* src, size_t len, const char* payload) {
+sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_addr_t* src, sndnet_message_type_t type, size_t len, const char* payload) {
     sndnet_message_t* msg;
 
     assert(dst != 0);
@@ -71,6 +71,7 @@ sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_add
     sndnet_address_get_raw(dst, msg->header.dst);
     sndnet_address_get_raw(src, msg->header.src);
     msg->header.ttl = SNDNET_MESSAGE_DEFAULT_TTL;
+    msg->header.type = type;
     msg->header.len = len;
     memcpy(msg->payload, payload, len);
     msg->payload[len] = '\0';

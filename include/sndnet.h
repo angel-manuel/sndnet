@@ -84,6 +84,14 @@ void sndnet_set_deliver_callback(sndnet_state_t* sns, sndnet_deliver_callback cb
  */
 int sndnet_send(sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len, const char* payload);
 
+/**
+ * Joins a SecondNet network using a know gateway
+ * @param sns Node state
+ * @param gateway Network address of the gateway
+ * @return 0 if corretly joined, -1 otherwise
+ * */
+int sndnet_join(sndnet_state_t* sns, const sndnet_realaddr_t* gateway);
+
 struct sndnet_state_t_ {
     sndnet_addr_t self; /**< Node SecondNet address */
     sndnet_router_t router; /**< Routing state */

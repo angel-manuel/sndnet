@@ -7,6 +7,7 @@
 #define SNDNET_MESSAGE_H_
 
 #include "address.h"
+#include "message_type.h"
 #include "realaddress.h"
 
 #include <stdint.h>
@@ -48,11 +49,12 @@ sndnet_message_t* sndnet_message_recv(int socket_fd, sndnet_realaddr_t* rem_addr
  * Creates a message ready for sending
  * @param dst SecondNet destination address(copied)
  * @param src SecondNet source address(copied)
+ * @param type Message type
  * @param len Payload length
  * @param payload Pointer to payload(copied)
  * @return A new message(must be freed) or NULL if error
  * */
-sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_addr_t* src, size_t len, const char* payload);
+sndnet_message_t* sndnet_message_pack(const sndnet_addr_t* dst, const sndnet_addr_t* src, sndnet_message_type_t type, size_t len, const char* payload);
 
 /**
  * Sends a message(low-level)
@@ -69,6 +71,7 @@ struct sndnet_header_t_ {
     unsigned char dst[SNDNET_ADDRESS_LENGTH]; /**< SecondNet destination address */
     unsigned char src[SNDNET_ADDRESS_LENGTH]; /**< SecondNet source address(spoofable) */
     uint16_t ttl; /**< TTL(Time To Live), decreased when forwarded, when 0 message isnt forwarded any more */
+    sndnet_message_type_t type; /**< Message type */
     uint16_t len; /**< Length of the payload */
 };
 
