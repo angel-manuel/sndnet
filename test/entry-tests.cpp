@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#include <address.h>
+#include <addr.h>
 #include <entry.h>
 
 TEST_CASE("Entry comparison", "[entry]") {

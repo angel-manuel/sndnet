@@ -6,9 +6,9 @@
 #ifndef SN_ROUTER_H_
 #define SN_ROUTER_H_
 
-#include "address.h"
+#include "addr.h"
 #include "entry.h"
-#include "realaddress.h"
+#include "realaddr.h"
 
 #include <sys/socket.h>
 

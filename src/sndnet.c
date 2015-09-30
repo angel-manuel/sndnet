@@ -12,9 +12,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "address.h"
-#include "message.h"
-#include "message_type.h"
+#include "addr.h"
+#include "msg.h"
+#include "msg_type.h"
 
 void sn_deliver(sn_state_t* sns, const sn_message_t* msg);
 int sn_forward(sn_state_t* sns, sn_message_t* msg);

@@ -6,9 +6,9 @@
 #ifndef SN_MSG_H_
 #define SN_MSG_H_
 
-#include "address.h"
-#include "message_type.h"
-#include "realaddress.h"
+#include "addr.h"
+#include "msg_type.h"
+#include "realaddr.h"
 
 #include <stdint.h>
 #include <sys/socket.h>

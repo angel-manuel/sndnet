@@ -7,8 +7,8 @@
 #ifndef SN_SN_H_
 #define SN_SN_H_
 
-#include "address.h"
-#include "message.h"
+#include "addr.h"
+#include "msg.h"
 #include "router.h"
 
 #include <pthread.h>

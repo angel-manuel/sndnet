@@ -1405,7 +1405,7 @@ namespace Catch {
 
 } // namespace Catch
 
-// #included from: catch_message.h
+// #included from: catch_msg.h
 #define TWOBLUECUBES_CATCH_MSG_H_INCLUDED
 
 #include <string>
@@ -6771,7 +6771,7 @@ namespace Catch {
 
 }
 
-// #included from: catch_message.hpp
+// #included from: catch_msg.hpp
 #define TWOBLUECUBES_CATCH_MSG_HPP_INCLUDED
 
 namespace Catch {

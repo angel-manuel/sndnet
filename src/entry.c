@@ -1,6 +1,6 @@
 #include "entry.h"
 
-#include "address.h"
+#include "addr.h"
 
 #include <assert.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-#include "message.h"
+#include "msg.h"
 
 #include <assert.h>
 #include <stdlib.h>

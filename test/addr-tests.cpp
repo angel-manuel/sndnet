@@ -1,6 +1,6 @@
 #include "catch.hpp"
 
-#include <address.h>
+#include <addr.h>
 
 #include <stdio.h>
 #include <string.h>

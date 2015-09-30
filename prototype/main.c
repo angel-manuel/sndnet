@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "address.h"
-#include "message.h"
-#include "realaddress.h"
+#include "addr.h"
+#include "msg.h"
+#include "realaddr.h"
 #include "router.h"
 #include "sndnet.h"
 
@@ -27,15 +27,15 @@ int main(int argc, char* argv[]) {
     sscanf(argv[2], "%hu", &port);
 
     sn_addr_from_hex(&self, self_addr);
-    
+
     sn_init(&sns, &self, port);
-    
+
     while(printf("> "), fgets(line, 1024, stdin)) {
         command = strtok(line, " \n");
 
         if(!command)
             continue;
-        
+
         if(strcmp(command, "quit") == 0) {
             break;
         }
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
         if(strcmp(command, "send") == 0) {
             char *dst, *payload;
             sn_addr_t sn_dst;
-            
+
             dst = strtok(0, " \n");
 
             if(!dst) {
@@ -87,22 +87,22 @@ int main(int argc, char* argv[]) {
 
             sn_router_add(&(sns.router), &sn_addr, &sn_raddr);
         }
-        
+
         if(strcmp(command, "show") == 0) {
             char* buffer = malloc(30000);
-            
+
             if(!buffer)
                 return 1;
-            
+
             sn_router_tostr(&sns.router, buffer, 30000);
-            
+
             printf("%s\n", buffer);
-            
+
             free(buffer);
         }
     }
-    
+
     sn_destroy(&sns);
-    
+
     return 0;
 }

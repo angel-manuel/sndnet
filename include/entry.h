@@ -1,8 +1,8 @@
 #ifndef SN_ENTRY_H_
 #define SN_ENTRY_H_
 
-#include "address.h"
-#include "realaddress.h"
+#include "addr.h"
+#include "realaddr.h"
 
 #ifdef __cplusplus
 extern "C" {
