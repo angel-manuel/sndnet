@@ -85,8 +85,8 @@ void sndnet_set_deliver_callback(sndnet_state_t* sns, sndnet_deliver_callback cb
 int sndnet_send(sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len, const char* payload);
 
 struct sndnet_state_t_ {
-    sndnet_addr_t self;
-    sndnet_router_t router;
+    sndnet_addr_t self; /**< Node SecondNet address */
+    sndnet_router_t router; /**< Routing state */
     pthread_t bg_thrd; /**< Background thread for routing */
     sndnet_log_callback log_cb; /**< Callback for logging */
     sndnet_forward_callback forward_cb; /**< Callback for forward */

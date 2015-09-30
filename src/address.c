@@ -16,7 +16,7 @@ void sndnet_address_init(sndnet_addr_t* snk, const unsigned char key[SNDNET_ADDR
     memcpy(snk->key, key, SNDNET_ADDRESS_LENGTH);
 }
 
-void sndnet_address_from_hex(sndnet_addr_t* snk, const char* hexstr) {
+void sndnet_address_from_hex(sndnet_addr_t* snk, const char hexstr[SNDNET_ADDRESS_HEX_LENGTH]) {
     unsigned char key[SNDNET_ADDRESS_LENGTH];
     
     assert(hexstr != 0);

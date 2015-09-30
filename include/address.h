@@ -15,8 +15,14 @@ extern "C" {
  * */
 #define SNDNET_ADDRESS_LENGTH 32
 
+/**
+ * SecondNet address hexadecimal length.
+ * */
 #define SNDNET_ADDRESS_HEX_LENGTH (SNDNET_ADDRESS_LENGTH*2)
 
+/**
+ * SecondNet address printable representation length.
+ * */
 #define SNDNET_ADDRESS_PRINTABLE_LENGTH ((SNDNET_ADDRESS_LENGTH*2)+1)
 
 /**
@@ -37,7 +43,7 @@ void sndnet_address_init(sndnet_addr_t* snk, const unsigned char key[SNDNET_ADDR
  * @param hexstr NULL-terminated strin with the hexadecimal representation of the key. If shorter than address length
  *               the rest is assumed to be "0x0"
  * */
-void sndnet_address_from_hex(sndnet_addr_t* snk, const char* hexstr);
+void sndnet_address_from_hex(sndnet_addr_t* snk, const char hexstr[SNDNET_ADDRESS_HEX_LENGTH]);
 
 /**
  * Gets the address key
@@ -56,7 +62,7 @@ void sndnet_address_get_hex(const sndnet_addr_t* sna, unsigned char* out_hex);
 /**
  * Returns a hex printable string
  * @param sna Address
- * @param[out] Printable hex address. Must have SNDNET_ADDRESS_PRINTABLE_LENGTH.
+ * @param[out] out_str Printable hex address. Must have SNDNET_ADDRESS_PRINTABLE_LENGTH.
  * */
 void sndnet_address_tostr(const sndnet_addr_t* sna, char* out_str);
 
@@ -72,7 +78,7 @@ int sndnet_address_cmp(const sndnet_addr_t* a, const sndnet_addr_t* b);
  * Returns the absolute distance on the keyspace between two addresses
  * @param a Some address
  * @param b Other address
- * @param[out] The distance
+ * @param[out] dist The distance
  * */
 void sndnet_address_dist(const sndnet_addr_t* a, const sndnet_addr_t* b, sndnet_addr_t* dist);
 

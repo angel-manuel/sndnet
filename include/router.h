@@ -66,6 +66,13 @@ void sndnet_router_remove(sndnet_router_t* snr, const sndnet_addr_t* addr);
  * */
 void sndnet_router_nexthop(const sndnet_router_t* snr, const sndnet_addr_t* dst, sndnet_entry_t* nexthop);
 
+/**
+ * Gets an string representation of the routing info
+ * @param snr Router state
+ * @param[out] out_str Pointer to string for placing the representation
+ * @param out_str_len Allocated length of out_str
+ * @return 0 if OK, -1 if ERROR
+ * */
 int sndnet_router_tostr(const sndnet_router_t* snr, char* out_str, size_t out_str_len);
 
 struct sndnet_router_t_ {

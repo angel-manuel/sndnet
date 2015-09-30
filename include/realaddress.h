@@ -24,8 +24,19 @@ typedef struct sockaddr sndnet_soaddr_t;
  * */
 typedef sndnet_soaddr_t sndnet_realaddr_t;
 
+/**
+ * sndnet_realaddr_t hostname printable representation length.
+ * */
 #define SNDNET_REALADDRESS_HOSTNAME_PRINTABLE_LENGTH 16
+
+/**
+ * sndnet_realaddr_t port printable representation length.
+ * */
 #define SNDNET_REALADDRESS_PORT_PRINTABLE_LENGTH 5
+
+/**
+ * sndnet_realaddr_t printable representation length.
+ * */
 #define SNDNET_REALADDRESS_PRINTABLE_LENGTH (SNDNET_REALADDRESS_HOSTNAME_PRINTABLE_LENGTH+SNDNET_REALADDRESS_PORT_PRINTABLE_LENGTH+1)
 
 /**

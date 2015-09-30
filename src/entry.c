@@ -14,7 +14,7 @@ int sndnet_entry_cmp_neg(const sndnet_entry_t* A, const sndnet_entry_t* B) {
 	return sndnet_entry_cmp(B, A);
 }
 
-size_t sndnet_entry_array_len(const sndnet_entry_t* arr) {
+size_t sndnet_entry_array_len(const sndnet_entry_t arr[]) {
 	size_t ret = 0;
 	
 	assert(arr != 0);
