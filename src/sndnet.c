@@ -16,7 +16,7 @@
 #include "message.h"
 
 void sndnet_deliver(sndnet_state_t* sns, const sndnet_message_t* msg);
-int sndnet_forward(sndnet_state_t* sns, const sndnet_message_t* msg);
+int sndnet_forward(sndnet_state_t* sns, sndnet_message_t* msg);
 void sndnet_log(sndnet_state_t* sns, const char* format, ...);
 void* sndnet_background(void* arg);
 
@@ -154,7 +154,7 @@ void sndnet_deliver(sndnet_state_t* sns, const sndnet_message_t* msg) {
     (sns->deliver_cb)(msg, sns);
 }
 
-int sndnet_forward(sndnet_state_t* sns, const sndnet_message_t* msg) {
+int sndnet_forward(sndnet_state_t* sns, sndnet_message_t* msg) {
     sndnet_addr_t dst;
     sndnet_entry_t nexthop;
     int sent;
@@ -167,15 +167,22 @@ int sndnet_forward(sndnet_state_t* sns, const sndnet_message_t* msg) {
     sndnet_router_nexthop(&(sns->router), &dst, &nexthop);
 
     if(nexthop.is_set) {
+        if(!msg->header.ttl) {
+            return -1;
+        }
+        
+        msg->header.ttl--;
+        
         (sns->forward_cb)(msg, sns, &nexthop);
 
         sent = sndnet_message_send(msg, sns->socket_fd, &(nexthop.net_addr));
 
-        if(sent <= 0)
+        if(sent <= 0) {
+            msg->header.ttl++;
             return -1;
+        }
 
         return 0;
-        /*return sndnet_message_send(msg, sns->socket_fd, &(nexthop.net_addr));*/
     } else {
         sndnet_deliver(sns, msg);
         return 0;
