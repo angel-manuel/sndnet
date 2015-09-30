@@ -9,54 +9,54 @@ void bytestring_negate(const unsigned char* bytestring, unsigned char* negated);
 void hexstring_to_printable(const unsigned char* hexstring, char* printable);
 void printable_to_bytestring(const char* printable, unsigned char* bytestring);
 
-void sndnet_address_init(sndnet_addr_t* snk, const unsigned char key[SNDNET_ADDRESS_LENGTH]) {
+void sn_addr_init(sn_addr_t* snk, const unsigned char key[SN_ADDR_LEN]) {
     assert(snk != 0);
     assert(key != 0);
     
-    memcpy(snk->key, key, SNDNET_ADDRESS_LENGTH);
+    memcpy(snk->key, key, SN_ADDR_LEN);
 }
 
-void sndnet_address_from_hex(sndnet_addr_t* snk, const char hexstr[SNDNET_ADDRESS_HEX_LENGTH]) {
-    unsigned char key[SNDNET_ADDRESS_LENGTH];
+void sn_addr_from_hex(sn_addr_t* snk, const char hexstr[SN_ADDR_HEX_LEN]) {
+    unsigned char key[SN_ADDR_LEN];
     
     assert(hexstr != 0);
     
     printable_to_bytestring(hexstr, key);
     
-    sndnet_address_init(snk, key);
+    sn_addr_init(snk, key);
 }
 
-void sndnet_address_get_raw(const sndnet_addr_t* sna, unsigned char* out_raw) {
+void sn_addr_get_raw(const sn_addr_t* sna, unsigned char* out_raw) {
     assert(sna != 0);
     assert(out_raw != 0);
 
-    memcpy(out_raw, sna->key, SNDNET_ADDRESS_LENGTH);
+    memcpy(out_raw, sna->key, SN_ADDR_LEN);
 }
 
-void sndnet_address_get_hex(const sndnet_addr_t* sna, unsigned char* out_hex) {
+void sn_addr_get_hex(const sn_addr_t* sna, unsigned char* out_hex) {
     assert(sna != 0);
     assert(out_hex != 0);
 
     bytestring_to_hexstring(sna->key, out_hex);
 }
 
-void sndnet_address_tostr(const sndnet_addr_t* sna, char* out_str) {
-    unsigned char hexstr[SNDNET_ADDRESS_HEX_LENGTH];
+void sn_addr_tostr(const sn_addr_t* sna, char* out_str) {
+    unsigned char hexstr[SN_ADDR_HEX_LEN];
 
     assert(sna != 0);
     assert(out_str != 0);
 
-    sndnet_address_get_hex(sna, hexstr);
+    sn_addr_get_hex(sna, hexstr);
     hexstring_to_printable(hexstr, out_str);
 }
 
-int sndnet_address_cmp(const sndnet_addr_t* a, const sndnet_addr_t* b) {
+int sn_addr_cmp(const sn_addr_t* a, const sn_addr_t* b) {
     int d, i;
 
     assert(a != 0);
     assert(b != 0);
     
-    for(i = 0; i < SNDNET_ADDRESS_LENGTH; ++i) {
+    for(i = 0; i < SN_ADDR_LEN; ++i) {
         d = (int)a->key[i] - (int)b->key[i];
 
         if(d)
@@ -66,10 +66,10 @@ int sndnet_address_cmp(const sndnet_addr_t* a, const sndnet_addr_t* b) {
     return 0;
 }
 
-void sndnet_address_dist(const sndnet_addr_t* a, const sndnet_addr_t* b, sndnet_addr_t* dist) {
+void sn_addr_dist(const sn_addr_t* a, const sn_addr_t* b, sn_addr_t* dist) {
     int i;
     unsigned char carry, ca, cb, cc;
-    unsigned char sub[SNDNET_ADDRESS_LENGTH];
+    unsigned char sub[SN_ADDR_LEN];
     
     assert(a != 0);
     assert(b != 0);
@@ -78,7 +78,7 @@ void sndnet_address_dist(const sndnet_addr_t* a, const sndnet_addr_t* b, sndnet_
     // a - b
     
     carry = 0;
-    for(i = (SNDNET_ADDRESS_LENGTH - 1); i >= 0; --i) {
+    for(i = (SN_ADDR_LEN - 1); i >= 0; --i) {
         ca = a->key[i];
         cb = b->key[i] + carry;
         
@@ -92,26 +92,26 @@ void sndnet_address_dist(const sndnet_addr_t* a, const sndnet_addr_t* b, sndnet_
         bytestring_negate(sub, sub);
     }
     
-    sndnet_address_init(dist, sub);
+    sn_addr_init(dist, sub);
 }
 
-void sndnet_address_index(const sndnet_addr_t* self, const sndnet_addr_t* addr, unsigned int* level, unsigned char* column) {
+void sn_addr_index(const sn_addr_t* self, const sn_addr_t* addr, unsigned int* level, unsigned char* column) {
     unsigned int l = 0;
     unsigned int i;
-    unsigned char hex_a[SNDNET_ADDRESS_HEX_LENGTH];
-    unsigned char hex_b[SNDNET_ADDRESS_HEX_LENGTH];
+    unsigned char hex_a[SN_ADDR_HEX_LEN];
+    unsigned char hex_b[SN_ADDR_HEX_LEN];
     
     assert(self != 0);
     assert(addr != 0);
     assert(level != 0 || column != 0);
     
-    sndnet_address_get_hex(self, hex_a);
-    sndnet_address_get_hex(addr, hex_b);
+    sn_addr_get_hex(self, hex_a);
+    sn_addr_get_hex(addr, hex_b);
     
     if(column)
         *column = 255;
     
-    for(i = 0; i < (SNDNET_ADDRESS_LENGTH*2); ++i) {
+    for(i = 0; i < (SN_ADDR_LEN*2); ++i) {
         if(hex_a[i] == hex_b[i]) {
             ++l;
         } else {
@@ -121,7 +121,7 @@ void sndnet_address_index(const sndnet_addr_t* self, const sndnet_addr_t* addr, 
         }
     }
     
-    assert(l <= SNDNET_ADDRESS_LENGTH*2);
+    assert(l <= SN_ADDR_LEN*2);
 
     if(level)
         *level = l;
@@ -136,7 +136,7 @@ void bytestring_to_hexstring(const unsigned char* bytestring, unsigned char* hex
     assert(bytestring != 0);
     assert(hexstring != 0);
     
-    for(i = 0; i < SNDNET_ADDRESS_LENGTH; ++i) {
+    for(i = 0; i < SN_ADDR_LEN; ++i) {
         c = bytestring[i];
         hexstring[2*i] = c/16;
         hexstring[(2*i)+1] = c%16;
@@ -149,7 +149,7 @@ void bytestring_negate(const unsigned char* bytestring, unsigned char* negated) 
     assert(bytestring != 0);
     assert(negated != 0);
     
-    for(i = 0; i < SNDNET_ADDRESS_LENGTH; ++i) {
+    for(i = 0; i < SN_ADDR_LEN; ++i) {
         negated[i] = 255 ^ bytestring[i];
     }
 }
@@ -161,7 +161,7 @@ void hexstring_to_printable(const unsigned char* hexstring, char* printable) {
     assert(hexstring != 0);
     assert(printable != 0);
     
-    for(i = 0; i < SNDNET_ADDRESS_LENGTH*2; ++i) {
+    for(i = 0; i < SN_ADDR_LEN*2; ++i) {
         c = (char)hexstring[i];
         
         assert(c >= 0 && c < 16);
@@ -181,9 +181,9 @@ void printable_to_bytestring(const char* printable, unsigned char* bytestring) {
     int c;
     unsigned char ac = 0;
     
-    memset(bytestring, 0, SNDNET_ADDRESS_LENGTH);
+    memset(bytestring, 0, SN_ADDR_LEN);
     
-    for(i = 0; printable[i] != '\0' && i < SNDNET_ADDRESS_LENGTH*2; ++i) {
+    for(i = 0; printable[i] != '\0' && i < SN_ADDR_LEN*2; ++i) {
         c = (int)printable[i];
 
         assert(isalnum(c));

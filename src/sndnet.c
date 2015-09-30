@@ -16,16 +16,16 @@
 #include "message.h"
 #include "message_type.h"
 
-void sndnet_deliver(sndnet_state_t* sns, const sndnet_message_t* msg);
-int sndnet_forward(sndnet_state_t* sns, sndnet_message_t* msg);
-void sndnet_log(sndnet_state_t* sns, const char* format, ...);
-void* sndnet_background(void* arg);
+void sn_deliver(sn_state_t* sns, const sn_message_t* msg);
+int sn_forward(sn_state_t* sns, sn_message_t* msg);
+void sn_log(sn_state_t* sns, const char* format, ...);
+void* sn_background(void* arg);
 
 void default_log_cb(const char* msg);
-void default_forward_cb(const sndnet_message_t* msg, sndnet_state_t* sns, sndnet_entry_t* nexthop);
-void default_deliver_cb(const sndnet_message_t* msg, sndnet_state_t* sns);
+void default_forward_cb(const sn_message_t* msg, sn_state_t* sns, sn_entry_t* nexthop);
+void default_deliver_cb(const sn_message_t* msg, sn_state_t* sns);
 
-int sndnet_init(sndnet_state_t* sns, const sndnet_addr_t* self, unsigned short port) {
+int sn_init(sn_state_t* sns, const sn_addr_t* self, unsigned short port) {
     int socket_fd;
     struct sockaddr_in serv_addr;
     
@@ -34,20 +34,20 @@ int sndnet_init(sndnet_state_t* sns, const sndnet_addr_t* self, unsigned short p
     /* Copying */
     
     sns->self = *self;
-    sndnet_router_init(&(sns->router), &(sns->self));
+    sn_router_init(&(sns->router), &(sns->self));
     sns->log_cb = default_log_cb;
     sns->deliver_cb = default_deliver_cb;
     sns->forward_cb = default_forward_cb;
     sns->port = port;
     
-    sndnet_log(sns, "Initializing");
+    sn_log(sns, "Initializing");
     
     /* Socket initialization */
     
     socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     
     if(socket_fd == -1) {
-        sndnet_log(sns, "Error while initializing socket");
+        sn_log(sns, "Error while initializing socket");
         return 1;
     }
     
@@ -57,7 +57,7 @@ int sndnet_init(sndnet_state_t* sns, const sndnet_addr_t* self, unsigned short p
     serv_addr.sin_port = htons(port);
     
     if(bind(socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) {
-        sndnet_log(sns, "Error while initializing socket");
+        sn_log(sns, "Error while initializing socket");
         close(socket_fd);
         return 1;
     }
@@ -66,21 +66,21 @@ int sndnet_init(sndnet_state_t* sns, const sndnet_addr_t* self, unsigned short p
     
     /* Background thread initialization */
     
-    if(pthread_create(&(sns->bg_thrd), 0, sndnet_background, sns)) {
-        sndnet_log(sns, "Error while starting thread");
+    if(pthread_create(&(sns->bg_thrd), 0, sn_background, sns)) {
+        sn_log(sns, "Error while starting thread");
         close(socket_fd);
         return 1;
     }
     
-    sndnet_log(sns, "Initialized");
+    sn_log(sns, "Initialized");
     
     return 0;
 }
 
-void sndnet_destroy(sndnet_state_t* sns) {
+void sn_destroy(sn_state_t* sns) {
     assert(sns != 0);
     
-    sndnet_log(sns, "Destroying");
+    sn_log(sns, "Destroying");
     
     /* Socket closing */
     
@@ -91,10 +91,10 @@ void sndnet_destroy(sndnet_state_t* sns) {
     pthread_cancel(sns->bg_thrd);
     pthread_join(sns->bg_thrd, 0);
     
-    sndnet_log(sns, "Destroyed");
+    sn_log(sns, "Destroyed");
 }
 
-void sndnet_set_log_callback(sndnet_state_t* sns, sndnet_log_callback cb) {
+void sn_set_log_callback(sn_state_t* sns, sn_log_callback cb) {
     assert(sns != 0);
     
     if(cb)
@@ -102,10 +102,10 @@ void sndnet_set_log_callback(sndnet_state_t* sns, sndnet_log_callback cb) {
     else
         sns->log_cb = default_log_cb;
     
-    sndnet_log(sns, "Log callback changed");
+    sn_log(sns, "Log callback changed");
 }
 
-void sndnet_set_forward_callback(sndnet_state_t* sns, sndnet_forward_callback cb) {
+void sn_set_forward_callback(sn_state_t* sns, sn_forward_callback cb) {
     assert(sns != 0);
 
     if(cb)
@@ -113,10 +113,10 @@ void sndnet_set_forward_callback(sndnet_state_t* sns, sndnet_forward_callback cb
     else
         sns->forward_cb = default_forward_cb;
 
-    sndnet_log(sns, "Forwarding callback changed");
+    sn_log(sns, "Forwarding callback changed");
 }
 
-void sndnet_set_deliver_callback(sndnet_state_t* sns, sndnet_deliver_callback cb) {
+void sn_set_deliver_callback(sn_state_t* sns, sn_deliver_callback cb) {
     assert(sns != 0);
 
     if(cb)
@@ -124,29 +124,29 @@ void sndnet_set_deliver_callback(sndnet_state_t* sns, sndnet_deliver_callback cb
     else
         sns->deliver_cb = default_deliver_cb;
 
-    sndnet_log(sns, "Delivering callback changed");
+    sn_log(sns, "Delivering callback changed");
 }
 
-int sndnet_send(sndnet_state_t* sns, const sndnet_addr_t* dst, size_t len, const char* payload) {
-    sndnet_message_t* msg;
+int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload) {
+    sn_message_t* msg;
 
     assert(sns != 0);
     assert(dst != 0);
     assert(payload != 0 || len == 0);
 
-    msg = sndnet_message_pack(dst, &(sns->self), SNDNET_MSG_TYPE_USER, len, payload);
+    msg = sn_message_pack(dst, &(sns->self), SN_MSG_TYPE_USER, len, payload);
 
     if(!msg)
         return -1;
 
-    sndnet_forward(sns, msg);
+    sn_forward(sns, msg);
 
     free(msg);
 
     return 0;
 }
 
-int sndnet_join(sndnet_state_t* sns, const sndnet_realaddr_t* gateway) {
+int sn_join(sn_state_t* sns, const sn_realaddr_t* gateway) {
     assert(sns != 0);
     assert(gateway != 0);
     
@@ -165,24 +165,24 @@ int sndnet_join(sndnet_state_t* sns, const sndnet_realaddr_t* gateway) {
 
 /*Private functions*/
 
-void sndnet_deliver(sndnet_state_t* sns, const sndnet_message_t* msg) {
+void sn_deliver(sn_state_t* sns, const sn_message_t* msg) {
     assert(sns != 0);
     assert(msg != 0);
 
     (sns->deliver_cb)(msg, sns);
 }
 
-int sndnet_forward(sndnet_state_t* sns, sndnet_message_t* msg) {
-    sndnet_addr_t dst;
-    sndnet_entry_t nexthop;
+int sn_forward(sn_state_t* sns, sn_message_t* msg) {
+    sn_addr_t dst;
+    sn_entry_t nexthop;
     int sent;
 
     assert(sns != 0);
     assert(msg != 0);
 
-    sndnet_address_init(&dst, msg->header.dst);
+    sn_addr_init(&dst, msg->header.dst);
 
-    sndnet_router_nexthop(&(sns->router), &dst, &nexthop);
+    sn_router_nexthop(&(sns->router), &dst, &nexthop);
 
     if(nexthop.is_set) {
         if(!msg->header.ttl) {
@@ -193,7 +193,7 @@ int sndnet_forward(sndnet_state_t* sns, sndnet_message_t* msg) {
         
         (sns->forward_cb)(msg, sns, &nexthop);
 
-        sent = sndnet_message_send(msg, sns->socket_fd, &(nexthop.net_addr));
+        sent = sn_message_send(msg, sns->socket_fd, &(nexthop.net_addr));
 
         if(sent <= 0) {
             msg->header.ttl++;
@@ -202,12 +202,12 @@ int sndnet_forward(sndnet_state_t* sns, sndnet_message_t* msg) {
 
         return 0;
     } else {
-        sndnet_deliver(sns, msg);
+        sn_deliver(sns, msg);
         return 0;
     }
 }
 
-void sndnet_log(sndnet_state_t* sns, const char* format, ...) {
+void sn_log(sn_state_t* sns, const char* format, ...) {
     char str[1024];
     va_list args;
     
@@ -222,20 +222,20 @@ void sndnet_log(sndnet_state_t* sns, const char* format, ...) {
     sns->log_cb(str);
 }
 
-void* sndnet_background(void* arg) {
-    sndnet_state_t* sns = (sndnet_state_t*)arg;
-    sndnet_realaddr_t rem_addr;
-    sndnet_message_t* msg;
+void* sn_background(void* arg) {
+    sn_state_t* sns = (sn_state_t*)arg;
+    sn_realaddr_t rem_addr;
+    sn_message_t* msg;
     
     assert(sns != 0);
     
     do {
-        msg = sndnet_message_recv(sns->socket_fd, &rem_addr);
+        msg = sn_message_recv(sns->socket_fd, &rem_addr);
 
         if(!msg)
             continue;
 
-        sndnet_forward(sns, msg);
+        sn_forward(sns, msg);
         
         free(msg);
     } while(1);
@@ -252,32 +252,32 @@ void default_log_cb(const char* msg) {
     fprintf(stderr, "sndnet: %s\n", msg);
 }
 
-void default_forward_cb(const sndnet_message_t* msg, sndnet_state_t* sns, sndnet_entry_t* nexthop) {
-    char nh_addr[SNDNET_ADDRESS_PRINTABLE_LENGTH];
-    char nh_raddr[SNDNET_REALADDRESS_PRINTABLE_LENGTH];
+void default_forward_cb(const sn_message_t* msg, sn_state_t* sns, sn_entry_t* nexthop) {
+    char nh_addr[SN_ADDR_PRINTABLE_LEN];
+    char nh_raddr[SN_REALADDR_PRINTABLE_LEN];
 
     assert(msg != 0);
     assert(sns != 0);
     assert(nexthop != 0);
 
-    sndnet_address_tostr(&(nexthop->sn_addr), nh_addr);
-    sndnet_realaddress_tostr(&(nexthop->net_addr), nh_raddr);
+    sn_addr_tostr(&(nexthop->sn_addr), nh_addr);
+    sn_realaddr_tostr(&(nexthop->net_addr), nh_raddr);
 
-    sndnet_log(sns, "Forwarding to %s @ %s\n", nh_addr, nh_raddr);
+    sn_log(sns, "Forwarding to %s @ %s\n", nh_addr, nh_raddr);
 }
 
-void default_deliver_cb(const sndnet_message_t* msg, sndnet_state_t* sns) {
-    sndnet_addr_t dst, src;
-    char dst_str[SNDNET_ADDRESS_PRINTABLE_LENGTH];
-    char src_str[SNDNET_ADDRESS_PRINTABLE_LENGTH];
+void default_deliver_cb(const sn_message_t* msg, sn_state_t* sns) {
+    sn_addr_t dst, src;
+    char dst_str[SN_ADDR_PRINTABLE_LEN];
+    char src_str[SN_ADDR_PRINTABLE_LEN];
 
-    sndnet_address_init(&dst, msg->header.dst);
-    sndnet_address_init(&src, msg->header.src);
+    sn_addr_init(&dst, msg->header.dst);
+    sn_addr_init(&src, msg->header.src);
 
-    sndnet_address_tostr(&dst, dst_str);
-    sndnet_address_tostr(&src, src_str);
+    sn_addr_tostr(&dst, dst_str);
+    sn_addr_tostr(&src, src_str);
 
-    sndnet_log(sns,
+    sn_log(sns,
         "msg\n"
         "dst = %s\n"
         "src = %s\n"
