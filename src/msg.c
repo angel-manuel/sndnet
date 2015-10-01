@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-sn_message_t* sn_message_recv(int socket_fd, sn_realaddr_t* rem_addr) {
+sn_msg_t* sn_msg_recv(int socket_fd, sn_realaddr_t* rem_addr) {
     sn_header_t header;
-    sn_message_t* msg;
+    sn_msg_t* msg;
     socklen_t addrlen = sizeof(sn_realaddr_t);
     int recv_count;
     uint16_t size;
@@ -32,9 +32,9 @@ sn_message_t* sn_message_recv(int socket_fd, sn_realaddr_t* rem_addr) {
         return 0;
     }
 
-    size = sizeof(sn_message_t) + (size_t)header.len + 1;
+    size = sizeof(sn_msg_t) + (size_t)header.len + 1;
 
-    msg = (sn_message_t*)malloc(size);
+    msg = (sn_msg_t*)malloc(size);
 
     if(!msg) {
         return 0;
@@ -56,14 +56,14 @@ sn_message_t* sn_message_recv(int socket_fd, sn_realaddr_t* rem_addr) {
     return msg;
 }
 
-sn_message_t* sn_message_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_message_type_t type, size_t len, const char* payload) {
-    sn_message_t* msg;
+sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t type, size_t len, const char* payload) {
+    sn_msg_t* msg;
 
     assert(dst != 0);
     assert(src != 0);
     assert(payload != 0 || len == 0);
 
-    msg = (sn_message_t*)malloc(sizeof(sn_message_t) + len + 1);
+    msg = (sn_msg_t*)malloc(sizeof(sn_msg_t) + len + 1);
 
     if(!msg)
         return 0;
@@ -79,7 +79,7 @@ sn_message_t* sn_message_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_mes
     return msg;
 }
 
-int sn_message_send(const sn_message_t* msg, int socket_fd, const sn_realaddr_t* rem_addr) {
+int sn_msg_send(const sn_msg_t* msg, int socket_fd, const sn_realaddr_t* rem_addr) {
     size_t packet_size;
     ssize_t sent;
 

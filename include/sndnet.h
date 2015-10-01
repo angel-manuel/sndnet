@@ -31,12 +31,12 @@ typedef void (*sn_log_callback)(const char* msg);
 /**
  * Callback for forward
  * */
-typedef void (*sn_forward_callback)(const sn_message_t* msg, sn_state_t* sns, sn_entry_t* nexthop);
+typedef void (*sn_forward_callback)(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop);
 
 /**
  * Callback for delivery
  * */
-typedef void (*sn_deliver_callback)(const sn_message_t* msg, sn_state_t* sns);
+typedef void (*sn_deliver_callback)(const sn_msg_t* msg, sn_state_t* sns);
 
 /**
  * Initialization of a node

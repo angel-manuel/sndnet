@@ -6,7 +6,7 @@
 /**
  * SecondNet message types type
  * */
-typedef uint16_t sn_message_type_t;
+typedef uint16_t sn_msg_type_t;
 
 /**
  * User message, that is, a message of a higher layer.

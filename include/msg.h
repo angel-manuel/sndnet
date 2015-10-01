@@ -35,7 +35,7 @@ typedef struct sn_header_t_ sn_header_t;
 /**
  * Holds an message(header + payload). Usually malloc'd
  * */
-typedef struct sn_message_t_ sn_message_t;
+typedef struct sn_msg_t_ sn_msg_t;
 
 /**
  * Reads a message from a given socket. Allocates memory.
@@ -43,7 +43,7 @@ typedef struct sn_message_t_ sn_message_t;
  * @param[out] rem_addr For storage of the sender network address
  * @return A new message(must be freed) or NULL if error
  */
-sn_message_t* sn_message_recv(int socket_fd, sn_realaddr_t* rem_addr);
+sn_msg_t* sn_msg_recv(int socket_fd, sn_realaddr_t* rem_addr);
 
 /**
  * Creates a message ready for sending
@@ -54,7 +54,7 @@ sn_message_t* sn_message_recv(int socket_fd, sn_realaddr_t* rem_addr);
  * @param payload Pointer to payload(copied)
  * @return A new message(must be freed) or NULL if error
  * */
-sn_message_t* sn_message_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_message_type_t type, size_t len, const char* payload);
+sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t type, size_t len, const char* payload);
 
 /**
  * Sends a message(low-level)
@@ -63,7 +63,7 @@ sn_message_t* sn_message_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_mes
  * @param rem_addr Pointer to the destination address
  * @return Number of characters sent or -1 if ERROR
  * */
-int sn_message_send(const sn_message_t* msg, int socket_fd, const sn_realaddr_t* rem_addr);
+int sn_msg_send(const sn_msg_t* msg, int socket_fd, const sn_realaddr_t* rem_addr);
 
 /*Struct definition*/
 
@@ -71,11 +71,11 @@ struct sn_header_t_ {
     unsigned char dst[SN_ADDR_LEN]; /**< SecondNet destination address */
     unsigned char src[SN_ADDR_LEN]; /**< SecondNet source address(spoofable) */
     uint16_t ttl; /**< TTL(Time To Live), decreased when forwarded, when 0 message isnt forwarded any more */
-    sn_message_type_t type; /**< Message type */
+    sn_msg_type_t type; /**< Message type */
     uint16_t len; /**< Length of the payload */
 };
 
-struct sn_message_t_ {
+struct sn_msg_t_ {
     sn_header_t header; /**< Header part */
     unsigned char payload[0]; /**< O-length array used to represent the variable size payload */
 };

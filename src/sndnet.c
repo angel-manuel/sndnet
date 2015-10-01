@@ -16,14 +16,14 @@
 #include "msg.h"
 #include "msg_type.h"
 
-void sn_deliver(sn_state_t* sns, const sn_message_t* msg);
-int sn_forward(sn_state_t* sns, sn_message_t* msg);
+void sn_deliver(sn_state_t* sns, const sn_msg_t* msg);
+int sn_forward(sn_state_t* sns, sn_msg_t* msg);
 void sn_log(sn_state_t* sns, const char* format, ...);
 void* sn_background(void* arg);
 
 void default_log_cb(const char* msg);
-void default_forward_cb(const sn_message_t* msg, sn_state_t* sns, sn_entry_t* nexthop);
-void default_deliver_cb(const sn_message_t* msg, sn_state_t* sns);
+void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop);
+void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns);
 
 int sn_init(sn_state_t* sns, const sn_addr_t* self, unsigned short port) {
     int socket_fd;
@@ -128,13 +128,13 @@ void sn_set_deliver_callback(sn_state_t* sns, sn_deliver_callback cb) {
 }
 
 int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload) {
-    sn_message_t* msg;
+    sn_msg_t* msg;
 
     assert(sns != 0);
     assert(dst != 0);
     assert(payload != 0 || len == 0);
 
-    msg = sn_message_pack(dst, &(sns->self), SN_MSG_TYPE_USER, len, payload);
+    msg = sn_msg_pack(dst, &(sns->self), SN_MSG_TYPE_USER, len, payload);
 
     if(!msg)
         return -1;
@@ -165,14 +165,14 @@ int sn_join(sn_state_t* sns, const sn_realaddr_t* gateway) {
 
 /*Private functions*/
 
-void sn_deliver(sn_state_t* sns, const sn_message_t* msg) {
+void sn_deliver(sn_state_t* sns, const sn_msg_t* msg) {
     assert(sns != 0);
     assert(msg != 0);
 
     (sns->deliver_cb)(msg, sns);
 }
 
-int sn_forward(sn_state_t* sns, sn_message_t* msg) {
+int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
     sn_addr_t dst;
     sn_entry_t nexthop;
     int sent;
@@ -193,7 +193,7 @@ int sn_forward(sn_state_t* sns, sn_message_t* msg) {
         
         (sns->forward_cb)(msg, sns, &nexthop);
 
-        sent = sn_message_send(msg, sns->socket_fd, &(nexthop.net_addr));
+        sent = sn_msg_send(msg, sns->socket_fd, &(nexthop.net_addr));
 
         if(sent <= 0) {
             msg->header.ttl++;
@@ -225,12 +225,12 @@ void sn_log(sn_state_t* sns, const char* format, ...) {
 void* sn_background(void* arg) {
     sn_state_t* sns = (sn_state_t*)arg;
     sn_realaddr_t rem_addr;
-    sn_message_t* msg;
+    sn_msg_t* msg;
     
     assert(sns != 0);
     
     do {
-        msg = sn_message_recv(sns->socket_fd, &rem_addr);
+        msg = sn_msg_recv(sns->socket_fd, &rem_addr);
 
         if(!msg)
             continue;
@@ -252,7 +252,7 @@ void default_log_cb(const char* msg) {
     fprintf(stderr, "sndnet: %s\n", msg);
 }
 
-void default_forward_cb(const sn_message_t* msg, sn_state_t* sns, sn_entry_t* nexthop) {
+void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop) {
     char nh_addr[SN_ADDR_PRINTABLE_LEN];
     char nh_raddr[SN_REALADDR_PRINTABLE_LEN];
 
@@ -266,7 +266,7 @@ void default_forward_cb(const sn_message_t* msg, sn_state_t* sns, sn_entry_t* ne
     sn_log(sns, "Forwarding to %s @ %s\n", nh_addr, nh_raddr);
 }
 
-void default_deliver_cb(const sn_message_t* msg, sn_state_t* sns) {
+void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns) {
     sn_addr_t dst, src;
     char dst_str[SN_ADDR_PRINTABLE_LEN];
     char src_str[SN_ADDR_PRINTABLE_LEN];
