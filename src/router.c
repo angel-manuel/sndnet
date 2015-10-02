@@ -14,12 +14,15 @@ void leafset_extract(sn_entry_t* leafset, const sn_entry_t* sne, int right);
 void leafset_sort(sn_entry_t* leafset, int right);
 int leafset_is_on_range(const sn_router_t* snr, const sn_addr_t* addr);
 
-void sn_router_init(sn_router_t* snr, const sn_addr_t* self) {
+void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_realaddr_t* self_net_addr) {
     assert(snr != 0);
-    assert(self != 0);
-    
+    assert(self_addr != 0);
+
     memset(snr, 0, sizeof(sn_router_t));
-    snr->self = *self;
+    snr->self.is_set = 1;
+    snr->self.sn_addr = *self_addr;
+    if(self_net_addr)
+      snr->self.net_addr = *self_net_addr;
 }
 
 void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_realaddr_t* net_addr) {
@@ -58,149 +61,170 @@ void sn_router_nexthop(const sn_router_t* snr, const sn_addr_t* dst, sn_entry_t*
     unsigned char column;
     const sn_entry_t* e;
     sn_entry_t bests[4];
-    
+
     assert(snr != 0);
     assert(dst != 0);
     assert(nexthop != 0);
-    
+
     nexthop->is_set = 0;
 
-    bests[0].is_set = 1;
-    bests[0].sn_addr = snr->self;
-    
+    bests[0] = snr->self;
+
     //Leafset routing
-    
+
     if(leafset_is_on_range(snr, dst)) {
         sn_entry_closest(dst, snr->left_leafset, SN_ROUTER_LEAFSET_SIZE, 0, 0, &bests[1]);
         sn_entry_closest(dst, snr->right_leafset, SN_ROUTER_LEAFSET_SIZE, 0, 0, &bests[2]);
         sn_entry_closest(dst, bests, 3, 0, 0, nexthop);
 
-        if(sn_addr_cmp(&(nexthop->sn_addr), &(snr->self)) == 0) {
+        if(sn_entry_cmp(nexthop, &snr->self) == 0) {
             nexthop->is_set = 0;
         }
 
         return;
     }
-    
+
     //Table routing
-    
-    sn_addr_index(&(snr->self), dst, &level, &column);
-    
+
+    sn_addr_index(&snr->self.sn_addr, dst, &level, &column);
+
     if(level < SN_ROUTER_LEVELS && column < SN_ROUTER_COLUMNS)
         e = &(snr->table[level][column]);
     else {
+        *nexthop = snr->self;
         nexthop->is_set = 0;
-        nexthop->sn_addr = snr->self;
         return;
     }
-    
+
     if(e->is_set) {
         *nexthop = *e;
         return;
     }
-    
+
     //Best answer
-    
+
     sn_entry_closest(dst, snr->table[level], SN_ROUTER_COLUMNS, 0, 0, &(bests[1]));
-    sn_entry_closest(dst, snr->left_leafset, SN_ROUTER_LEAFSET_SIZE, &(snr->self), level, &(bests[2]));
-    sn_entry_closest(dst, snr->right_leafset, SN_ROUTER_LEAFSET_SIZE, &(snr->self), level, &(bests[3]));
+    sn_entry_closest(dst, snr->left_leafset, SN_ROUTER_LEAFSET_SIZE, &snr->self.sn_addr, level, &(bests[2]));
+    sn_entry_closest(dst, snr->right_leafset, SN_ROUTER_LEAFSET_SIZE, &snr->self.sn_addr, level, &(bests[3]));
     sn_entry_closest(dst, bests, 4, 0, 0, nexthop);
-    
-    if(sn_addr_cmp(&(nexthop->sn_addr), &(snr->self)) == 0) {
+
+    if(sn_entry_cmp(nexthop, &snr->self) == 0) {
         nexthop->is_set = 0;
     }
 }
 
 int sn_router_tostr(const sn_router_t* snr, char* out_str, size_t out_str_len) {
     size_t used_len = 0;
-    
+
     assert(snr != 0);
     assert(out_str != 0);
-    
+
     {
         char self_str[SN_ADDR_PRINTABLE_LEN];
-        
-        sn_addr_tostr(&snr->self, self_str);
-        
+
+        sn_entry_tostr(&snr->self, self_str, SN_ADDR_HEX_LEN);
+
         used_len += snprintf(out_str + used_len, out_str_len - used_len,
-        "Router @ %s\n", self_str);
+        "Router is at %s\n", self_str);
     }
-    
+
     {/*Left leafset*/
         size_t left_leafset_size = sn_entry_array_len(snr->left_leafset);
         unsigned int i;
-        
+
         used_len += snprintf(out_str + used_len, out_str_len - used_len,
         "Left leafset[%lu]\n", (uint64_t)left_leafset_size);
-        
+
         if(used_len >= out_str_len)
             return -1;
-        
+
         for(i = 0; i < left_leafset_size; ++i) {
             char entry[SN_ENTRY_PRINTABLE_LEN];
-            
+
             if(sn_entry_tostr(&snr->left_leafset[i], entry, 16))
                 return -1;
-            
+
             used_len += snprintf(out_str + used_len, out_str_len - used_len,
             "\t%s\n", entry);
         }
     }
-    
+
     if(used_len >= out_str_len)
         return -1;
-    
+
     {/*Right leafset*/
         size_t right_leafset_size = sn_entry_array_len(snr->right_leafset);
         unsigned int i;
-        
+
         used_len += snprintf(out_str + used_len, out_str_len - used_len,
         "Right leafset[%lu]\n", (uint64_t)right_leafset_size);
-        
+
         if(used_len >= out_str_len)
             return -1;
-        
+
         for(i = 0; i < right_leafset_size; ++i) {
             char entry[SN_ENTRY_PRINTABLE_LEN];
-            
+
             if(sn_entry_tostr(&snr->right_leafset[i], entry, 16))
                 return -1;
-            
+
             used_len += snprintf(out_str + used_len, out_str_len - used_len,
             "\t%s\n", entry);
         }
     }
-    
+
     if(used_len >= out_str_len)
         return -1;
-    
+
     {/*Routing table*/
         unsigned int level;
-        
+
         used_len += snprintf(out_str + used_len, out_str_len - used_len,
         "Routing table\n");
-        
+
         for(level = 0; level < SN_ROUTER_LEVELS; ++level) {
             unsigned int column;
-            
+
             for(column = 0; column < SN_ROUTER_COLUMNS; ++column) {
                 if(snr->table[level][column].is_set) {
                     char entry[SN_ENTRY_PRINTABLE_LEN];
-                    
+
                     if(sn_entry_tostr(&snr->table[level][column], entry, 16))
                         return -1;
-                        
+
                     used_len += snprintf(out_str + used_len, out_str_len - used_len,
                     "\t[%2u][%2u]:%s\n", level, column, entry);
                 }
             }
         }
     }
-    
+
     if(used_len >= out_str_len)
         return -1;
-    
+
     return 0;
+}
+
+const sn_entry_t* sn_router_table_get(const sn_router_t* snr, unsigned int level, unsigned int column) {
+    assert(snr != 0);
+    assert(level <= SN_ROUTER_LEVELS);
+    assert(column <= SN_ROUTER_COLUMNS);
+
+    return &snr->table[level][column];
+}
+
+const sn_entry_t* sn_router_leafset_get(const sn_router_t* snr, int position) {
+    assert(snr != 0);
+    assert(position <= SN_ROUTER_LEAFSET_SIZE);
+    assert(-SN_ROUTER_LEAFSET_SIZE <= position);
+
+    if(position > 0) {
+        return &snr->right_leafset[position - 1];
+    } else if(position < 0) {
+        return &snr->left_leafset[-position - 1];
+    } else {
+        return &snr->self;
+    }
 }
 
 int leafset_is_on_range(const sn_router_t* snr, const sn_addr_t* addr) {
@@ -208,22 +232,22 @@ int leafset_is_on_range(const sn_router_t* snr, const sn_addr_t* addr) {
     size_t right_count;
     const sn_addr_t *left_bound;
     const sn_addr_t *right_bound;
-    
+
     assert(snr != NULL);
     assert(addr != NULL);
-    
+
     left_count = sn_entry_array_len(snr->left_leafset);
     right_count = sn_entry_array_len(snr->right_leafset);
 
     if(left_count)
         left_bound = &snr->left_leafset[left_count].sn_addr;
     else
-        left_bound = &snr->self;
+        left_bound = &snr->self.sn_addr;
 
     if(right_count)
         right_bound = &snr->right_leafset[right_count].sn_addr;
     else
-        right_bound = &snr->self;
+        right_bound = &snr->self.sn_addr;
 
     return sn_addr_cmp(left_bound, addr) <= 0 && sn_addr_cmp(addr, right_bound) <= 0;
 }
@@ -233,17 +257,17 @@ void sn_router_set(sn_router_t* snr, const sn_entry_t* sne) {
     unsigned char column;
     sn_entry_t* insert;
     const sn_addr_t* addr;
-    
+
     assert(snr != 0);
     assert(sne != 0);
-    
+
     addr = &(sne->sn_addr);
-    
-    sn_addr_index(&(snr->self), addr, &level, &column);
+
+    sn_addr_index(&snr->self.sn_addr, addr, &level, &column);
 
     insert = &(snr->table[level][column]);
 
-    assert(sn_addr_cmp(&(snr->self), &(insert->sn_addr)) != 0); //Should be impossible
+    assert(sn_addr_cmp(&snr->self.sn_addr, &insert->sn_addr) != 0); //Should be impossible
 
     *insert = *sne;
 }
@@ -252,7 +276,7 @@ void leafset_add(sn_router_t* snr, const sn_entry_t* sne) {
     assert(snr != 0);
     assert(sne != 0);
 
-    if(sn_addr_cmp(&(sne->sn_addr), &(snr->self)) < 0) {
+    if(sn_entry_cmp(sne, &snr->self) < 0) {
         leafset_insert(snr->left_leafset, sne, 0);
     } else {
         leafset_insert(snr->right_leafset, sne, 1);
@@ -263,7 +287,7 @@ void leafset_remove(sn_router_t* snr, const sn_entry_t* sne) {
     assert(snr != 0);
     assert(sne != 0);
 
-    if(sn_addr_cmp(&(sne->sn_addr), &(snr->self)) < 0) {
+    if(sn_entry_cmp(sne, &snr->self) < 0) {
         leafset_extract(snr->left_leafset, sne, 0);
     } else {
         leafset_extract(snr->right_leafset, sne, 1);
@@ -281,7 +305,7 @@ void leafset_insert(sn_entry_t* leafset, const sn_entry_t* sne, int right) {
     if(ls < SN_ROUTER_LEAFSET_SIZE) {
         leafset[ls] = *sne;
     } else {
-        if((sn_addr_cmp(&sne->sn_addr, &leafset[SN_ROUTER_LEAFSET_SIZE-1].sn_addr) > 0) ^ right)
+        if((sn_addr_cmp(&sne->sn_addr, &leafset[SN_ROUTER_LEAFSET_SIZE-1].sn_addr) < 0) ^ right)
             return;
 
         leafset[SN_ROUTER_LEAFSET_SIZE-1] = *sne;

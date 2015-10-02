@@ -39,9 +39,10 @@ typedef struct sn_router_t_ sn_router_t;
 /**
  * Initializes routing state
  * @param snr Router uninitialized state
- * @param self Routing node address
+ * @param self_addr Routing node address
+ * @param self_net_addr Routing node network address
  * */
-void sn_router_init(sn_router_t* snr, const sn_addr_t* self);
+void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_realaddr_t* self_net_addr);
 
 /**
  * Adds an entry to the routing info
@@ -75,8 +76,25 @@ void sn_router_nexthop(const sn_router_t* snr, const sn_addr_t* dst, sn_entry_t*
  * */
 int sn_router_tostr(const sn_router_t* snr, char* out_str, size_t out_str_len);
 
+/**
+ * Returns a read-only pointer to a position on the routing table
+ * @param snr Router state
+ * @param level Table level
+ * @param column Table column
+ * @return A read-only pointer to the entry on the table
+ * */
+const sn_entry_t* sn_router_table_get(const sn_router_t* snr, unsigned int level, unsigned int column);
+
+/**
+ * Returns a read-only pointer to a position on the leafset
+ * @param snr Router state
+ * @param position Positive positions point to entries on the right leafset, negative one point to the left leafset and 0 gives router owner address.
+ * @return A read-only pointer to the entry on the table
+ * */
+const sn_entry_t* sn_router_leafset_get(const sn_router_t* snr, int position);
+
 struct sn_router_t_ {
-    sn_addr_t self; /**< Our address */
+    sn_entry_t self; /**< Our address */
     sn_entry_t table[SN_ROUTER_LEVELS][SN_ROUTER_COLUMNS]; /**< Routing table */
     sn_entry_t left_leafset[SN_ROUTER_LEAFSET_SIZE]; /**< Leafset */
     sn_entry_t right_leafset[SN_ROUTER_LEAFSET_SIZE]; /**< Leafset */

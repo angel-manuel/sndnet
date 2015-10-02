@@ -28,80 +28,80 @@ void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns);
 int sn_init(sn_state_t* sns, const sn_addr_t* self, unsigned short port) {
     int socket_fd;
     struct sockaddr_in serv_addr;
-    
+
     assert(sns != 0);
-    
+
     /* Copying */
-    
+
     sns->self = *self;
-    sn_router_init(&(sns->router), &(sns->self));
+    sn_router_init(&sns->router, &sns->self, 0);
     sns->log_cb = default_log_cb;
     sns->deliver_cb = default_deliver_cb;
     sns->forward_cb = default_forward_cb;
     sns->port = port;
-    
+
     sn_log(sns, "Initializing");
-    
+
     /* Socket initialization */
-    
+
     socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    
+
     if(socket_fd == -1) {
         sn_log(sns, "Error while initializing socket");
         return 1;
     }
-    
+
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_addr.sin_port = htons(port);
-    
+
     if(bind(socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) {
         sn_log(sns, "Error while initializing socket");
         close(socket_fd);
         return 1;
     }
-    
+
     sns->socket_fd = socket_fd;
-    
+
     /* Background thread initialization */
-    
+
     if(pthread_create(&(sns->bg_thrd), 0, sn_background, sns)) {
         sn_log(sns, "Error while starting thread");
         close(socket_fd);
         return 1;
     }
-    
+
     sn_log(sns, "Initialized");
-    
+
     return 0;
 }
 
 void sn_destroy(sn_state_t* sns) {
     assert(sns != 0);
-    
+
     sn_log(sns, "Destroying");
-    
+
     /* Socket closing */
-    
+
     close(sns->socket_fd);
-    
+
     /* Thread closing */
-    
+
     pthread_cancel(sns->bg_thrd);
     pthread_join(sns->bg_thrd, 0);
-    
+
     sn_log(sns, "Destroyed");
 }
 
 void sn_set_log_callback(sn_state_t* sns, sn_log_callback cb) {
     assert(sns != 0);
-    
+
     if(cb)
         sns->log_cb = cb;
     else
         sns->log_cb = default_log_cb;
-    
+
     sn_log(sns, "Log callback changed");
 }
 
@@ -149,7 +149,7 @@ int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* paylo
 int sn_join(sn_state_t* sns, const sn_realaddr_t* gateway) {
     assert(sns != 0);
     assert(gateway != 0);
-    
+
     /*
     Join steps:
     1. Find m = owner(self)
@@ -159,7 +159,7 @@ int sn_join(sn_state_t* sns, const sn_realaddr_t* gateway) {
     5. Get traceroute to m
     6. Construct routing table for m traceroute
     */
-    
+
     return 0;
 }
 
@@ -188,9 +188,9 @@ int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
         if(!msg->header.ttl) {
             return -1;
         }
-        
+
         msg->header.ttl--;
-        
+
         (sns->forward_cb)(msg, sns, &nexthop);
 
         sent = sn_msg_send(msg, sns->socket_fd, &(nexthop.net_addr));
@@ -210,15 +210,15 @@ int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
 void sn_log(sn_state_t* sns, const char* format, ...) {
     char str[1024];
     va_list args;
-    
+
     assert(sns != 0);
     assert(sns->log_cb != 0);
     assert(format != 0);
-    
+
     va_start(args, format);
     vsnprintf(str, 1024, format, args);
     va_end(args);
-    
+
     sns->log_cb(str);
 }
 
@@ -226,9 +226,9 @@ void* sn_background(void* arg) {
     sn_state_t* sns = (sn_state_t*)arg;
     sn_realaddr_t rem_addr;
     sn_msg_t* msg;
-    
+
     assert(sns != 0);
-    
+
     do {
         msg = sn_msg_recv(sns->socket_fd, &rem_addr);
 
@@ -236,10 +236,10 @@ void* sn_background(void* arg) {
             continue;
 
         sn_forward(sns, msg);
-        
+
         free(msg);
     } while(1);
-    
+
     return sns;
 }
 
