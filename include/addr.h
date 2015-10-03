@@ -6,6 +6,8 @@
 #ifndef SN_ADDR_H_
 #define SN_ADDR_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -92,6 +94,29 @@ void sn_addr_dist(const sn_addr_t* a, const sn_addr_t* b, sn_addr_t* dist);
  * @param[out] column The first diferent nibble of the second address
  * */
 void sn_addr_index(const sn_addr_t* self, const sn_addr_t* addr, unsigned int* level, unsigned char* column);
+
+/**
+ * Serialized sn_addr
+ * */
+typedef struct sn_addr_ser_t_ {
+    unsigned char key[SN_ADDR_LEN]; /**< Address key */
+} sn_addr_ser_t;
+
+/**
+ * Serializes a sn_addr
+ * @param sna A sn_addr
+ * @param ser Pointer to serialized sn_addr
+ * @return 0 if OK, -1 if ERROR
+ * */
+int sn_addr_ser(const sn_addr_t* sna, sn_addr_ser_t* ser);
+
+/**
+ * Deserializes a serialized sn_addr
+ * @param sna Deserialized sn_addr
+ * @param ser Pointer to serialized sn_addr
+ * @return 0 if OK, -1 if ERROR
+ * */
+int sn_addr_deser(sn_addr_t* sna, const sn_addr_ser_t* ser);
 
 struct sn_addr_t_ {
     unsigned char key[SN_ADDR_LEN]; /**< Address key */

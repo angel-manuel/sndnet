@@ -121,3 +121,72 @@ int sn_realaddr_tostr(const sn_realaddr_t* snra, char* out_str) {
 
     return 0;
 }
+
+int sn_realaddr_cmp(const sn_realaddr_t* a, const sn_realaddr_t* b) {
+    char a_str[SN_REALADDR_PRINTABLE_LEN];
+    char b_str[SN_REALADDR_PRINTABLE_LEN];
+    uint8_t aa, ab, ac, ad, ba, bb, bc, bd;
+    uint16_t ap, bp;
+
+    assert(a != 0);
+    assert(b != 0);
+
+    sn_realaddr_tostr(a, a_str);
+    sn_realaddr_tostr(b, b_str);
+
+    sscanf(a_str, "%hhu.%hhu.%hhu.%hhu:%hu", &aa, &ab, &ac, &ad, &ap);
+    sscanf(b_str, "%hhu.%hhu.%hhu.%hhu:%hu", &ba, &bb, &bc, &bd, &bp);
+
+    if(aa == ba) {
+        if(ab == bb) {
+            if(ac == bc) {
+                if(ad == bd)
+                    return ap > bp;
+                else
+                    return ad > bd;
+            } else
+                return ac > bc;
+        } else
+            return ab > bb;
+    } else
+        return aa > ba;
+}
+
+int sn_realaddr_ser(const sn_realaddr_t* snra, sn_realaddr_ser_t* ser) {
+    char hostname[SN_REALADDR_HOSTNAME_PRINTABLE_LEN];
+    uint32_t a, b, c, d;
+
+    assert(snra != 0);
+    assert(ser != 0);
+
+    if(sn_realaddr_get_hostname(snra, hostname) < 0)
+        return -1;
+
+    if(sscanf(hostname, "%u.%u.%u.%u", &a, &b, &c, &d) < 4)
+        return -1;
+
+    ser->ipv4 = a<<24 | b<<16 | c<<8 | d;
+
+    if(sn_realaddr_get_port(snra, &ser->port) < 0)
+        return -1;
+
+    return 0;
+}
+
+int sn_realaddr_deser(sn_realaddr_t* snra, const sn_realaddr_ser_t* ser) {
+    char hostname[SN_REALADDR_HOSTNAME_PRINTABLE_LEN];
+    uint32_t a, b, c, d;
+
+    assert(snra != 0);
+    assert(ser != 0);
+
+    a = (ser->ipv4 & 0xff000000) >> 24;
+    b = (ser->ipv4 & 0x00ff0000) >> 16;
+    c = (ser->ipv4 & 0x0000ff00) >> 8;
+    d = (ser->ipv4 & 0x000000ff);
+
+    if(snprintf(hostname, SN_REALADDR_HOSTNAME_PRINTABLE_LEN, "%u.%u.%u.%u", a, b, c, d) < 0)
+        return -1;
+
+    return sn_realaddr_from_hostname(snra, hostname, ser->port);
+}

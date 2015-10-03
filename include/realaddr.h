@@ -88,6 +88,38 @@ int sn_realaddr_get_port(const sn_realaddr_t* snra, uint16_t* out_port);
  * */
 int sn_realaddr_tostr(const sn_realaddr_t* snra, char* out_str);
 
+/**
+ * Compares two realaddresses
+ * @param a A realaddr
+ * @param b Another realaddr
+ * @return ret<0 if a < b, ret>0 if a > b, ret==0 if a == b
+ * */
+int sn_realaddr_cmp(const sn_realaddr_t* a, const sn_realaddr_t* b);
+
+/**
+ * Serialized sn_realaddr_t
+ * */
+typedef struct sn_realaddr_ser_t_ {
+    uint16_t port; /**< Port number */
+    uint32_t ipv4; /**< IPv4 octects*/
+} sn_realaddr_ser_t;
+
+/**
+ * Serializes a sn_realaddr
+ * @param snra A sn_realaddr
+ * @param ser Pointer to serialized sn_realaddr
+ * @return 0 if OK, -1 if ERROR
+ * */
+int sn_realaddr_ser(const sn_realaddr_t* snra, sn_realaddr_ser_t* ser);
+
+/**
+ * Deserializes a serialized sn_realaddr
+ * @param snra Desearialized sn_realaddr
+ * @param ser Pointer to serialized sn_realaddr
+ * @return 0 if OK, -1 if ERROR
+ * */
+int sn_realaddr_deser(sn_realaddr_t* snra, const sn_realaddr_ser_t* ser);
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif

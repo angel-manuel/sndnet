@@ -37,3 +37,15 @@ TEST_CASE("Realaddress creation from string and recovery", "[realaddr]") {
 
     REQUIRE(recovered_port == 7777);
 }
+
+TEST_CASE("Realaddress serialization and deserialization", "[realaddr]") {
+    sn_realaddr_t orig;
+    sn_realaddr_t reco;
+    sn_realaddr_ser_t ser;
+
+    sn_realaddr_from_str(&orig, "1.2.3.4:5678");
+    REQUIRE(sn_realaddr_ser(&orig, &ser) == 0);
+    REQUIRE(sn_realaddr_deser(&reco, &ser) == 0);
+
+    REQUIRE(sn_realaddr_cmp(&orig, &reco) == 0);
+}

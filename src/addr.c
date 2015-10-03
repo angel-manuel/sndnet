@@ -127,6 +127,24 @@ void sn_addr_index(const sn_addr_t* self, const sn_addr_t* addr, unsigned int* l
         *level = l;
 }
 
+int sn_addr_ser(const sn_addr_t* sna, sn_addr_ser_t* ser) {
+    assert(sna != 0);
+    assert(ser != 0);
+
+    memcpy(&ser->key, sna, SN_ADDR_LEN);
+
+    return 0;
+}
+
+int sn_addr_deser(sn_addr_t* sna, const sn_addr_ser_t* ser) {
+    assert(sna != 0);
+    assert(ser != 0);
+
+    memcpy(sna, &ser->key, SN_ADDR_LEN);
+
+    return 0;
+}
+
 //Private
 
 void bytestring_to_hexstring(const unsigned char* bytestring, unsigned char* hexstring) {

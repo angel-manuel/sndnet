@@ -89,3 +89,15 @@ TEST_CASE("Address short initialization", "[addr]") {
 
     REQUIRE(strcmp(ret_str, hex_full) == 0);
 }
+
+TEST_CASE("Address serialization and deserialization", "[addr]") {
+    sn_addr_t orig;
+    sn_addr_t reco;
+    sn_addr_ser_t ser;
+
+    sn_addr_from_hex(&orig, "fabedef7ca");
+    REQUIRE(sn_addr_ser(&orig, &ser) == 0);
+    REQUIRE(sn_addr_deser(&reco, &ser) == 0);
+
+    REQUIRE(sn_addr_cmp(&orig, &reco) == 0);
+}
