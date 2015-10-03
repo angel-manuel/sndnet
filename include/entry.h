@@ -65,6 +65,39 @@ void sn_entry_closest(const sn_addr_t* dst, const sn_entry_t candidates[], size_
  * */
 int sn_entry_tostr(const sn_entry_t* sne, char* out_str, size_t sn_addr_precision);
 
+/**
+ * Checks for strict equality
+ * @param a A
+ * @param b B
+ * @return 1 if A==B, 0 otherwise
+ * */
+int sn_entry_equals(const sn_entry_t* a, const sn_entry_t* b);
+
+/**
+ * Serialized sn_entry_t
+ * */
+typedef struct sn_entry_ser_t_ {
+	uint8_t is_set;
+	sn_addr_ser_t sn_addr;
+	sn_realaddr_ser_t net_addr;
+} sn_entry_ser_t;
+
+/**
+ * Serializes a sn_entry
+ * @param sne A sn_entry
+ * @param ser Serialized sn_entry
+ * @return 0 if OK, -1 if ERROR
+ * */
+int sn_entry_ser(const sn_entry_t* sne, sn_entry_ser_t* ser);
+
+/**
+ * Deserializes a serialized sn_entry
+ * @param sne A sn_entry
+ * @param ser Serialized sn_entry
+ * @return 0 if OK, -1 if ERROR
+ * */
+int sn_entry_deser(sn_entry_t* sne, const sn_entry_ser_t* ser);
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
