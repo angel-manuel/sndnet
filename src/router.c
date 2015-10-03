@@ -227,6 +227,32 @@ const sn_entry_t* sn_router_leafset_get(const sn_router_t* snr, int position) {
     }
 }
 
+void sn_router_table_set(sn_router_t* snr, unsigned int level, unsigned int column, const sn_entry_t* e) {
+    assert(snr != 0);
+    assert(level < SN_ROUTER_LEVELS);
+    assert(column < SN_ROUTER_COLUMNS);
+    assert(e != 0);
+
+    snr->table[level][column] = *e;
+}
+
+void sn_router_leafset_set(sn_router_t* snr, int position, const sn_entry_t* e) {
+    assert(snr != 0);
+    assert(position <= SN_ROUTER_LEAFSET_SIZE);
+    assert(-SN_ROUTER_LEAFSET_SIZE <= position);
+    assert(e != 0);
+
+    if(position > 0) {
+        snr->right_leafset[position - 1] = *e;
+    } else if(position < 0) {
+        snr->left_leafset[-position - 1] = *e;
+    } else {
+        snr->self = *e;
+    }
+}
+
+/* Private functions */
+
 int leafset_is_on_range(const sn_router_t* snr, const sn_addr_t* addr) {
     size_t left_count;
     size_t right_count;

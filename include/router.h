@@ -93,6 +93,23 @@ const sn_entry_t* sn_router_table_get(const sn_router_t* snr, unsigned int level
  * */
 const sn_entry_t* sn_router_leafset_get(const sn_router_t* snr, int position);
 
+/**
+ * Copies an entry to a position on the routing table
+ * @param snr Router state
+ * @param level Table level
+ * @param column Table column
+ * @param e A pointer to the entry to be copied
+ * */
+void sn_router_table_set(sn_router_t* snr, unsigned int level, unsigned int column, const sn_entry_t* e);
+
+/**
+ * Copies an entry to a position on the leafset
+ * @param snr Router state
+ * @param position Positive positions point to entries on the right leafset, negative one point to the left leafset and 0 gives router owner address.
+ * @param e A pointer to the entry to be copied
+ * */
+void sn_router_leafset_set(sn_router_t* snr, int position, const sn_entry_t* e);
+
 struct sn_router_t_ {
     sn_entry_t self; /**< Our address */
     sn_entry_t table[SN_ROUTER_LEVELS][SN_ROUTER_COLUMNS]; /**< Routing table */

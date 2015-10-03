@@ -153,3 +153,29 @@ SCENARIO("inserting into router", "[router]") {
         }
     }
 }
+
+TEST_CASE("Router overwriting", "[router]") {
+    sn_router_t r;
+    sn_entry_t e;
+    sn_entry_t self;
+
+    self.is_set = 1;
+    sn_addr_from_hex(&self.sn_addr, "0a0a0a0a");
+    sn_realaddr_from_str(&self.net_addr, "1.1.1.1:1111");
+
+    sn_router_init(&r, &self.sn_addr, &self.net_addr);
+
+    REQUIRE(sn_entry_cmp(sn_router_leafset_get(&r, 0), &self) == 0);
+
+    e.is_set = 1;
+    sn_addr_from_hex(&e.sn_addr, "abcdef");
+    sn_realaddr_from_str(&e.net_addr, "5.6.7.8:8765");
+
+    sn_router_table_set(&r, 1, 2, &e);
+
+    REQUIRE(sn_entry_cmp(sn_router_table_get(&r, 1, 2), &e) == 0);
+
+    sn_router_leafset_set(&r, -1, &e);
+
+    REQUIRE(sn_entry_cmp(sn_router_leafset_get(&r, -1), &e) == 0);
+}
