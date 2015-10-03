@@ -27,20 +27,25 @@ void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns);
 
 int sn_init(sn_state_t* sns, const sn_addr_t* self, unsigned short port) {
     int socket_fd;
-    struct sockaddr_in serv_addr;
+    sn_realaddr_t serv_addr;
 
     assert(sns != 0);
 
     /* Copying */
 
     sns->self = *self;
-    sn_router_init(&sns->router, &sns->self, 0);
     sns->log_cb = default_log_cb;
     sns->deliver_cb = default_deliver_cb;
     sns->forward_cb = default_forward_cb;
     sns->port = port;
 
+    /* Initializing */
+
     sn_log(sns, "Initializing");
+
+    sn_realaddr_from_hostname(&serv_addr, "bind", port);
+
+    sn_router_init(&sns->router, &sns->self, &serv_addr);
 
     /* Socket initialization */
 
@@ -51,12 +56,7 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, unsigned short port) {
         return 1;
     }
 
-    memset(&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(port);
-
-    if(bind(socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) {
+    if(sn_realaddr_bind(&serv_addr, socket_fd) == -1) {
         sn_log(sns, "Error while initializing socket");
         close(socket_fd);
         return 1;

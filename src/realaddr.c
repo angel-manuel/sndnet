@@ -17,15 +17,19 @@ int sn_realaddr_from_hostname(sn_realaddr_t* snra, const char* hostname, uint16_
     assert(snra != 0);
     assert(hostname != 0);
 
+    if(strcmp(hostname, "bind") == 0)
+        hostname = 0;
+
     snprintf(port_str, 6, "%hu", port);
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_protocol = 0;
-    hints.ai_flags = 
-        AI_NUMERICHOST |
-        AI_NUMERICSERV;
+    hints.ai_flags = hostname ?
+        (AI_NUMERICHOST |
+        AI_NUMERICSERV) :
+        (AI_PASSIVE);
 
     ret = getaddrinfo(hostname, port_str, &hints, &res);
 
@@ -65,6 +69,13 @@ int sn_realaddr_from_str(sn_realaddr_t* snra, const char* str) {
         return -1;
 
     return sn_realaddr_from_hostname(snra, hostname, port);
+}
+
+int sn_realaddr_bind(sn_realaddr_t* snra, int socket_fd) {
+    assert(snra != 0);
+    assert(socket_fd > 0);
+
+    return bind(socket_fd, snra, sizeof(*snra));
 }
 
 int sn_realaddr_get_hostname(const sn_realaddr_t* snra, char* out_hostname) {

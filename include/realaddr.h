@@ -42,7 +42,7 @@ typedef sn_soaddr_t sn_realaddr_t;
 /**
  * Initializes an address from a hostname
  * @param snra sn_realaddr_t to be initialized
- * @param hostname Hostname
+ * @param hostname Hostname, if NULL or "bind" the returned address will be able to be binded
  * @param port Port
  * @return 0 if OK, -1 if ERROR
  * */
@@ -51,10 +51,18 @@ int sn_realaddr_from_hostname(sn_realaddr_t* snra, const char* hostname, uint16_
 /**
  * Initializes an address from its string representation(<ip>:<port>)
  * @param snra sn_realaddr_t to be initialized
- * @param str String representation
+ * @param str String representation, if hostname is "bind" the returned address will be able to be binded
  * @return 0 if OK, -1 if ERROR
  * */
 int sn_realaddr_from_str(sn_realaddr_t* snra, const char* str);
+
+/**
+ * Binds a socket to an address for listening
+ * @param snra sn_realaddr_t capable of being binded
+ * @param socket_fd Socket to bind
+ * @return 0 if OK, -1 if ERROR
+ * */
+int sn_realaddr_bind(sn_realaddr_t* snra, int socket_fd);
 
 /**
  * Gets the hostname of an address
