@@ -1,3 +1,8 @@
+/**
+ * @file
+ * Contains SecondNet message types
+ * */
+
 #ifndef SN_MSG_TYPE_H_
 #define SN_MSG_TYPE_H_
 

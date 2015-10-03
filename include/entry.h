@@ -1,3 +1,8 @@
+/**
+ * @file
+ * Contains methods for managing entries(sn_addr + net_addr)
+ * */
+
 #ifndef SN_ENTRY_H_
 #define SN_ENTRY_H_
 
