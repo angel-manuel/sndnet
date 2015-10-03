@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-TEST_CASE("Realaddress creation and recovery", "[realaddress]") {
+TEST_CASE("Realaddress creation and recovery", "[realaddr]") {
     sn_realaddr_t snra;
     const char* orig_name = "222.123.54.3";
     char recovered_name[SN_REALADDR_HOSTNAME_PRINTABLE_LEN] = "\0";
@@ -21,7 +21,7 @@ TEST_CASE("Realaddress creation and recovery", "[realaddress]") {
     REQUIRE(recovered_port == 7777);
 }
 
-TEST_CASE("Realaddress creation from string and recovery", "[realaddress]") {
+TEST_CASE("Realaddress creation from string and recovery", "[realaddr]") {
     sn_realaddr_t snra;
     const char* orig_name = "222.123.54.3";
     char recovered_name[SN_REALADDR_HOSTNAME_PRINTABLE_LEN] = "\0";
@@ -37,4 +37,3 @@ TEST_CASE("Realaddress creation from string and recovery", "[realaddress]") {
 
     REQUIRE(recovered_port == 7777);
 }
-

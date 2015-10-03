@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-TEST_CASE("Address uppercase initialization", "[address]") {
+TEST_CASE("Address uppercase initialization", "[addr]") {
     sn_addr_t addr;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
     const char hex_lower[] = "0000111122223333444455556666777788889999aaaabbbbccccddddeeeeffff";
@@ -19,7 +19,7 @@ TEST_CASE("Address uppercase initialization", "[address]") {
     REQUIRE(strcmp(ret_str, hex_lower) == 0);
 }
 
-TEST_CASE("Address comparison", "address") {
+TEST_CASE("Address comparison", "[addr]") {
     sn_addr_t addr;
     sn_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
@@ -31,7 +31,7 @@ TEST_CASE("Address comparison", "address") {
     REQUIRE(sn_addr_cmp(&addr, &addr2) > 0);
 }
 
-TEST_CASE("Address distance", "address") {
+TEST_CASE("Address distance", "[addr]") {
     sn_addr_t addr;
     sn_addr_t addr2;
     sn_addr_t dist;
@@ -49,7 +49,7 @@ TEST_CASE("Address distance", "address") {
     REQUIRE(sn_addr_cmp(&dist, &exp_dist) == 0);
 }
 
-TEST_CASE("Address indexing", "address") {
+TEST_CASE("Address indexing", "[addr]") {
     sn_addr_t addr;
     sn_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
@@ -66,7 +66,7 @@ TEST_CASE("Address indexing", "address") {
     REQUIRE(column == 10);
 }
 
-TEST_CASE("Address copy", "address") {
+TEST_CASE("Address copy", "[addr]") {
     sn_addr_t addr;
     sn_addr_t addr2;
     const char hex[] = "0000111122223333444455556666777788889999AAAABBBBCCCCddddeeeeffff";
@@ -77,7 +77,7 @@ TEST_CASE("Address copy", "address") {
     REQUIRE(sn_addr_cmp(&addr, &addr2) == 0);
 }
 
-TEST_CASE("Address short initialization", "address") {
+TEST_CASE("Address short initialization", "[addr]") {
     sn_addr_t addr;
     const char hex[] = "abcd";
     const char hex_full[] = "abcd000000000000000000000000000000000000000000000000000000000000";

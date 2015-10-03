@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-SCENARIO("routing is correct", "router") {
+SCENARIO("routing is correct", "[router]") {
     GIVEN("An empty router on 4f5e22") {
         sn_router_t r;
         sn_addr_t self;
@@ -89,7 +89,7 @@ SCENARIO("routing is correct", "router") {
     }
 }
 
-SCENARIO("inserting into router", "router") {
+SCENARIO("inserting into router", "[router]") {
     GIVEN("An empty router on 1234") {
         sn_router_t r;
         sn_addr_t self;
