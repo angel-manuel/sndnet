@@ -32,18 +32,18 @@ typedef struct sn_addr_t_ sn_addr_t;
 
 /**
  * Initializes an address
- * @param snk sn_addr_t to be initialized
+ * @param sna sn_addr_t to be initialized
  * @param key Naked address key(the public key or some hash of it, TBD)
  * */
-void sn_addr_init(sn_addr_t* snk, const unsigned char key[SN_ADDR_LEN]);
+void sn_addr_init(sn_addr_t* sna, const unsigned char key[SN_ADDR_LEN]);
 
 /**
  * Initializes an address from the hexadecimal string
- * @param snk sn_addr_t to be initialized
+ * @param sna sn_addr_t to be initialized
  * @param hexstr NULL-terminated strin with the hexadecimal representation of the key. If shorter than address length
  *               the rest is assumed to be "0x0"
  * */
-void sn_addr_from_hex(sn_addr_t* snk, const char hexstr[SN_ADDR_HEX_LEN]);
+void sn_addr_from_hex(sn_addr_t* sna, const char hexstr[SN_ADDR_HEX_LEN]);
 
 /**
  * Gets the address key
