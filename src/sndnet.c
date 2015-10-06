@@ -16,6 +16,7 @@
 #include "msg.h"
 #include "msg_type.h"
 
+int sn_send_typed(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload, sn_msg_type_t type);
 void sn_deliver(sn_state_t* sns, const sn_msg_t* msg);
 int sn_forward(sn_state_t* sns, sn_msg_t* msg);
 void sn_log(sn_state_t* sns, const char* format, ...);
@@ -128,22 +129,11 @@ void sn_set_deliver_callback(sn_state_t* sns, sn_deliver_callback cb) {
 }
 
 int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload) {
-    sn_msg_t* msg;
-
     assert(sns != 0);
     assert(dst != 0);
     assert(payload != 0 || len == 0);
 
-    msg = sn_msg_pack(dst, &(sns->self), SN_MSG_TYPE_USER, len, payload);
-
-    if(!msg)
-        return -1;
-
-    sn_forward(sns, msg);
-
-    free(msg);
-
-    return 0;
+    return sn_send_typed(sns, dst, len, payload, SN_MSG_TYPE_USER);
 }
 
 int sn_join(sn_state_t* sns, const sn_realaddr_t* gateway) {
@@ -165,11 +155,72 @@ int sn_join(sn_state_t* sns, const sn_realaddr_t* gateway) {
 
 /*Private functions*/
 
+int sn_send_typed(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload, sn_msg_type_t type) {
+    sn_msg_t* msg;
+
+    assert(sns != 0);
+    assert(dst != 0);
+    assert(payload != 0 || len == 0);
+
+    msg = sn_msg_pack(dst, &(sns->self), type, len, payload);
+
+    if(!msg)
+        return -1;
+
+    sn_forward(sns, msg);
+
+    free(msg);
+
+    return 0;
+}
+
 void sn_deliver(sn_state_t* sns, const sn_msg_t* msg) {
     assert(sns != 0);
     assert(msg != 0);
 
-    (sns->deliver_cb)(msg, sns);
+    switch (msg->header.type) {
+        case SN_MSG_TYPE_USER:
+            (sns->deliver_cb)(msg, sns);
+            break;
+        case SN_MSG_TYPE_QUERY_TABLE:
+        {
+            const sn_msg_type_query_table_t* query = (sn_msg_type_query_table_t*)msg->payload;
+            sn_router_query_ser_t* query_result;
+            size_t qsize;
+            sn_msg_type_query_result_t* msg_result;
+
+            qsize = sn_router_query_table(&sns->router, query->min_level, query->max_level, &query_result);
+
+            if(qsize == 0) {
+                sn_log(sns, "Error on remote table query with query ID: %hu", query->query_id);
+                break;
+            }
+
+            msg_result = (sn_msg_type_query_result_t*)malloc(sizeof(sn_msg_type_query_result_t) + qsize);
+
+            if(msg_result == 0) {
+                sn_log(sns, "Error on malloc");
+                free(query_result);
+                break;
+            }
+
+            msg_result->query_id = query->query_id;
+            memcpy(&msg_result->result, query_result, qsize);
+
+            free(query_result);
+
+            if(sn_send_typed(sns, (sn_addr_t*)&msg->header.src, sizeof(sn_msg_type_query_result_t) + qsize, (const char*)msg_result, SN_MSG_TYPE_QUERY_RESULT) == -1) {
+                sn_log(sns, "Error while sending query result");
+                free(msg_result);
+                break;
+            }
+
+            free(msg_result);
+            break;
+        }
+        default:
+            sn_log(sns, "Error: unknown message type: %hu", msg->header.type);
+    }
 }
 
 int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
