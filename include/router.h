@@ -133,9 +133,9 @@ typedef struct sn_router_query_ser_t_ {
  * @param l_min Minimum level.
  * @param l_max Maximum level.
  * @param[out] out_query *out_query will contain all the entries with level l l_min <= l <= l_max
- * @return -1 if ERROR, 0 if OK
+ * @return 0 if ERROR; size of the query result otherwise
  * */
-int sn_router_query_table(const sn_router_t* snr, uint16_t l_min, uint16_t l_max, sn_router_query_ser_t** out_query);
+size_t sn_router_query_table(const sn_router_t* snr, uint16_t l_min, uint16_t l_max, sn_router_query_ser_t** out_query);
 
 /**
  * Queries entries from the leafset. Query result serialized and saved in *out_query. Should be freed.
@@ -143,9 +143,9 @@ int sn_router_query_table(const sn_router_t* snr, uint16_t l_min, uint16_t l_max
  * @param p_min Minimum position.
  * @param p_max Maximum position.
  * @param[out] out_query *out_query will contain all the entries with position p p_min <= p <= p_max
- * @return -1 if ERROR, 0 if OK
+ * @return 0 if ERROR; size of the query result otherwise
  * */
-int sn_router_query_leafset(const sn_router_t* snr, int32_t p_min, int32_t p_max, sn_router_query_ser_t** out_query);
+size_t sn_router_query_leafset(const sn_router_t* snr, int32_t p_min, int32_t p_max, sn_router_query_ser_t** out_query);
 
 struct sn_router_t_ {
     sn_entry_t self; /**< Our address */

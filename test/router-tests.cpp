@@ -205,7 +205,7 @@ TEST_CASE("Router querying", "[router]") {
     sn_router_leafset_set(&r, -5, &e);
     sn_router_leafset_set(&r, +3, &e);
 
-    REQUIRE(sn_router_query_table(&r, 1, 5, &query_res) == 0);
+    REQUIRE(sn_router_query_table(&r, 1, 5, &query_res));
 
     REQUIRE(query_res->entries_len == 3);
 
@@ -219,7 +219,7 @@ TEST_CASE("Router querying", "[router]") {
 
     free(query_res);
 
-    REQUIRE(sn_router_query_leafset(&r, -3, +3, &query_res) == 0);
+    REQUIRE(sn_router_query_leafset(&r, -3, +3, &query_res));
 
     REQUIRE(query_res->entries_len == 3);
 

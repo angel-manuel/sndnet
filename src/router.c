@@ -251,8 +251,9 @@ void sn_router_leafset_set(sn_router_t* snr, int position, const sn_entry_t* e) 
     }
 }
 
-int sn_router_query_table(const sn_router_t* snr, uint16_t l_min, uint16_t l_max, sn_router_query_ser_t** out_query) {
+size_t sn_router_query_table(const sn_router_t* snr, uint16_t l_min, uint16_t l_max, sn_router_query_ser_t** out_query) {
     size_t max_size;
+    size_t final_size;
     sn_router_query_ser_t* ret;
 
     assert(snr != 0);
@@ -261,14 +262,14 @@ int sn_router_query_table(const sn_router_t* snr, uint16_t l_min, uint16_t l_max
     if(l_min >= SN_ROUTER_LEVELS ||
        l_max >= SN_ROUTER_LEVELS ||
        l_max < l_min)
-       return -1;
+       return 0;
 
     max_size = (l_max - l_min)*SN_ROUTER_COLUMNS + 1;
 
     ret = (sn_router_query_ser_t*)malloc(sizeof(sn_router_query_ser_t) + max_size*sizeof(sn_router_entry_ser_t));
 
     if(ret == 0)
-        return -1;
+        return 0;
 
     ret->entries_len = 0;
 
@@ -289,18 +290,21 @@ int sn_router_query_table(const sn_router_t* snr, uint16_t l_min, uint16_t l_max
             }
         }
 
-    *out_query = (sn_router_query_ser_t*)realloc(ret, sizeof(sn_router_query_ser_t) + (ret->entries_len)*sizeof(sn_router_entry_ser_t));
+
+    final_size = sizeof(sn_router_query_ser_t) + (ret->entries_len)*sizeof(sn_router_entry_ser_t);
+    *out_query = (sn_router_query_ser_t*)realloc(ret, final_size);
 
     if(*out_query == 0) {
         free(ret);
-        return -1;
+        return 0;
     }
 
-    return 0;
+    return final_size;
 }
 
-int sn_router_query_leafset(const sn_router_t* snr, int32_t p_min, int32_t p_max, sn_router_query_ser_t** out_query) {
+size_t sn_router_query_leafset(const sn_router_t* snr, int32_t p_min, int32_t p_max, sn_router_query_ser_t** out_query) {
     size_t max_size;
+    size_t final_size;
     sn_router_query_ser_t* ret;
 
     assert(snr != 0);
@@ -309,14 +313,14 @@ int sn_router_query_leafset(const sn_router_t* snr, int32_t p_min, int32_t p_max
     if(p_min < -SN_ROUTER_LEAFSET_SIZE ||
        p_max > SN_ROUTER_LEAFSET_SIZE ||
        p_max < p_min)
-       return -1;
+       return 0;
 
     max_size = p_max - p_min + 1;
 
     ret = (sn_router_query_ser_t*)malloc(sizeof(sn_router_query_ser_t) + max_size*sizeof(sn_router_entry_ser_t));
 
     if(ret == 0)
-        return -1;
+        return 0;
 
     ret->entries_len = 0;
 
@@ -335,14 +339,15 @@ int sn_router_query_leafset(const sn_router_t* snr, int32_t p_min, int32_t p_max
         }
     }
 
-    *out_query = (sn_router_query_ser_t*)realloc(ret, sizeof(sn_router_query_ser_t) + (ret->entries_len)*sizeof(sn_router_entry_ser_t));
+    final_size = sizeof(sn_router_query_ser_t) + (ret->entries_len)*sizeof(sn_router_entry_ser_t);
+    *out_query = (sn_router_query_ser_t*)realloc(ret, final_size);
 
     if(*out_query == 0) {
         free(ret);
-        return -1;
+        return 0;
     }
 
-    return 0;
+    return final_size;
 }
 
 /* Private functions */
