@@ -251,6 +251,100 @@ void sn_router_leafset_set(sn_router_t* snr, int position, const sn_entry_t* e) 
     }
 }
 
+int sn_router_query_table(const sn_router_t* snr, uint16_t l_min, uint16_t l_max, sn_router_query_ser_t** out_query) {
+    size_t max_size;
+    sn_router_query_ser_t* ret;
+
+    assert(snr != 0);
+    assert(out_query != 0);
+
+    if(l_min >= SN_ROUTER_LEVELS ||
+       l_max >= SN_ROUTER_LEVELS ||
+       l_max < l_min)
+       return -1;
+
+    max_size = (l_max - l_min)*SN_ROUTER_COLUMNS + 1;
+
+    ret = (sn_router_query_ser_t*)malloc(sizeof(sn_router_query_ser_t) + max_size*sizeof(sn_router_entry_ser_t));
+
+    if(ret == 0)
+        return -1;
+
+    ret->entries_len = 0;
+
+    for(uint16_t l = l_min; l <= l_max; ++l)
+        for(uint16_t c = 0; c < SN_ROUTER_COLUMNS; ++c) {
+            const sn_entry_t* e = sn_router_table_get(snr, l, c);
+
+            if(e && e->is_set) {
+                sn_router_entry_ser_t* e_ser = &ret->entries[ret->entries_len];
+
+                if(sn_entry_ser(e, &e_ser->entry) == 0) {
+                    e_ser->is_table = 1;
+                    e_ser->level = l;
+                    e_ser->column = c;
+
+                    ++ret->entries_len;
+                }
+            }
+        }
+
+    *out_query = (sn_router_query_ser_t*)realloc(ret, sizeof(sn_router_query_ser_t) + (ret->entries_len)*sizeof(sn_router_entry_ser_t));
+
+    if(*out_query == 0) {
+        free(ret);
+        return -1;
+    }
+
+    return 0;
+}
+
+int sn_router_query_leafset(const sn_router_t* snr, int32_t p_min, int32_t p_max, sn_router_query_ser_t** out_query) {
+    size_t max_size;
+    sn_router_query_ser_t* ret;
+
+    assert(snr != 0);
+    assert(out_query != 0);
+
+    if(p_min < -SN_ROUTER_LEAFSET_SIZE ||
+       p_max > SN_ROUTER_LEAFSET_SIZE ||
+       p_max < p_min)
+       return -1;
+
+    max_size = p_max - p_min + 1;
+
+    ret = (sn_router_query_ser_t*)malloc(sizeof(sn_router_query_ser_t) + max_size*sizeof(sn_router_entry_ser_t));
+
+    if(ret == 0)
+        return -1;
+
+    ret->entries_len = 0;
+
+    for(int32_t p = p_min; p <= p_max; ++p) {
+        const sn_entry_t* e = sn_router_leafset_get(snr, p);
+
+        if(e && e->is_set) {
+            sn_router_entry_ser_t* e_ser = &ret->entries[ret->entries_len];
+
+            if(sn_entry_ser(e, &e_ser->entry) == 0) {
+                e_ser->is_table = 0;
+                e_ser->position = p;
+
+                ++ret->entries_len;
+            }
+        }
+    }
+
+    *out_query = (sn_router_query_ser_t*)realloc(ret, sizeof(sn_router_query_ser_t) + (ret->entries_len)*sizeof(sn_router_entry_ser_t));
+
+    if(*out_query == 0) {
+        free(ret);
+        return -1;
+    }
+
+    return 0;
+}
+
 /* Private functions */
 
 int leafset_is_on_range(const sn_router_t* snr, const sn_addr_t* addr) {

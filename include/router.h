@@ -110,6 +110,26 @@ void sn_router_table_set(sn_router_t* snr, unsigned int level, unsigned int colu
  * */
 void sn_router_leafset_set(sn_router_t* snr, int position, const sn_entry_t* e);
 
+typedef struct sn_router_entry_ser_t_ {
+    uint8_t is_table;
+    union {
+        struct {
+            uint16_t level;
+            uint16_t column;
+        };
+        int32_t position;
+    };
+    sn_entry_ser_t entry;
+} sn_router_entry_ser_t;
+
+typedef struct sn_router_query_ser_t_ {
+    uint32_t entries_len;
+    sn_router_entry_ser_t entries[0];
+} sn_router_query_ser_t;
+
+int sn_router_query_table(const sn_router_t* snr, uint16_t l_min, uint16_t l_max, sn_router_query_ser_t** out_query);
+int sn_router_query_leafset(const sn_router_t* snr, int32_t p_min, int32_t p_max, sn_router_query_ser_t** out_query);
+
 struct sn_router_t_ {
     sn_entry_t self; /**< Our address */
     sn_entry_t table[SN_ROUTER_LEVELS][SN_ROUTER_COLUMNS]; /**< Routing table */

@@ -179,3 +179,56 @@ TEST_CASE("Router overwriting", "[router]") {
 
     REQUIRE(sn_entry_cmp(sn_router_leafset_get(&r, -1), &e) == 0);
 }
+
+TEST_CASE("Router querying", "[router]") {
+    sn_router_t r;
+    sn_entry_t e;
+    sn_entry_t self;
+    sn_entry_t reco;
+    sn_router_query_ser_t* query_res;
+
+    self.is_set = 1;
+    sn_addr_from_hex(&self.sn_addr, "0a0a0a0a");
+    sn_realaddr_from_str(&self.net_addr, "1.1.1.1:1111");
+
+    sn_router_init(&r, &self.sn_addr, &self.net_addr);
+
+    e.is_set = 1;
+    sn_addr_from_hex(&e.sn_addr, "abcdef");
+    sn_realaddr_from_str(&e.net_addr, "5.6.7.8:8765");
+
+    sn_router_table_set(&r, 1, 2, &e);
+    sn_router_table_set(&r, 1, 4, &e);
+    sn_router_table_set(&r, 1, 6, &e);
+
+    sn_router_leafset_set(&r, -1, &e);
+    sn_router_leafset_set(&r, -5, &e);
+    sn_router_leafset_set(&r, +3, &e);
+
+    REQUIRE(sn_router_query_table(&r, 1, 5, &query_res) == 0);
+
+    REQUIRE(query_res->entries_len == 3);
+
+    REQUIRE(query_res->entries[0].is_table == 1);
+    REQUIRE(query_res->entries[0].level == 1);
+    REQUIRE(query_res->entries[0].column == 2);
+
+    REQUIRE(sn_entry_deser(&reco, &query_res->entries[0].entry) == 0);
+
+    REQUIRE(sn_entry_equals(&reco, &e));
+
+    free(query_res);
+
+    REQUIRE(sn_router_query_leafset(&r, -3, +3, &query_res) == 0);
+
+    REQUIRE(query_res->entries_len == 3);
+
+    REQUIRE(query_res->entries[0].is_table == 0);
+    REQUIRE(query_res->entries[0].position == -1);
+
+    REQUIRE(sn_entry_deser(&reco, &query_res->entries[0].entry) == 0);
+
+    REQUIRE(sn_entry_equals(&reco, &e));
+
+    free(query_res);
+}
