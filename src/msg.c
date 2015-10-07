@@ -1,6 +1,7 @@
 #include "msg.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -68,8 +69,8 @@ sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t 
     if(!msg)
         return 0;
 
-    sn_addr_get_raw(dst, msg->header.dst);
-    sn_addr_get_raw(src, msg->header.src);
+    sn_addr_ser(dst, &msg->header.dst);
+    sn_addr_ser(src, &msg->header.src);
     msg->header.ttl = SN_MSG_DEFAULT_TTL;
     msg->header.type = type;
     msg->header.len = len;
@@ -92,4 +93,37 @@ int sn_msg_send(const sn_msg_t* msg, int socket_fd, const sn_realaddr_t* rem_add
     sent = sendto(socket_fd, msg, packet_size, 0, rem_addr, sizeof(sn_realaddr_t));
 
     return sent;
+}
+
+void sn_msg_get_dst(const sn_msg_t* msg, sn_addr_t* out_dst) {
+    assert(msg != 0);
+    assert(out_dst != 0);
+
+    sn_addr_deser(out_dst, &msg->header.dst);
+}
+
+void sn_msg_get_src(const sn_msg_t* msg, sn_addr_t* out_src) {
+    assert(msg != 0);
+    assert(out_src != 0);
+
+    sn_addr_deser(out_src, &msg->header.src);
+}
+
+void sn_msg_header_tostr(const sn_msg_t* msg, char* out_str) {
+    char dst_str[SN_ADDR_PRINTABLE_LEN];
+    char src_str[SN_ADDR_PRINTABLE_LEN];
+
+    assert(msg != 0);
+    assert(out_str != 0);
+
+    sn_addr_tostr((sn_addr_t*)&msg->header.dst, dst_str);
+    sn_addr_tostr((sn_addr_t*)&msg->header.src, src_str);
+
+    snprintf(out_str, SN_MSG_PRINTABLE_LEN,
+    "dst:%s\n"
+    "src:%s\n"
+    "ttl:%hhu\n"
+    "type:%hhu\n"
+    "len:%hhu\n",
+    dst_str, src_str, msg->header.ttl, msg->header.type, msg->header.len);
 }

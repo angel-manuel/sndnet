@@ -27,6 +27,8 @@ extern "C" {
  * */
 #define SN_MSG_MAX_LEN 1000
 
+#define SN_MSG_PRINTABLE_LEN (25 + 3*5 + 2*SN_ADDR_PRINTABLE_LEN)
+
 /**
  * Message header as used on real messages
  * */
@@ -65,11 +67,32 @@ sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t 
  * */
 int sn_msg_send(const sn_msg_t* msg, int socket_fd, const sn_realaddr_t* rem_addr);
 
+/**
+ * Gets the message destination
+ * @param msg Message
+ * @param[out] out_dst Where to store the destination
+ * */
+void sn_msg_get_dst(const sn_msg_t* msg, sn_addr_t* out_dst);
+
+/**
+ * Gets the message source
+ * @param msg Message
+ * @param[out] out_src Where to store the source
+ * */
+void sn_msg_get_src(const sn_msg_t* msg, sn_addr_t* out_src);
+
+/**
+ * Creates an string representation of a message header
+ * @param msg Message
+ * @param[out] out_str Pointer to buffer where string representation should be stored. Must have at least SN_MSG_PRINTABLE_LEN size allocated.
+ * */
+void sn_msg_header_tostr(const sn_msg_t* msg, char* out_str);
+
 /*Struct definition*/
 
 struct sn_header_t_ {
-    unsigned char dst[SN_ADDR_LEN]; /**< SecondNet destination address */
-    unsigned char src[SN_ADDR_LEN]; /**< SecondNet source address(spoofable) */
+    sn_addr_ser_t dst; /**< SecondNet destination address */
+    sn_addr_ser_t src; /**< SecondNet source address(spoofable) */
     uint16_t ttl; /**< TTL(Time To Live), decreased when forwarded, when 0 message isnt forwarded any more */
     sn_msg_type_t type; /**< Message type */
     uint16_t len; /**< Length of the payload */

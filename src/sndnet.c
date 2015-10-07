@@ -208,7 +208,7 @@ int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
     assert(sns != 0);
     assert(msg != 0);
 
-    sn_addr_init(&dst, msg->header.dst);
+    sn_msg_get_dst(msg, &dst);
 
     sn_router_nexthop(&(sns->router), &dst, &nexthop);
 
@@ -396,24 +396,16 @@ void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nextho
 }
 
 void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns) {
-    sn_addr_t dst, src;
-    char dst_str[SN_ADDR_PRINTABLE_LEN];
-    char src_str[SN_ADDR_PRINTABLE_LEN];
+    char msg_str[SN_MSG_PRINTABLE_LEN];
 
-    sn_addr_init(&dst, msg->header.dst);
-    sn_addr_init(&src, msg->header.src);
+    assert(msg != 0);
+    assert(sns != 0);
 
-    sn_addr_tostr(&dst, dst_str);
-    sn_addr_tostr(&src, src_str);
+    sn_msg_header_tostr(msg, msg_str);
 
     sn_log(sns,
-        "msg\n"
-        "dst = %s\n"
-        "src = %s\n"
-        "ttl = %hu\n"
-        "len = %u\n"
-        "buf = %s\n",
-    dst_str,
-    src_str,
-    msg->header.ttl, msg->header.len, msg->payload);
+        "msg deliver\n"
+        "%s"
+        "\n%s\n",
+    msg_str, msg->payload);
 }
