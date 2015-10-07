@@ -22,6 +22,10 @@ int sn_forward(sn_state_t* sns, sn_msg_t* msg);
 void sn_log(sn_state_t* sns, const char* format, ...);
 void* sn_background(void* arg);
 
+int on_msg_query_table(sn_state_t* sns, const sn_msg_t* msg);
+int on_msg_query_leafset(sn_state_t* sns, const sn_msg_t* msg);
+int on_msg_query_result(sn_state_t* sns, const sn_msg_t* msg);
+
 void default_log_cb(const char* msg);
 void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop);
 void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns);
@@ -183,41 +187,14 @@ void sn_deliver(sn_state_t* sns, const sn_msg_t* msg) {
             (sns->deliver_cb)(msg, sns);
             break;
         case SN_MSG_TYPE_QUERY_TABLE:
-        {
-            const sn_msg_type_query_table_t* query = (sn_msg_type_query_table_t*)msg->payload;
-            sn_router_query_ser_t* query_result;
-            size_t qsize;
-            sn_msg_type_query_result_t* msg_result;
-
-            qsize = sn_router_query_table(&sns->router, query->min_level, query->max_level, &query_result);
-
-            if(qsize == 0) {
-                sn_log(sns, "Error on remote table query with query ID: %hu", query->query_id);
-                break;
-            }
-
-            msg_result = (sn_msg_type_query_result_t*)malloc(sizeof(sn_msg_type_query_result_t) + qsize);
-
-            if(msg_result == 0) {
-                sn_log(sns, "Error on malloc");
-                free(query_result);
-                break;
-            }
-
-            msg_result->query_id = query->query_id;
-            memcpy(&msg_result->result, query_result, qsize);
-
-            free(query_result);
-
-            if(sn_send_typed(sns, (sn_addr_t*)&msg->header.src, sizeof(sn_msg_type_query_result_t) + qsize, (const char*)msg_result, SN_MSG_TYPE_QUERY_RESULT) == -1) {
-                sn_log(sns, "Error while sending query result");
-                free(msg_result);
-                break;
-            }
-
-            free(msg_result);
+            on_msg_query_table(sns, msg);
             break;
-        }
+        case SN_MSG_TYPE_QUERY_LEAFSET:
+            on_msg_query_leafset(sns, msg);
+            break;
+        case SN_MSG_TYPE_QUERY_RESULT:
+            on_msg_query_result(sns, msg);
+            break;
         default:
             sn_log(sns, "Error: unknown message type: %hu", msg->header.type);
     }
@@ -294,8 +271,109 @@ void* sn_background(void* arg) {
     return sns;
 }
 
-/*Default callbacks*/
+/* Message handlers */
 
+int on_msg_query_table(sn_state_t* sns, const sn_msg_t* msg) {
+    const sn_msg_type_query_table_t* query = (sn_msg_type_query_table_t*)msg->payload;
+    sn_router_query_ser_t* query_result;
+    size_t qsize;
+    sn_msg_type_query_result_t* msg_result;
+
+    assert(sns != 0);
+    assert(msg != 0);
+    assert(msg->header.type == SN_MSG_TYPE_QUERY_TABLE);
+
+    qsize = sn_router_query_table(&sns->router, query->min_level, query->max_level, &query_result);
+
+    if(qsize == 0) {
+        sn_log(sns, "Error on remote table query with query ID: %hu", query->query_id);
+        return -1;
+    }
+
+    msg_result = (sn_msg_type_query_result_t*)malloc(sizeof(sn_msg_type_query_result_t) + qsize);
+
+    if(msg_result == 0) {
+        sn_log(sns, "Error on malloc");
+        free(query_result);
+        return -1;
+    }
+
+    msg_result->query_id = query->query_id;
+    memcpy(&msg_result->result, query_result, qsize);
+
+    free(query_result);
+
+    if(sn_send_typed(sns, (sn_addr_t*)&msg->header.src, sizeof(sn_msg_type_query_result_t) + qsize, (const char*)msg_result, SN_MSG_TYPE_QUERY_RESULT) == -1) {
+        sn_log(sns, "Error while sending query result");
+        free(msg_result);
+        return -1;
+    }
+
+    free(msg_result);
+
+    return 0;
+}
+
+int on_msg_query_leafset(sn_state_t* sns, const sn_msg_t* msg) {
+    const sn_msg_type_query_leafset_t* query = (sn_msg_type_query_leafset_t*)msg->payload;
+    sn_router_query_ser_t* query_result;
+    size_t qsize;
+    sn_msg_type_query_result_t* msg_result;
+
+    assert(sns != 0);
+    assert(msg != 0);
+    assert(msg->header.type == SN_MSG_TYPE_QUERY_LEAFSET);
+
+    qsize = sn_router_query_leafset(&sns->router, query->min_position, query->max_position, &query_result);
+
+    if(qsize == 0) {
+        sn_log(sns, "Error on remote table query with query ID: %hu", query->query_id);
+        return -1;
+    }
+
+    msg_result = (sn_msg_type_query_result_t*)malloc(sizeof(sn_msg_type_query_result_t) + qsize);
+
+    if(msg_result == 0) {
+        sn_log(sns, "Error on malloc");
+        free(query_result);
+        return -1;
+    }
+
+    msg_result->query_id = query->query_id;
+    memcpy(&msg_result->result, query_result, qsize);
+
+    free(query_result);
+
+    if(sn_send_typed(sns, (sn_addr_t*)&msg->header.src, sizeof(sn_msg_type_query_result_t) + qsize, (const char*)msg_result, SN_MSG_TYPE_QUERY_RESULT) == -1) {
+        sn_log(sns, "Error while sending query result");
+        free(msg_result);
+        return -1;
+    }
+
+    free(msg_result);
+
+    return 0;
+}
+
+int on_msg_query_result(sn_state_t* sns, const sn_msg_t* msg) {
+    sn_entry_t e;
+    const sn_router_query_ser_t* res;
+
+    assert(sns != 0);
+    assert(msg != 0);
+    assert(msg->header.type == SN_MSG_TYPE_QUERY_RESULT);
+
+    res = (sn_router_query_ser_t*)msg->payload;
+
+    for(uint32_t i = 0; i < res->entries_len; ++i) {
+        if(sn_entry_deser(&e, &res->entries[i].entry) == 0)
+            sn_router_add(&sns->router, &e.sn_addr, &e.net_addr);
+    }
+
+    return 0;
+}
+
+/* Default callbacks */
 
 void default_log_cb(const char* msg) {
     assert(msg != 0);
