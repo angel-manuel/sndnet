@@ -8,41 +8,19 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-int sn_realaddr_from_hostname(sn_realaddr_t* snra, const char* hostname, uint16_t port) {
-    struct addrinfo hints;
-    struct addrinfo *res = 0;
-    char port_str[6];
-    int ret;
+int realaddr_from_hostname_with_flags(sn_realaddr_t* snra, const char* hostname, uint16_t port, int flags);
 
+int sn_realaddr_from_hostname(sn_realaddr_t* snra, const char* hostname, uint16_t port) {
     assert(snra != 0);
     assert(hostname != 0);
 
-    if(strcmp(hostname, "bind") == 0)
-        hostname = 0;
+    return realaddr_from_hostname_with_flags(snra, hostname, port, AI_NUMERICHOST | AI_NUMERICSERV);
+}
 
-    snprintf(port_str, 6, "%hu", port);
+int sn_realaddr_local_at_port(sn_realaddr_t* snra, uint16_t port) {
+    assert(snra != 0);
 
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_DGRAM;
-    hints.ai_protocol = 0;
-    hints.ai_flags = hostname ?
-        (AI_NUMERICHOST |
-        AI_NUMERICSERV) :
-        (AI_PASSIVE);
-
-    ret = getaddrinfo(hostname, port_str, &hints, &res);
-
-    if(ret != 0 || res == 0) {
-        fprintf(stderr, "%s\n", gai_strerror(ret));
-        return -1;
-    }
-
-    *snra = *res[0].ai_addr;
-
-    freeaddrinfo(res);
-
-    return 0;
+    return realaddr_from_hostname_with_flags(snra, 0, port, AI_PASSIVE);
 }
 
 int sn_realaddr_from_str(sn_realaddr_t* snra, const char* str) {
@@ -71,7 +49,7 @@ int sn_realaddr_from_str(sn_realaddr_t* snra, const char* str) {
     return sn_realaddr_from_hostname(snra, hostname, port);
 }
 
-int sn_realaddr_bind(sn_realaddr_t* snra, int socket_fd) {
+int sn_realaddr_bind(const sn_realaddr_t* snra, int socket_fd) {
     assert(snra != 0);
     assert(socket_fd > 0);
 
@@ -189,4 +167,36 @@ int sn_realaddr_deser(sn_realaddr_t* snra, const sn_realaddr_ser_t* ser) {
         return -1;
 
     return sn_realaddr_from_hostname(snra, hostname, ser->port);
+}
+
+/* Private functions */
+
+int realaddr_from_hostname_with_flags(sn_realaddr_t* snra, const char* hostname, uint16_t port, int flags) {
+    struct addrinfo hints;
+    struct addrinfo *res = 0;
+    char port_str[6];
+    int ret;
+
+    assert(snra != 0);
+
+    snprintf(port_str, 6, "%hu", port);
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = 0;
+    hints.ai_flags = flags;
+
+    ret = getaddrinfo(hostname, port_str, &hints, &res);
+
+    if(ret != 0 || res == 0) {
+        fprintf(stderr, "%s\n", gai_strerror(ret));
+        return -1;
+    }
+
+    *snra = *res[0].ai_addr;
+
+    freeaddrinfo(res);
+
+    return 0;
 }

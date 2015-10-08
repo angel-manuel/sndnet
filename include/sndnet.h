@@ -42,10 +42,10 @@ typedef void (*sn_deliver_callback)(const sn_msg_t* msg, sn_state_t* sns);
  * Initialization of a node
  * @param sns State to be initialized(must be already allocated)
  * @param self Node address
- * @param[in] port UDP listening port
+ * @param net_self Node network address
  * @return 0 if OK, -1 otherwise
  * */
-int sn_init(sn_state_t* sns, const sn_addr_t* self, unsigned short port);
+int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_realaddr_t* net_self);
 
 /**
  * Destroys a node
@@ -94,12 +94,12 @@ int sn_join(sn_state_t* sns, const sn_realaddr_t* gateway);
 
 struct sn_state_t_ {
     sn_addr_t self; /**< Node SecondNet address */
+    sn_realaddr_t net_self; /**< Node network address */
     sn_router_t router; /**< Routing state */
     pthread_t bg_thrd; /**< Background thread for routing */
     sn_log_callback log_cb; /**< Callback for logging */
     sn_forward_callback forward_cb; /**< Callback for forward */
     sn_deliver_callback deliver_cb; /**< Callback for deliver */
-    unsigned short port; /**< Listening port */
     int socket_fd; /**< Listening socket file descriptor */
 };
 

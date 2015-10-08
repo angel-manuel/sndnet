@@ -30,27 +30,24 @@ void default_log_cb(const char* msg);
 void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop);
 void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns);
 
-int sn_init(sn_state_t* sns, const sn_addr_t* self, unsigned short port) {
+int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_realaddr_t* net_self) {
     int socket_fd;
-    sn_realaddr_t serv_addr;
 
     assert(sns != 0);
 
     /* Copying */
 
     sns->self = *self;
+    sns->net_self = *net_self;
     sns->log_cb = default_log_cb;
     sns->deliver_cb = default_deliver_cb;
     sns->forward_cb = default_forward_cb;
-    sns->port = port;
 
     /* Initializing */
 
     sn_log(sns, "Initializing");
 
-    sn_realaddr_from_hostname(&serv_addr, "bind", port);
-
-    sn_router_init(&sns->router, &sns->self, &serv_addr);
+    sn_router_init(&sns->router, &sns->self, net_self);
 
     /* Socket initialization */
 
@@ -61,7 +58,7 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, unsigned short port) {
         return 1;
     }
 
-    if(sn_realaddr_bind(&serv_addr, socket_fd) == -1) {
+    if(sn_realaddr_bind(net_self, socket_fd) == -1) {
         sn_log(sns, "Error while initializing socket");
         close(socket_fd);
         return 1;
