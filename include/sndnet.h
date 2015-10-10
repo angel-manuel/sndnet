@@ -9,6 +9,7 @@
 
 #include "addr.h"
 #include "msg.h"
+#include "sock.h"
 #include "router.h"
 
 #include <pthread.h>
@@ -42,10 +43,10 @@ typedef void (*sn_deliver_callback)(const sn_msg_t* msg, sn_state_t* sns);
  * Initialization of a node
  * @param sns State to be initialized(must be already allocated)
  * @param self Node address
- * @param net_self Node network address
+ * @param socket Listening socket
  * @return 0 if OK, -1 otherwise
  * */
-int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_realaddr_t* net_self);
+int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket);
 
 /**
  * Destroys a node
@@ -90,17 +91,16 @@ int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* paylo
  * @param gateway Network address of the gateway
  * @return 0 if corretly joined, -1 otherwise
  * */
-int sn_join(sn_state_t* sns, const sn_realaddr_t* gateway);
+int sn_join(sn_state_t* sns, const sn_netaddr_t* gateway);
 
 struct sn_state_t_ {
     sn_addr_t self; /**< Node SecondNet address */
-    sn_realaddr_t net_self; /**< Node network address */
     sn_router_t router; /**< Routing state */
     pthread_t bg_thrd; /**< Background thread for routing */
     sn_log_callback log_cb; /**< Callback for logging */
     sn_forward_callback forward_cb; /**< Callback for forward */
     sn_deliver_callback deliver_cb; /**< Callback for deliver */
-    int socket_fd; /**< Listening socket file descriptor */
+    sn_sock_t socket; /**< Listening socket file descriptor */
 };
 
 #ifdef __cplusplus

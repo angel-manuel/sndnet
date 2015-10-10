@@ -14,7 +14,7 @@ void leafset_extract(sn_entry_t* leafset, const sn_entry_t* sne, int right);
 void leafset_sort(sn_entry_t* leafset, int right);
 int leafset_is_on_range(const sn_router_t* snr, const sn_addr_t* addr);
 
-void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_realaddr_t* self_net_addr) {
+void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_netaddr_t* self_net_addr) {
     assert(snr != 0);
     assert(self_addr != 0);
 
@@ -25,7 +25,7 @@ void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_reala
       snr->self.net_addr = *self_net_addr;
 }
 
-void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_realaddr_t* net_addr) {
+void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_netaddr_t* net_addr) {
     sn_entry_t e;
 
     assert(addr != 0);
@@ -36,7 +36,7 @@ void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_realaddr_t*
     if(net_addr)
         e.net_addr = *net_addr;
     else
-        memset(&(e.net_addr), 0, sizeof(sn_realaddr_t));
+        memset(&(e.net_addr), 0, sizeof(sn_netaddr_t));
 
     sn_router_set(snr, &e);
 

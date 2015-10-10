@@ -15,14 +15,9 @@ extern "C" {
 #endif
 
 /**
- * SO representation of a netowrk address
- * */
-typedef struct sockaddr sn_soaddr_t;
-
-/**
  * Network address
  * */
-typedef sn_soaddr_t sn_realaddr_t;
+typedef struct sockaddr sn_realaddr_t;
 
 /**
  * sn_realaddr_t hostname printable representation length.

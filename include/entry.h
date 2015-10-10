@@ -7,7 +7,7 @@
 #define SN_ENTRY_H_
 
 #include "addr.h"
-#include "realaddr.h"
+#include "netaddr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +20,7 @@ typedef struct sn_entry_t_ sn_entry_t;
 struct sn_entry_t_ {
 	unsigned char is_set; /**< Is this entry set? */
     sn_addr_t sn_addr; /**< SecondNet address */
-    sn_realaddr_t net_addr; /**< Traditional network address */
+    sn_netaddr_t net_addr; /**< Traditional network address */
 };
 
 /**
@@ -79,7 +79,7 @@ int sn_entry_equals(const sn_entry_t* a, const sn_entry_t* b);
 typedef struct sn_entry_ser_t_ {
 	uint8_t is_set;
 	sn_addr_ser_t sn_addr;
-	sn_realaddr_ser_t net_addr;
+	sn_netaddr_ser_t net_addr;
 } sn_entry_ser_t;
 
 /**

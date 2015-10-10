@@ -42,7 +42,7 @@ typedef struct sn_router_t_ sn_router_t;
  * @param self_addr Routing node address
  * @param self_net_addr Routing node network address
  * */
-void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_realaddr_t* self_net_addr);
+void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_netaddr_t* self_net_addr);
 
 /**
  * Adds an entry to the routing info
@@ -50,7 +50,7 @@ void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_reala
  * @param addr Second Net address
  * @param net_addr Underlying network address
  * */
-void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_realaddr_t* net_addr);
+void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_netaddr_t* net_addr);
 
 /**
  * Removes an entry from the routing info

@@ -30,47 +30,27 @@ void default_log_cb(const char* msg);
 void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop);
 void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns);
 
-int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_realaddr_t* net_self) {
-    int socket_fd;
-
+int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket) {
     assert(sns != 0);
 
     /* Copying */
 
     sns->self = *self;
-    sns->net_self = *net_self;
     sns->log_cb = default_log_cb;
     sns->deliver_cb = default_deliver_cb;
     sns->forward_cb = default_forward_cb;
+    sns->socket = *socket;
 
     /* Initializing */
 
     sn_log(sns, "Initializing");
 
-    sn_router_init(&sns->router, &sns->self, net_self);
-
-    /* Socket initialization */
-
-    socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    if(socket_fd == -1) {
-        sn_log(sns, "Error while initializing socket");
-        return 1;
-    }
-
-    if(sn_realaddr_bind(net_self, socket_fd) == -1) {
-        sn_log(sns, "Error while initializing socket");
-        close(socket_fd);
-        return 1;
-    }
-
-    sns->socket_fd = socket_fd;
+    sn_router_init(&sns->router, &sns->self, 0);
 
     /* Background thread initialization */
 
     if(pthread_create(&(sns->bg_thrd), 0, sn_background, sns)) {
         sn_log(sns, "Error while starting thread");
-        close(socket_fd);
         return 1;
     }
 
@@ -86,7 +66,7 @@ void sn_destroy(sn_state_t* sns) {
 
     /* Socket closing */
 
-    close(sns->socket_fd);
+    sn_sock_destroy(&sns->socket);
 
     /* Thread closing */
 
@@ -137,7 +117,7 @@ int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* paylo
     return sn_send_typed(sns, dst, len, payload, SN_MSG_TYPE_USER);
 }
 
-int sn_join(sn_state_t* sns, const sn_realaddr_t* gateway) {
+int sn_join(sn_state_t* sns, const sn_netaddr_t* gateway) {
     assert(sns != 0);
     assert(gateway != 0);
 
@@ -218,7 +198,7 @@ int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
 
         (sns->forward_cb)(msg, sns, &nexthop);
 
-        sent = sn_msg_send(msg, sns->socket_fd, &(nexthop.net_addr));
+        sent = sn_msg_send(msg, &sns->socket, &(nexthop.net_addr));
 
         if(sent <= 0) {
             msg->header.ttl++;
@@ -249,13 +229,13 @@ void sn_log(sn_state_t* sns, const char* format, ...) {
 
 void* sn_background(void* arg) {
     sn_state_t* sns = (sn_state_t*)arg;
-    sn_realaddr_t rem_addr;
+    sn_netaddr_t rem_addr;
     sn_msg_t* msg;
 
     assert(sns != 0);
 
     do {
-        msg = sn_msg_recv(sns->socket_fd, &rem_addr);
+        msg = sn_msg_recv(&sns->socket, &rem_addr);
 
         if(!msg)
             continue;
@@ -380,14 +360,14 @@ void default_log_cb(const char* msg) {
 
 void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop) {
     char nh_addr[SN_ADDR_PRINTABLE_LEN];
-    char nh_raddr[SN_REALADDR_PRINTABLE_LEN];
+    char nh_raddr[SN_NETADDR_PRINTABLE_LEN];
 
     assert(msg != 0);
     assert(sns != 0);
     assert(nexthop != 0);
 
-    sn_addr_tostr(&(nexthop->sn_addr), nh_addr);
-    sn_realaddr_tostr(&(nexthop->net_addr), nh_raddr);
+    sn_addr_tostr(&nexthop->sn_addr, nh_addr);
+    sn_netaddr_tostr(&nexthop->net_addr, nh_raddr);
 
     sn_log(sns, "Forwarding to %s @ %s\n", nh_addr, nh_raddr);
 }

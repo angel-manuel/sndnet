@@ -5,31 +5,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-sn_msg_t* sn_msg_recv(int socket_fd, sn_realaddr_t* rem_addr) {
+sn_msg_t* sn_msg_recv(sn_sock_t* socket, sn_netaddr_t* src_addr) {
     sn_header_t header;
     sn_msg_t* msg;
-    socklen_t addrlen = sizeof(sn_realaddr_t);
     int recv_count;
     uint16_t size;
 
-    assert(socket_fd >= 0);
-    assert(rem_addr != 0);
+    assert(socket != 0);
+    assert(src_addr != 0);
 
     memset(&header, 0, sizeof(header));
 
-    recv_count = recvfrom(socket_fd, &header, sizeof(header), MSG_PEEK, rem_addr, &addrlen);
+    recv_count = sn_sock_recv(socket, &header, sizeof(header), MSG_PEEK, src_addr);
 
     if(recv_count < (ssize_t)sizeof(header)) {
         if(recv_count < 0) {
             return 0;
         } else {
-            recvfrom(socket_fd, &header, sizeof(header), 0, 0, 0);
+            sn_sock_recv(socket, &header, sizeof(header), 0, 0);
             return 0;
         }
     }
 
     if(header.len > SN_MSG_MAX_LEN) {
-        recvfrom(socket_fd, &header, sizeof(header), 0, 0, 0);
+        sn_sock_recv(socket, &header, sizeof(header), 0, 0);
         return 0;
     }
 
@@ -41,7 +40,7 @@ sn_msg_t* sn_msg_recv(int socket_fd, sn_realaddr_t* rem_addr) {
         return 0;
     }
 
-    recv_count = recvfrom(socket_fd, &(msg->header), size, 0, 0, 0);
+    recv_count = sn_sock_recv(socket, &(msg->header), size, 0, 0);
 
     if(recv_count < (ssize_t)sizeof(sn_header_t) + (ssize_t)header.len) {
         if(recv_count < 0) {
@@ -80,17 +79,17 @@ sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t 
     return msg;
 }
 
-int sn_msg_send(const sn_msg_t* msg, int socket_fd, const sn_realaddr_t* rem_addr) {
+int sn_msg_send(const sn_msg_t* msg, sn_sock_t* socket, const sn_netaddr_t* dst_addr) {
     size_t packet_size;
     ssize_t sent;
 
     assert(msg != 0);
-    assert(socket_fd >= 0);
-    assert(rem_addr != 0);
+    assert(socket != 0);
+    assert(dst_addr != 0);
 
     packet_size = sizeof(sn_header_t) + (size_t)msg->header.len;
 
-    sent = sendto(socket_fd, msg, packet_size, 0, rem_addr, sizeof(sn_realaddr_t));
+    sent = sn_sock_send(socket, msg, packet_size, 0, dst_addr);
 
     return sent;
 }

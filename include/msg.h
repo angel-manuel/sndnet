@@ -8,10 +8,10 @@
 
 #include "addr.h"
 #include "msg_type.h"
-#include "realaddr.h"
+#include "netaddr.h"
+#include "sock.h"
 
 #include <stdint.h>
-#include <sys/socket.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,11 +41,11 @@ typedef struct sn_msg_t_ sn_msg_t;
 
 /**
  * Reads a message from a given socket. Allocates memory.
- * @param socket_fd Socket file descriptor
- * @param[out] rem_addr For storage of the sender network address
+ * @param socket Socket
+ * @param[out] src_addr For storage of the sender network address.
  * @return A new message(must be freed) or NULL if error
  */
-sn_msg_t* sn_msg_recv(int socket_fd, sn_realaddr_t* rem_addr);
+sn_msg_t* sn_msg_recv(sn_sock_t* socket, sn_netaddr_t* src_addr);
 
 /**
  * Creates a message ready for sending
@@ -61,11 +61,11 @@ sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t 
 /**
  * Sends a message(low-level)
  * @param msg The message to be sent
- * @param socket_fd The file descriptor of the datagram socket to be used
- * @param rem_addr Pointer to the destination address
+ * @param socket Socket
+ * @param dst_addr Pointer to the destination address
  * @return Number of characters sent or -1 if ERROR
  * */
-int sn_msg_send(const sn_msg_t* msg, int socket_fd, const sn_realaddr_t* rem_addr);
+int sn_msg_send(const sn_msg_t* msg, sn_sock_t* socket, const sn_netaddr_t* dst_addr);
 
 /**
  * Gets the message destination
