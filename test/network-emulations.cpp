@@ -29,6 +29,9 @@ TEST_CASE("Emulated network #1", "[network]") {
     REQUIRE(sn_init(&A, &a3f4, &sockA) == 0);
     REQUIRE(sn_init(&B, &b567, &sockB) == 0);
     REQUIRE(sn_init(&C, &b666, &sockC) == 0);
+    sn_set_log_callback(&A, sn_silent_log_callback, NULL);
+    sn_set_log_callback(&B, sn_silent_log_callback, NULL);
+    sn_set_log_callback(&C, sn_silent_log_callback, NULL);
 
     sn_router_add(&A.router, &b567, &addrB);
     sn_router_add(&B.router, &a3f4, &addrA);
@@ -55,7 +58,6 @@ TEST_CASE("Emulated network #1", "[network]") {
         SECTION("Receiving at b667") {
             sn_msg_t* msg;
 
-            printf("Receiving\n");
             msg = sn_msg_recv(&sockTEST, 0);
 
             REQUIRE(msg != 0);
@@ -68,7 +70,7 @@ TEST_CASE("Emulated network #1", "[network]") {
         sn_sock_destroy(&sockTEST);
     }
 
-    /*SECTION("Inserting b667 at C and send to b667 from A") {
+    SECTION("Inserting b667 at C and send to b667 from A") {
         sn_addr_t b667;
         sn_netaddr_t addrTEST;
         sn_sock_t sockTEST;
@@ -84,7 +86,6 @@ TEST_CASE("Emulated network #1", "[network]") {
         SECTION("Receiving at b667") {
             sn_msg_t* msg;
 
-            printf("Receiving\n");
             msg = sn_msg_recv(&sockTEST, 0);
 
             REQUIRE(msg != 0);
@@ -95,7 +96,7 @@ TEST_CASE("Emulated network #1", "[network]") {
         }
 
         sn_sock_destroy(&sockTEST);
-    }*/
+    }
 
     sn_destroy(&A);
     sn_destroy(&B);

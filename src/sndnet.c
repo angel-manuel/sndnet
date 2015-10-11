@@ -26,9 +26,9 @@ int on_msg_query_table(sn_state_t* sns, const sn_msg_t* msg);
 int on_msg_query_leafset(sn_state_t* sns, const sn_msg_t* msg);
 int on_msg_query_result(sn_state_t* sns, const sn_msg_t* msg);
 
-void default_log_cb(const char* msg);
-void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop);
-void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns);
+void default_log_cb(const char* msg, void* extra);
+void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop, void* extra);
+void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns, void* extra);
 
 int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket) {
     assert(sns != 0);
@@ -37,13 +37,14 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket) {
 
     sns->self = *self;
     sns->log_cb = default_log_cb;
+    sns->log_extra = 0;
     sns->deliver_cb = default_deliver_cb;
+    sns->deliver_extra = 0;
     sns->forward_cb = default_forward_cb;
+    sns->forward_extra = 0;
     sns->socket = *socket;
 
     /* Initializing */
-
-    sn_log(sns, "Initializing");
 
     sn_router_init(&sns->router, &sns->self, 0);
 
@@ -53,8 +54,6 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket) {
         sn_log(sns, "Error while starting thread");
         return 1;
     }
-
-    sn_log(sns, "Initialized");
 
     return 0;
 }
@@ -76,7 +75,7 @@ void sn_destroy(sn_state_t* sns) {
     sn_log(sns, "Destroyed");
 }
 
-void sn_set_log_callback(sn_state_t* sns, sn_log_callback cb) {
+void sn_set_log_callback(sn_state_t* sns, sn_log_callback_t cb, void* extra) {
     assert(sns != 0);
 
     if(cb)
@@ -84,10 +83,12 @@ void sn_set_log_callback(sn_state_t* sns, sn_log_callback cb) {
     else
         sns->log_cb = default_log_cb;
 
+    sns->log_extra = extra;
+
     sn_log(sns, "Log callback changed");
 }
 
-void sn_set_forward_callback(sn_state_t* sns, sn_forward_callback cb) {
+void sn_set_forward_callback(sn_state_t* sns, sn_forward_callback_t cb, void* extra) {
     assert(sns != 0);
 
     if(cb)
@@ -95,16 +96,20 @@ void sn_set_forward_callback(sn_state_t* sns, sn_forward_callback cb) {
     else
         sns->forward_cb = default_forward_cb;
 
+    sns->forward_extra = extra;
+
     sn_log(sns, "Forwarding callback changed");
 }
 
-void sn_set_deliver_callback(sn_state_t* sns, sn_deliver_callback cb) {
+void sn_set_deliver_callback(sn_state_t* sns, sn_deliver_callback_t cb, void* extra) {
     assert(sns != 0);
 
     if(cb)
         sns->deliver_cb = cb;
     else
         sns->deliver_cb = default_deliver_cb;
+
+    sns->deliver_extra = extra;
 
     sn_log(sns, "Delivering callback changed");
 }
@@ -162,7 +167,7 @@ void sn_deliver(sn_state_t* sns, const sn_msg_t* msg) {
 
     switch (msg->header.type) {
         case SN_MSG_TYPE_USER:
-            (sns->deliver_cb)(msg, sns);
+            sns->deliver_cb(msg, sns, sns->deliver_extra);
             break;
         case SN_MSG_TYPE_QUERY_TABLE:
             on_msg_query_table(sns, msg);
@@ -197,7 +202,7 @@ int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
 
         msg->header.ttl--;
 
-        (sns->forward_cb)(msg, sns, &nexthop);
+        sns->forward_cb(msg, sns, &nexthop, sns->forward_extra);
 
         sent = sn_msg_send(msg, &sns->socket, &(nexthop.net_addr));
 
@@ -225,7 +230,7 @@ void sn_log(sn_state_t* sns, const char* format, ...) {
     vsnprintf(str, 1024, format, args);
     va_end(args);
 
-    sns->log_cb(str);
+    sns->log_cb(str, sns->log_extra);
 }
 
 void* sn_background(void* arg) {
@@ -351,15 +356,27 @@ int on_msg_query_result(sn_state_t* sns, const sn_msg_t* msg) {
     return 0;
 }
 
+/* Predifined callback */
+
+void sn_silent_log_callback(const char* msg, void* extra) {
+    assert(msg != 0);
+}
+
+void sn_named_log_callback(const char* msg, void* extra) {
+    assert(msg != 0);
+
+    fprintf(stderr, "%s: %s\n", (char*)extra, msg);
+}
+
 /* Default callbacks */
 
-void default_log_cb(const char* msg) {
+void default_log_cb(const char* msg, void* extra) {
     assert(msg != 0);
 
     fprintf(stderr, "sndnet: %s\n", msg);
 }
 
-void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop) {
+void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop, void* extra) {
     char nh_addr[SN_ADDR_PRINTABLE_LEN];
     char nh_raddr[SN_NETADDR_PRINTABLE_LEN];
 
@@ -373,7 +390,7 @@ void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nextho
     sn_log(sns, "Forwarding to %s @ %s\n", nh_addr, nh_raddr);
 }
 
-void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns) {
+void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns, void* extra) {
     char msg_str[SN_MSG_PRINTABLE_LEN];
 
     assert(msg != 0);
