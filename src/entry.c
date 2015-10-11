@@ -19,7 +19,7 @@ size_t sn_entry_array_len(const sn_entry_t arr[], size_t max_len) {
 
 	assert(arr != 0);
 
-	while(arr[ret].is_set && ret < max_len)
+	while(ret < max_len && arr[ret].is_set)
 		++ret;
 
 	return ret;
