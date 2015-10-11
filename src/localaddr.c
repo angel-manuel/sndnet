@@ -2,20 +2,20 @@
 
 #include <string.h>
 
-void sn_localaddr_init(sn_localaddr_t* la, const char path[UNIX_PATH_MAX]) {
+void sn_localaddr_init(sn_localaddr_t* la, const char path[SN_LOCALADDR_MAX_PATH_LENGTH]) {
     assert(la != 0);
     assert(path != 0);
 
     la->sun_family = AF_UNIX;
 
     #ifdef SN_LOCALADDR_HIDDEN
-    strncpy(la->sun_path+1, path, UNIX_PATH_MAX-1);
+    strncpy(la->sun_path+1, path, SN_LOCALADDR_MAX_PATH_LENGTH-1);
     la->sun_path[0] = '\0';
     #else
-    strncpy(la->sun_path, path, UNIX_PATH_MAX);
+    strncpy(la->sun_path, path, SN_LOCALADDR_MAX_PATH_LENGTH);
     #endif
 
-    la->sun_path[UNIX_PATH_MAX-1] = '\0';
+    la->sun_path[SN_LOCALADDR_MAX_PATH_LENGTH-1] = '\0';
 }
 
 int sn_localaddr_bind(const sn_localaddr_t* la, int fd) {
@@ -49,7 +49,7 @@ int sn_localaddr_ser(const sn_localaddr_t* la, sn_localaddr_ser_t* ser) {
     assert(la != 0);
     assert(ser != 0);
 
-    memcpy(ser->path, la->sun_path, UNIX_PATH_MAX);
+    memcpy(ser->path, la->sun_path, SN_LOCALADDR_MAX_PATH_LENGTH);
 
     return 0;
 }
@@ -58,7 +58,7 @@ int sn_localaddr_deser(sn_localaddr_t* la, const sn_localaddr_ser_t* ser) {
     assert(la != 0);
     assert(ser != 0);
 
-    memcpy(la->sun_path, ser->path, UNIX_PATH_MAX);
+    memcpy(la->sun_path, ser->path, SN_LOCALADDR_MAX_PATH_LENGTH);
 
     return 0;
 }

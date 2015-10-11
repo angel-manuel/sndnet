@@ -119,15 +119,15 @@ int sn_realaddr_cmp(const sn_realaddr_t* a, const sn_realaddr_t* b) {
         if(ab == bb) {
             if(ac == bc) {
                 if(ad == bd)
-                    return ap > bp;
+                    return (int)ap - bp;
                 else
-                    return ad > bd;
+                    return (int)ad - bd;
             } else
-                return ac > bc;
+                return (int)ac - bc;
         } else
-            return ab > bb;
+            return (int)ab - bb;
     } else
-        return aa > ba;
+        return (int)aa - ba;
 }
 
 int sn_realaddr_ser(const sn_realaddr_t* snra, sn_realaddr_ser_t* ser) {
