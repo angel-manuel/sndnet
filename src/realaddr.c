@@ -51,7 +51,7 @@ int sn_realaddr_from_str(sn_realaddr_t* snra, const char* str) {
 
 int sn_realaddr_bind(const sn_realaddr_t* snra, int socket_fd) {
     assert(snra != 0);
-    assert(socket_fd > 0);
+    assert(socket_fd >= 0);
 
     return bind(socket_fd, snra, sizeof(*snra));
 }

@@ -12,7 +12,6 @@ sn_msg_t* sn_msg_recv(sn_sock_t* socket, sn_netaddr_t* src_addr) {
     uint16_t size;
 
     assert(socket != 0);
-    assert(src_addr != 0);
 
     memset(&header, 0, sizeof(header));
 
