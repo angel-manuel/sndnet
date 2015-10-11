@@ -38,7 +38,7 @@ void sn_localaddr_tostr(const sn_localaddr_t* la, char* out_str) {
     assert(out_str != 0);
 
     #ifdef SN_LOCALADDR_HIDDEN
-    out_str[0] = 'H';
+    out_str[0] = '_';
     strncpy(out_str+1, la->sun_path+1, SN_LOCALADDR_PRINTABLE_LEN-1);
     #else
     strncpy(out_str, la->sun_path, SN_LOCALADDR_PRINTABLE_LEN);

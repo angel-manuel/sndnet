@@ -13,7 +13,7 @@ TEST_CASE("Localaddress creation and recovery", "[localaddr]") {
     sn_localaddr_tostr(&la, la_str);
 
     #ifdef SN_LOCALADDR_HIDDEN
-    REQUIRE(strcmp("Hendpoint", la_str) == 0);
+    REQUIRE(strcmp("_endpoint", la_str) == 0);
     #else
     REQUIRE(strcmp("endpoint", la_str) == 0);
     #endif

@@ -19,7 +19,7 @@ TEST_CASE("Netaddress tostr works", "[netaddr]") {
     REQUIRE(sn_netaddr_tostr((sn_netaddr_t*)&local, local_str) == 0);
 
     REQUIRE(strcmp("INET:6.77.22.123:49860", real_str) == 0);
-    REQUIRE(strcmp("UNIX:Hlolcat", local_str) == 0);
+    REQUIRE(strcmp("UNIX:_lolcat", local_str) == 0);
 }
 
 TEST_CASE("Netaddress comparison works", "[netaddr]") {
