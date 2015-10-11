@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-void sn_localaddr_init(sn_localaddr_t* la, char path[UNIX_PATH_MAX]) {
+void sn_localaddr_init(sn_localaddr_t* la, const char path[UNIX_PATH_MAX]) {
     assert(la != 0);
     assert(path != 0);
 
@@ -27,7 +27,7 @@ int sn_localaddr_bind(const sn_localaddr_t* la, int fd) {
 
 int sn_localaddr_cmp(const sn_localaddr_t* a, const sn_localaddr_t* b) {
     #ifdef SN_LOCALADDR_HIDDEN
-    return strcmp(a->sun_path+1, b->sun_path+2);
+    return strcmp(a->sun_path+1, b->sun_path+1);
     #else
     return strcmp(a->sun_path, b->sun_path);
     #endif

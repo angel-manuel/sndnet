@@ -22,7 +22,7 @@ extern "C" {
 
 typedef struct sockaddr_un sn_localaddr_t;
 
-void sn_localaddr_init(sn_localaddr_t* la, char path[UNIX_PATH_MAX]);
+void sn_localaddr_init(sn_localaddr_t* la, const char path[UNIX_PATH_MAX]);
 
 int sn_localaddr_bind(const sn_localaddr_t* la, int fd);
 
