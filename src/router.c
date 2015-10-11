@@ -129,7 +129,7 @@ int sn_router_tostr(const sn_router_t* snr, char* out_str, size_t out_str_len) {
     }
 
     {/*Left leafset*/
-        size_t left_leafset_size = sn_entry_array_len(snr->left_leafset);
+        size_t left_leafset_size = sn_entry_array_len(snr->left_leafset, SN_ROUTER_LEAFSET_SIZE);
         unsigned int i;
 
         used_len += snprintf(out_str + used_len, out_str_len - used_len,
@@ -153,7 +153,7 @@ int sn_router_tostr(const sn_router_t* snr, char* out_str, size_t out_str_len) {
         return -1;
 
     {/*Right leafset*/
-        size_t right_leafset_size = sn_entry_array_len(snr->right_leafset);
+        size_t right_leafset_size = sn_entry_array_len(snr->right_leafset, SN_ROUTER_LEAFSET_SIZE);
         unsigned int i;
 
         used_len += snprintf(out_str + used_len, out_str_len - used_len,
@@ -361,8 +361,8 @@ int leafset_is_on_range(const sn_router_t* snr, const sn_addr_t* addr) {
     assert(snr != NULL);
     assert(addr != NULL);
 
-    left_count = sn_entry_array_len(snr->left_leafset);
-    right_count = sn_entry_array_len(snr->right_leafset);
+    left_count = sn_entry_array_len(snr->left_leafset, SN_ROUTER_LEAFSET_SIZE);
+    right_count = sn_entry_array_len(snr->right_leafset, SN_ROUTER_LEAFSET_SIZE);
 
     if(left_count)
         left_bound = &snr->left_leafset[left_count].sn_addr;
@@ -425,7 +425,7 @@ void leafset_insert(sn_entry_t* leafset, const sn_entry_t* sne, int right) {
     assert(leafset != 0);
     assert(sne != 0);
 
-    ls = sn_entry_array_len(leafset);
+    ls = sn_entry_array_len(leafset, SN_ROUTER_LEAFSET_SIZE);
 
     if(ls < SN_ROUTER_LEAFSET_SIZE) {
         leafset[ls] = *sne;
@@ -446,7 +446,7 @@ void leafset_extract(sn_entry_t* leafset, const sn_entry_t* sne, int right) {
     assert(leafset != 0);
     assert(sne != 0);
 
-    ls = sn_entry_array_len(leafset);
+    ls = sn_entry_array_len(leafset, SN_ROUTER_LEAFSET_SIZE);
 
     for(i = 0; i < ls; ++i) {
         if(sn_entry_cmp(sne, &leafset[i]) == 0) {
@@ -463,6 +463,6 @@ void leafset_extract(sn_entry_t* leafset, const sn_entry_t* sne, int right) {
 void leafset_sort(sn_entry_t* leafset, int right) {
     typedef int (*cmp_t)(const void*, const void*);
 
-    qsort(leafset, sn_entry_array_len(leafset), sizeof(sn_entry_t),
+    qsort(leafset, sn_entry_array_len(leafset, SN_ROUTER_LEAFSET_SIZE), sizeof(sn_entry_t),
         (cmp_t)(right ? sn_entry_cmp : sn_entry_cmp_neg));
 }

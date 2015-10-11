@@ -14,12 +14,12 @@ int sn_entry_cmp_neg(const sn_entry_t* A, const sn_entry_t* B) {
 	return sn_entry_cmp(B, A);
 }
 
-size_t sn_entry_array_len(const sn_entry_t arr[]) {
+size_t sn_entry_array_len(const sn_entry_t arr[], size_t max_len) {
 	size_t ret = 0;
 
 	assert(arr != 0);
 
-	while(arr[ret].is_set)
+	while(arr[ret].is_set && ret < max_len)
 		++ret;
 
 	return ret;

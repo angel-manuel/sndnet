@@ -42,9 +42,10 @@ int sn_entry_cmp_neg(const sn_entry_t* A, const sn_entry_t* B);
 /**
  * Calculates the length of an entry array(like a leafset)
  * @param arr The entry array
+ * @param max_len Maximum posible length
  * @return Length of the array. arr[len].is_set == 0
  * */
-size_t sn_entry_array_len(const sn_entry_t arr[]);
+size_t sn_entry_array_len(const sn_entry_t arr[], size_t max_len);
 
 /**
  * Calculates the closest entry to some address with level constrains

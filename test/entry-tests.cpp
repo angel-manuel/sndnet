@@ -20,7 +20,7 @@ TEST_CASE("Entry array length", "[entry]") {
 	for(i = 0; i < 10; ++i)
 		arr[i].is_set = (i < 5);
 
-	REQUIRE(sn_entry_array_len(arr) == 5);
+	REQUIRE(sn_entry_array_len(arr, 10) == 5);
 }
 
 TEST_CASE("Entry closest", "[entry]") {
