@@ -8,6 +8,8 @@ void sn_localaddr_init(sn_localaddr_t* la, const char path[SN_LOCALADDR_MAX_PATH
 
     la->sun_family = AF_UNIX;
 
+    memset(la->sun_path, 0, SN_LOCALADDR_MAX_PATH_LENGTH);
+
     #ifdef SN_LOCALADDR_HIDDEN
     strncpy(la->sun_path+1, path, SN_LOCALADDR_MAX_PATH_LENGTH-1);
     la->sun_path[0] = '\0';
@@ -22,7 +24,7 @@ int sn_localaddr_bind(const sn_localaddr_t* la, int fd) {
     assert(la != 0);
     assert(fd >= 0);
 
-    return bind(fd, (struct sockaddr*)la, sizeof(sn_localaddr_t));
+    return bind(fd, (struct sockaddr*)la, 2 + SN_LOCALADDR_MAX_PATH_LENGTH);
 }
 
 int sn_localaddr_cmp(const sn_localaddr_t* a, const sn_localaddr_t* b) {

@@ -25,7 +25,7 @@ socklen_t sn_netaddr_get_size(const sn_netaddr_t* na) {
         case AF_INET:
             return sizeof(sn_realaddr_t);
         case AF_LOCAL:
-            return sizeof(sn_localaddr_t);
+            return 2 + SN_LOCALADDR_MAX_PATH_LENGTH;
         default:
             return sizeof(struct sockaddr);
     }

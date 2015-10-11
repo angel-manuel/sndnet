@@ -148,7 +148,8 @@ int sn_send_typed(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char*
     if(!msg)
         return -1;
 
-    sn_forward(sns, msg);
+    if(sn_forward(sns, msg) == -1)
+        return -1;
 
     free(msg);
 
