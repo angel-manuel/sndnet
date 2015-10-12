@@ -48,6 +48,13 @@ void sn_addr_tostr(const sn_addr_t* sna, char* out_str) {
 
     sn_addr_get_hex(sna, hexstr);
     hexstring_to_printable(hexstr, out_str);
+
+    for(unsigned int i = SN_ADDR_HEX_LEN - 1; i >= 0; --i) {
+        if(out_str[i] != '0')
+            break;
+        
+        out_str[i] = '\0';
+    }
 }
 
 int sn_addr_cmp(const sn_addr_t* a, const sn_addr_t* b) {
