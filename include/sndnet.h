@@ -40,13 +40,22 @@ typedef void (*sn_forward_callback_t)(const sn_msg_t* msg, sn_state_t* sns, sn_e
 typedef void (*sn_deliver_callback_t)(const sn_msg_t* msg, sn_state_t* sns, void* extra);
 
 /**
- * Initialization of a node
+ * Initializes a node
  * @param sns State to be initialized(must be already allocated)
  * @param self Node address
  * @param socket Listening socket
  * @return 0 if OK, -1 otherwise
  * */
 int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket);
+
+/**
+ * Initializes a node from a string address and a listening port
+ * @param sns State to be initialized(must be already allocated)
+ * @param hexaddr String representation of the node SecondNet address
+ * @param port Listening port number.
+ * @return 0 if OK, -1 otherwise
+ * */
+int sn_init_at_port(sn_state_t* sns, const char hexaddr[SN_ADDR_PRINTABLE_LEN], uint16_t port);
 
 /**
  * Destroys a node

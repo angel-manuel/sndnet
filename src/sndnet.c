@@ -32,6 +32,8 @@ void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns, void* extra);
 
 int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket) {
     assert(sns != 0);
+    assert(self != 0);
+    assert(socket->binded);
 
     /* Copying */
 
@@ -46,22 +48,47 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket) {
 
     /* Initializing */
 
-    sn_router_init(&sns->router, &sns->self, 0);
+    sn_router_init(&sns->router, &sns->self, &socket->bind);
 
     /* Background thread initialization */
 
     if(pthread_create(&(sns->bg_thrd), 0, sn_background, sns)) {
         sn_log(sns, "Error while starting thread");
-        return 1;
+        return -1;
     }
 
     return 0;
 }
 
+int sn_init_at_port(sn_state_t* sns, const char hexaddr[SN_ADDR_PRINTABLE_LEN], uint16_t port) {
+    sn_addr_t self;
+    sn_netaddr_t net_self;
+    sn_sock_t socket;
+
+    assert(sns != 0);
+    assert(hexaddr != 0);
+
+    sn_addr_from_hex(&self, hexaddr);
+
+    if(sn_realaddr_local_at_port(&net_self, port) == -1)
+        goto error;
+
+    if(sn_sock_init_binded(&socket, &net_self) == -1)
+        goto error;
+
+    if(sn_init(sns, &self, &socket) == -1)
+        goto error_lib_socket;
+
+    return 0;
+
+error_lib_socket:
+    sn_sock_destroy(&socket);
+error:
+    return -1;
+}
+
 void sn_destroy(sn_state_t* sns) {
     assert(sns != 0);
-
-    sn_log(sns, "Destroying");
 
     /* Socket closing */
 
@@ -71,8 +98,6 @@ void sn_destroy(sn_state_t* sns) {
 
     pthread_cancel(sns->bg_thrd);
     pthread_join(sns->bg_thrd, 0);
-
-    sn_log(sns, "Destroyed");
 }
 
 void sn_set_log_callback(sn_state_t* sns, sn_log_callback_t cb, void* extra) {
@@ -84,8 +109,6 @@ void sn_set_log_callback(sn_state_t* sns, sn_log_callback_t cb, void* extra) {
         sns->log_cb = default_log_cb;
 
     sns->log_extra = extra;
-
-    sn_log(sns, "Log callback changed");
 }
 
 void sn_set_forward_callback(sn_state_t* sns, sn_forward_callback_t cb, void* extra) {
@@ -97,8 +120,6 @@ void sn_set_forward_callback(sn_state_t* sns, sn_forward_callback_t cb, void* ex
         sns->forward_cb = default_forward_cb;
 
     sns->forward_extra = extra;
-
-    sn_log(sns, "Forwarding callback changed");
 }
 
 void sn_set_deliver_callback(sn_state_t* sns, sn_deliver_callback_t cb, void* extra) {
@@ -110,8 +131,6 @@ void sn_set_deliver_callback(sn_state_t* sns, sn_deliver_callback_t cb, void* ex
         sns->deliver_cb = default_deliver_cb;
 
     sns->deliver_extra = extra;
-
-    sn_log(sns, "Delivering callback changed");
 }
 
 int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload) {
@@ -379,6 +398,7 @@ void default_log_cb(const char* msg, void* extra) {
 void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop, void* extra) {
     char nh_addr[SN_ADDR_PRINTABLE_LEN];
     char nh_raddr[SN_NETADDR_PRINTABLE_LEN];
+    char msg_str[SN_MSG_PRINTABLE_LEN];
 
     assert(msg != 0);
     assert(sns != 0);
@@ -386,8 +406,13 @@ void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nextho
 
     sn_addr_tostr(&nexthop->sn_addr, nh_addr);
     sn_netaddr_tostr(&nexthop->net_addr, nh_raddr);
+    sn_msg_header_tostr(msg, msg_str);
 
-    sn_log(sns, "Forwarding to %s @ %s\n", nh_addr, nh_raddr);
+    sn_log(sns,
+        "msg forward\n"
+        "%s"
+        "Forwarding to %s @ %s\n",
+        msg_str, nh_addr, nh_raddr);
 }
 
 void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns, void* extra) {

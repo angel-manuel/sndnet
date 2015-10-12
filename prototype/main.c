@@ -15,9 +15,6 @@ int main(int argc, char* argv[]) {
     char* self_addr;
     uint16_t port;
     sn_state_t sns;
-    sn_addr_t self;
-    sn_netaddr_t net_self;
-    sn_sock_t socket;
     char line[1024];
     char* command;
 
@@ -29,11 +26,10 @@ int main(int argc, char* argv[]) {
     self_addr = argv[1];
     sscanf(argv[2], "%hu", &port);
 
-    sn_addr_from_hex(&self, self_addr);
-    sn_realaddr_local_at_port((sn_realaddr_t*)&net_self, port);
-    sn_sock_init_binded(&socket, &net_self);
-
-    sn_init(&sns, &self, &socket);
+    if(sn_init_at_port(&sns, self_addr, port) == -1) {
+        fprintf(stderr, "Error initializing\n");
+        return 1;
+    }
 
     while(printf("> "), fgets(line, 1024, stdin)) {
         command = strtok(line, " \n");
