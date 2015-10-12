@@ -11,10 +11,11 @@
 #include "sndnet.h"
 #include "sock.h"
 
+sn_state_t sns;
+
 int main(int argc, char* argv[]) {
     char* self_addr;
     uint16_t port;
-    sn_state_t sns;
     char line[1024];
     char* command;
 
