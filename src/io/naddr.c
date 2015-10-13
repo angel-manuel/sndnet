@@ -38,7 +38,8 @@ int sn_io_naddr_local(sn_io_naddr_t* addr, const char* path) {
     unaddr->sun_family = AF_UNIX;
     memset(unaddr->sun_path, 0, SN_IO_NADDR_MAX_PATH_LEN);
 
-    strncpy(unaddr->sun_path+1, path, SN_IO_NADDR_MAX_PATH_LEN);
+    unaddr->sun_path[0] = path[0] == '_' ? '\0' : path[0];
+    strncpy(unaddr->sun_path+1, path+1, SN_IO_NADDR_MAX_PATH_LEN);
 
     return 0;
 }
@@ -73,8 +74,6 @@ int sn_io_naddr_from_str(sn_io_naddr_t* addr, const char* str) {
 
         strncpy(copy_str, str, SN_IO_NADDR_MAX_PATH_LEN);
 
-        if(copy_str[5] == '_')
-            copy_str[5] = '\0';
         return sn_io_naddr_local(addr, copy_str+5);
     } else {
         return -1;

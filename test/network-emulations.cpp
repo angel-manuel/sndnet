@@ -18,9 +18,9 @@ TEST_CASE("Emulated network #1", "[network]") {
     sn_addr_from_hex(&b567, "b567");
     sn_addr_from_hex(&b666, "b666");
 
-    sn_io_naddr_local(&addrA, "A");
-    sn_io_naddr_local(&addrB, "B");
-    sn_io_naddr_local(&addrC, "C");
+    sn_io_naddr_local(&addrA, "_A");
+    sn_io_naddr_local(&addrB, "_B");
+    sn_io_naddr_local(&addrC, "_C");
 
     REQUIRE((sockA = sn_io_sock_named(&addrA)) != SN_IO_SOCK_INVALID);
     REQUIRE((sockB = sn_io_sock_named(&addrB)) != SN_IO_SOCK_INVALID);
@@ -45,7 +45,7 @@ TEST_CASE("Emulated network #1", "[network]") {
         sn_io_sock_t sockTEST;
 
         sn_addr_from_hex(&b667, "b667");
-        sn_io_naddr_local(&addrTEST, "TEST");
+        sn_io_naddr_local(&addrTEST, "_TEST");
         REQUIRE((sockTEST = sn_io_sock_named(&addrTEST)) != SN_IO_SOCK_INVALID);
 
         sn_router_add(&A.router, &b667, &addrTEST);
@@ -67,14 +67,13 @@ TEST_CASE("Emulated network #1", "[network]") {
         sn_io_sock_close(sockTEST);
     }
 
-    /*
     SECTION("Inserting b667 at C and send to b667 from A") {
         sn_addr_t b667;
         sn_io_naddr_t addrTEST;
         sn_io_sock_t sockTEST;
 
         sn_addr_from_hex(&b667, "b667");
-        sn_io_naddr_local(&addrTEST, "TEST");
+        sn_io_naddr_local(&addrTEST, "_TEST");
         REQUIRE((sockTEST = sn_io_sock_named(&addrTEST)) != SN_IO_SOCK_INVALID);
 
         sn_router_add(&C.router, &b667, &addrTEST);
@@ -95,7 +94,6 @@ TEST_CASE("Emulated network #1", "[network]") {
 
         sn_io_sock_close(sockTEST);
     }
-    */
 
     sn_destroy(&A);
     sn_destroy(&B);
