@@ -55,7 +55,7 @@ TEST_CASE("Entry serialization and deserialization", "[entry]") {
 
 	orig.is_set = 1;
 	sn_addr_from_hex(&orig.sn_addr, "b16b002");
-	sn_realaddr_from_str(&orig.net_addr, "9.8.7.6:54321");
+	sn_io_naddr_from_str(&orig.net_addr, "INET:9.8.7.6:54321");
 
 	REQUIRE(sn_entry_ser(&orig, &ser) == 0);
 	REQUIRE(sn_entry_deser(&reco, &ser) == 0);

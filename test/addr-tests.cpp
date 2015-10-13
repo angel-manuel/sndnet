@@ -13,7 +13,7 @@ TEST_CASE("Address uppercase initialization", "[addr]") {
 
     sn_addr_from_hex(&addr, hex);
 
-    sn_addr_tostr(&addr, ret_str);
+    sn_addr_to_str(&addr, ret_str);
 
     REQUIRE(strcasecmp(ret_str, hex) == 0);
     REQUIRE(strcmp(ret_str, hex_lower) == 0);
@@ -80,14 +80,13 @@ TEST_CASE("Address copy", "[addr]") {
 TEST_CASE("Address short initialization", "[addr]") {
     sn_addr_t addr;
     const char hex[] = "abcd";
-    const char hex_full[] = "abcd000000000000000000000000000000000000000000000000000000000000";
     char ret_str[SN_ADDR_PRINTABLE_LEN];
 
     sn_addr_from_hex(&addr, hex);
 
-    sn_addr_tostr(&addr, ret_str);
+    sn_addr_to_str(&addr, ret_str);
 
-    REQUIRE(strcmp(ret_str, hex_full) == 0);
+    REQUIRE(strcmp(ret_str, hex) == 0);
 }
 
 TEST_CASE("Address serialization and deserialization", "[addr]") {

@@ -9,7 +9,7 @@
 
 #include "addr.h"
 #include "msg.h"
-#include "sock.h"
+#include "io/sock.h"
 #include "router.h"
 
 #include <pthread.h>
@@ -46,7 +46,7 @@ typedef void (*sn_deliver_callback_t)(const sn_msg_t* msg, sn_state_t* sns, void
  * @param socket Listening socket
  * @return 0 if OK, -1 otherwise
  * */
-int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket);
+int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket);
 
 /**
  * Initializes a node from a string address and a listening port
@@ -100,7 +100,7 @@ int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* paylo
  * @param gateway Network address of the gateway
  * @return 0 if corretly joined, -1 otherwise
  * */
-int sn_join(sn_state_t* sns, const sn_netaddr_t* gateway);
+int sn_join(sn_state_t* sns, const sn_io_naddr_t* gateway);
 
 void sn_silent_log_callback(const char* msg, void* extra);
 void sn_named_log_callback(const char* msg, void* extra);
@@ -115,7 +115,7 @@ struct sn_state_t_ {
     void* forward_extra; /**< Extra data for forward callback */
     sn_deliver_callback_t deliver_cb; /**< Callback for deliver */
     void* deliver_extra; /**< Extra data for deliver callback */
-    sn_sock_t socket; /**< Listening socket file descriptor */
+    sn_io_sock_t socket; /**< Listening socket file descriptor */
 };
 
 #ifdef __cplusplus

@@ -8,7 +8,7 @@
 
 #include "addr.h"
 #include "entry.h"
-#include "realaddr.h"
+#include "io/naddr.h"
 
 #include <sys/socket.h>
 
@@ -42,7 +42,7 @@ typedef struct sn_router_t_ sn_router_t;
  * @param self_addr Routing node address
  * @param self_net_addr Routing node network address
  * */
-void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_netaddr_t* self_net_addr);
+void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_io_naddr_t* self_net_addr);
 
 /**
  * Adds an entry to the routing info
@@ -50,7 +50,7 @@ void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_netad
  * @param addr Second Net address
  * @param net_addr Underlying network address
  * */
-void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_netaddr_t* net_addr);
+void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_io_naddr_t* net_addr);
 
 /**
  * Removes an entry from the routing info
@@ -74,7 +74,7 @@ void sn_router_nexthop(const sn_router_t* snr, const sn_addr_t* dst, sn_entry_t*
  * @param out_str_len Allocated length of out_str
  * @return 0 if OK, -1 if ERROR
  * */
-int sn_router_tostr(const sn_router_t* snr, char* out_str, size_t out_str_len);
+int sn_router_to_str(const sn_router_t* snr, char* out_str, size_t out_str_len);
 
 /**
  * Returns a read-only pointer to a position on the routing table

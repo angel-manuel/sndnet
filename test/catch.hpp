@@ -1008,7 +1008,7 @@ namespace Internal {
 #pragma warning(pop)
 #endif
 
-// #included from: catch_tostring.h
+// #included from: catch_to_string.h
 #define TWOBLUECUBES_CATCH_TOSTRING_H_INCLUDED
 
 #include <sstream>
@@ -7198,7 +7198,7 @@ namespace Catch {
     }
 #endif // Platform
 
-// #included from: catch_tostring.hpp
+// #included from: catch_to_string.hpp
 #define TWOBLUECUBES_CATCH_TOSTRING_HPP_INCLUDED
 
 namespace Catch {

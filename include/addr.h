@@ -66,7 +66,7 @@ void sn_addr_get_hex(const sn_addr_t* sna, unsigned char* out_hex);
  * @param sna Address
  * @param[out] out_str Printable hex address. Must have SN_ADDR_PRINTABLE_LEN.
  * */
-void sn_addr_tostr(const sn_addr_t* sna, char* out_str);
+void sn_addr_to_str(const sn_addr_t* sna, char* out_str);
 
 /**
  * Compares addresses(strcmp style)

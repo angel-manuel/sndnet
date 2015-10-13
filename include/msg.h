@@ -8,8 +8,8 @@
 
 #include "addr.h"
 #include "msg_type.h"
-#include "netaddr.h"
-#include "sock.h"
+#include "io/naddr.h"
+#include "io/sock.h"
 
 #include <stdint.h>
 
@@ -45,7 +45,7 @@ typedef struct sn_msg_t_ sn_msg_t;
  * @param[out] src_addr For storage of the sender network address.
  * @return A new message(must be freed) or NULL if error
  */
-sn_msg_t* sn_msg_recv(sn_sock_t* socket, sn_netaddr_t* src_addr);
+sn_msg_t* sn_msg_recv(sn_io_sock_t socket, sn_io_naddr_t* src_addr);
 
 /**
  * Creates a message ready for sending
@@ -65,7 +65,7 @@ sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t 
  * @param dst_addr Pointer to the destination address
  * @return Number of characters sent or -1 if ERROR
  * */
-int sn_msg_send(const sn_msg_t* msg, sn_sock_t* socket, const sn_netaddr_t* dst_addr);
+int sn_msg_send(const sn_msg_t* msg, sn_io_sock_t socket, const sn_io_naddr_t* dst_addr);
 
 /**
  * Gets the message destination
@@ -86,7 +86,7 @@ void sn_msg_get_src(const sn_msg_t* msg, sn_addr_t* out_src);
  * @param msg Message
  * @param[out] out_str Pointer to buffer where string representation should be stored. Must have at least SN_MSG_PRINTABLE_LEN size allocated.
  * */
-void sn_msg_header_tostr(const sn_msg_t* msg, char* out_str);
+void sn_msg_header_to_str(const sn_msg_t* msg, char* out_str);
 
 /*Struct definition*/
 

@@ -1,33 +1,34 @@
 #include "msg.h"
 
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-sn_msg_t* sn_msg_recv(sn_sock_t* socket, sn_netaddr_t* src_addr) {
+sn_msg_t* sn_msg_recv(sn_io_sock_t socket, sn_io_naddr_t* src_addr) {
     sn_header_t header;
     sn_msg_t* msg;
     int recv_count;
     uint16_t size;
 
-    assert(socket != 0);
+    assert(socket != SN_IO_SOCK_INVALID);
 
     memset(&header, 0, sizeof(header));
 
-    recv_count = sn_sock_recv(socket, &header, sizeof(header), MSG_PEEK, src_addr);
+    recv_count = sn_io_sock_peek(socket, &header, sizeof(header), src_addr);
 
     if(recv_count < (ssize_t)sizeof(header)) {
         if(recv_count < 0) {
             return 0;
         } else {
-            sn_sock_recv(socket, &header, sizeof(header), 0, 0);
+            sn_io_sock_recv(socket, NULL, 0, NULL);
             return 0;
         }
     }
 
     if(header.len > SN_MSG_MAX_LEN) {
-        sn_sock_recv(socket, &header, sizeof(header), 0, 0);
+        sn_io_sock_recv(socket, NULL, 0, NULL);
         return 0;
     }
 
@@ -39,7 +40,7 @@ sn_msg_t* sn_msg_recv(sn_sock_t* socket, sn_netaddr_t* src_addr) {
         return 0;
     }
 
-    recv_count = sn_sock_recv(socket, &(msg->header), size, 0, 0);
+    recv_count = sn_io_sock_recv(socket, &msg->header, size, NULL);
 
     if(recv_count < (ssize_t)sizeof(sn_header_t) + (ssize_t)header.len) {
         if(recv_count < 0) {
@@ -58,9 +59,9 @@ sn_msg_t* sn_msg_recv(sn_sock_t* socket, sn_netaddr_t* src_addr) {
 sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t type, size_t len, const char* payload) {
     sn_msg_t* msg;
 
-    assert(dst != 0);
-    assert(src != 0);
-    assert(payload != 0 || len == 0);
+    assert(dst != NULL);
+    assert(src != NULL);
+    assert(payload != NULL || len == 0);
 
     msg = (sn_msg_t*)malloc(sizeof(sn_msg_t) + len + 1);
 
@@ -78,44 +79,47 @@ sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t 
     return msg;
 }
 
-int sn_msg_send(const sn_msg_t* msg, sn_sock_t* socket, const sn_netaddr_t* dst_addr) {
+int sn_msg_send(const sn_msg_t* msg, sn_io_sock_t socket, const sn_io_naddr_t* dst_addr) {
     size_t packet_size;
     ssize_t sent;
 
-    assert(msg != 0);
-    assert(socket != 0);
-    assert(dst_addr != 0);
+    assert(msg != NULL);
+    assert(socket != SN_IO_SOCK_INVALID);
+    assert(dst_addr != NULL);
 
     packet_size = sizeof(sn_header_t) + (size_t)msg->header.len;
 
-    sent = sn_sock_send(socket, msg, packet_size, 0, dst_addr);
+    sent = sn_io_sock_send(socket, msg, packet_size, dst_addr);
 
-    return sent;
+    if(sent < packet_size)
+        return -1;
+
+    return 0;
 }
 
 void sn_msg_get_dst(const sn_msg_t* msg, sn_addr_t* out_dst) {
-    assert(msg != 0);
-    assert(out_dst != 0);
+    assert(msg != NULL);
+    assert(out_dst != NULL);
 
     sn_addr_deser(out_dst, &msg->header.dst);
 }
 
 void sn_msg_get_src(const sn_msg_t* msg, sn_addr_t* out_src) {
-    assert(msg != 0);
-    assert(out_src != 0);
+    assert(msg != NULL);
+    assert(out_src != NULL);
 
     sn_addr_deser(out_src, &msg->header.src);
 }
 
-void sn_msg_header_tostr(const sn_msg_t* msg, char* out_str) {
+void sn_msg_header_to_str(const sn_msg_t* msg, char* out_str) {
     char dst_str[SN_ADDR_PRINTABLE_LEN];
     char src_str[SN_ADDR_PRINTABLE_LEN];
 
-    assert(msg != 0);
-    assert(out_str != 0);
+    assert(msg != NULL);
+    assert(out_str != NULL);
 
-    sn_addr_tostr((sn_addr_t*)&msg->header.dst, dst_str);
-    sn_addr_tostr((sn_addr_t*)&msg->header.src, src_str);
+    sn_addr_to_str((sn_addr_t*)&msg->header.dst, dst_str);
+    sn_addr_to_str((sn_addr_t*)&msg->header.src, src_str);
 
     snprintf(out_str, SN_MSG_PRINTABLE_LEN,
     "dst:%s\n"

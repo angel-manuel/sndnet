@@ -40,7 +40,7 @@ void sn_addr_get_hex(const sn_addr_t* sna, unsigned char* out_hex) {
     bytestring_to_hexstring(sna->key, out_hex);
 }
 
-void sn_addr_tostr(const sn_addr_t* sna, char* out_str) {
+void sn_addr_to_str(const sn_addr_t* sna, char* out_str) {
     unsigned char hexstr[SN_ADDR_HEX_LEN];
 
     assert(sna != 0);

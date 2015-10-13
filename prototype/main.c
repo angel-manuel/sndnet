@@ -6,10 +6,9 @@
 
 #include "addr.h"
 #include "msg.h"
-#include "netaddr.h"
+#include "io/naddr.h"
 #include "router.h"
 #include "sndnet.h"
-#include "sock.h"
 
 sn_state_t sns;
 
@@ -68,24 +67,24 @@ int main(int argc, char* argv[]) {
         if(strcmp(command, "insert") == 0) {
             char *addr, *raddr;
             sn_addr_t sn_addr;
-            sn_realaddr_t sn_raddr;
+            sn_io_naddr_t sn_raddr;
 
             addr = strtok(0, " \n");
 
             if(!addr) {
-                printf("insert <sn_addr> <addr(ip:port)>\n");
+                printf("insert <sn_addr> <addr(type:ip:port)>\n");
                 continue;
             }
 
             raddr = strtok(0, " \n");
 
             if(!raddr) {
-                printf("insert <sn_addr> <addr(ip:port)>\n");
+                printf("insert <sn_addr> <addr(type:ip:port)>\n");
                 continue;
             }
 
             sn_addr_from_hex(&sn_addr, addr);
-            sn_realaddr_from_str(&sn_raddr, raddr);
+            sn_io_naddr_from_str(&sn_raddr, raddr);
 
             sn_router_add(&(sns.router), &sn_addr, &sn_raddr);
         }
@@ -96,7 +95,7 @@ int main(int argc, char* argv[]) {
             if(!buffer)
                 return 1;
 
-            sn_router_tostr(&sns.router, buffer, 30000);
+            sn_router_to_str(&sns.router, buffer, 30000);
 
             printf("%s\n", buffer);
 

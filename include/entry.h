@@ -7,20 +7,20 @@
 #define SN_ENTRY_H_
 
 #include "addr.h"
-#include "netaddr.h"
+#include "io/naddr.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SN_ENTRY_PRINTABLE_LEN (SN_ADDR_PRINTABLE_LEN + 1 + SN_REALADDR_PRINTABLE_LEN)
+#define SN_ENTRY_PRINTABLE_LEN (SN_ADDR_PRINTABLE_LEN + 1 + SN_IO_NADDR_PRINTABLE_LEN)
 
 typedef struct sn_entry_t_ sn_entry_t;
 
 struct sn_entry_t_ {
 	unsigned char is_set; /**< Is this entry set? */
     sn_addr_t sn_addr; /**< SecondNet address */
-    sn_netaddr_t net_addr; /**< Traditional network address */
+    sn_io_naddr_t net_addr; /**< Traditional network address */
 };
 
 /**
@@ -64,7 +64,7 @@ void sn_entry_closest(const sn_addr_t* dst, const sn_entry_t candidates[], size_
  * @param[out] out_str Pointer to buffer where string representation should be stored. Must have at least SN_ENTRY_PRINTABLE_LEN size allocated.
  * @param sn_addr_precision If not 0 limits the sndnet address representation length. If 0 full address will be printed.
  * */
-int sn_entry_tostr(const sn_entry_t* sne, char* out_str, size_t sn_addr_precision);
+int sn_entry_to_str(const sn_entry_t* sne, char* out_str, size_t sn_addr_precision);
 
 /**
  * Checks for strict equality
@@ -80,7 +80,7 @@ int sn_entry_equals(const sn_entry_t* a, const sn_entry_t* b);
 typedef struct sn_entry_ser_t_ {
 	uint8_t is_set;
 	sn_addr_ser_t sn_addr;
-	sn_netaddr_ser_t net_addr;
+	sn_io_naddr_ser_t net_addr;
 } sn_entry_ser_t;
 
 /**

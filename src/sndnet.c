@@ -30,10 +30,11 @@ void default_log_cb(const char* msg, void* extra);
 void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop, void* extra);
 void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns, void* extra);
 
-int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket) {
+int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket) {
+    sn_io_naddr_t self_net;
+
     assert(sns != 0);
     assert(self != 0);
-    assert(socket->binded);
 
     /* Copying */
 
@@ -44,11 +45,14 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket) {
     sns->deliver_extra = 0;
     sns->forward_cb = default_forward_cb;
     sns->forward_extra = 0;
-    sns->socket = *socket;
+    sns->socket = socket;
 
     /* Initializing */
 
-    sn_router_init(&sns->router, &sns->self, &socket->bind);
+    if(sn_io_sock_get_name(socket, &self_net) == -1)
+        return -1;
+
+    sn_router_init(&sns->router, &sns->self, &self_net);
 
     /* Background thread initialization */
 
@@ -62,27 +66,27 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_sock_t* socket) {
 
 int sn_init_at_port(sn_state_t* sns, const char hexaddr[SN_ADDR_PRINTABLE_LEN], uint16_t port) {
     sn_addr_t self;
-    sn_netaddr_t net_self;
-    sn_sock_t socket;
+    sn_io_naddr_t net_self;
+    sn_io_sock_t socket;
 
     assert(sns != 0);
     assert(hexaddr != 0);
 
     sn_addr_from_hex(&self, hexaddr);
 
-    if(sn_realaddr_local_at_port(&net_self, port) == -1)
+    if(sn_io_naddr_ipv4(&net_self, "0.0.0.0", port) == -1)
         goto error;
 
-    if(sn_sock_init_binded(&socket, &net_self) == -1)
+    if((socket = sn_io_sock_named(&net_self)) == SN_IO_SOCK_INVALID)
         goto error;
 
-    if(sn_init(sns, &self, &socket) == -1)
+    if(sn_init(sns, &self, socket) == -1)
         goto error_lib_socket;
 
     return 0;
 
 error_lib_socket:
-    sn_sock_destroy(&socket);
+    sn_io_sock_close(socket);
 error:
     return -1;
 }
@@ -92,7 +96,7 @@ void sn_destroy(sn_state_t* sns) {
 
     /* Socket closing */
 
-    sn_sock_destroy(&sns->socket);
+    sn_io_sock_close(sns->socket);
 
     /* Thread closing */
 
@@ -141,7 +145,7 @@ int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* paylo
     return sn_send_typed(sns, dst, len, payload, SN_MSG_TYPE_USER);
 }
 
-int sn_join(sn_state_t* sns, const sn_netaddr_t* gateway) {
+int sn_join(sn_state_t* sns, const sn_io_naddr_t* gateway) {
     assert(sns != 0);
     assert(gateway != 0);
 
@@ -223,9 +227,9 @@ int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
 
         sns->forward_cb(msg, sns, &nexthop, sns->forward_extra);
 
-        sent = sn_msg_send(msg, &sns->socket, &(nexthop.net_addr));
+        sent = sn_msg_send(msg, sns->socket, &(nexthop.net_addr));
 
-        if(sent <= 0) {
+        if(sent == -1) {
             msg->header.ttl++;
             return -1;
         }
@@ -254,13 +258,13 @@ void sn_log(sn_state_t* sns, const char* format, ...) {
 
 void* sn_background(void* arg) {
     sn_state_t* sns = (sn_state_t*)arg;
-    sn_netaddr_t rem_addr;
+    sn_io_naddr_t rem_addr;
     sn_msg_t* msg;
 
     assert(sns != 0);
 
     do {
-        msg = sn_msg_recv(&sns->socket, &rem_addr);
+        msg = sn_msg_recv(sns->socket, &rem_addr);
 
         if(!msg)
             continue;
@@ -397,16 +401,16 @@ void default_log_cb(const char* msg, void* extra) {
 
 void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop, void* extra) {
     char nh_addr[SN_ADDR_PRINTABLE_LEN];
-    char nh_raddr[SN_NETADDR_PRINTABLE_LEN];
+    char nh_raddr[SN_IO_NADDR_PRINTABLE_LEN];
     char msg_str[SN_MSG_PRINTABLE_LEN];
 
     assert(msg != 0);
     assert(sns != 0);
     assert(nexthop != 0);
 
-    sn_addr_tostr(&nexthop->sn_addr, nh_addr);
-    sn_netaddr_tostr(&nexthop->net_addr, nh_raddr);
-    sn_msg_header_tostr(msg, msg_str);
+    sn_addr_to_str(&nexthop->sn_addr, nh_addr);
+    sn_io_naddr_to_str(&nexthop->net_addr, nh_raddr);
+    sn_msg_header_to_str(msg, msg_str);
 
     sn_log(sns,
         "msg forward\n"
@@ -421,7 +425,7 @@ void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns, void* extra) {
     assert(msg != 0);
     assert(sns != 0);
 
-    sn_msg_header_tostr(msg, msg_str);
+    sn_msg_header_to_str(msg, msg_str);
 
     sn_log(sns,
         "msg deliver\n"

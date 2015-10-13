@@ -161,7 +161,7 @@ TEST_CASE("Router overwriting", "[router]") {
 
     self.is_set = 1;
     sn_addr_from_hex(&self.sn_addr, "0a0a0a0a");
-    sn_realaddr_from_str(&self.net_addr, "1.1.1.1:1111");
+    sn_io_naddr_from_str(&self.net_addr, "INET:1.1.1.1:1111");
 
     sn_router_init(&r, &self.sn_addr, &self.net_addr);
 
@@ -169,7 +169,7 @@ TEST_CASE("Router overwriting", "[router]") {
 
     e.is_set = 1;
     sn_addr_from_hex(&e.sn_addr, "abcdef");
-    sn_realaddr_from_str(&e.net_addr, "5.6.7.8:8765");
+    sn_io_naddr_from_str(&e.net_addr, "INET:5.6.7.8:8765");
 
     sn_router_table_set(&r, 1, 2, &e);
 
@@ -189,13 +189,13 @@ TEST_CASE("Router querying", "[router]") {
 
     self.is_set = 1;
     sn_addr_from_hex(&self.sn_addr, "0a0a0a0a");
-    sn_realaddr_from_str(&self.net_addr, "1.1.1.1:1111");
+    sn_io_naddr_from_str(&self.net_addr, "INET:1.1.1.1:1111");
 
     sn_router_init(&r, &self.sn_addr, &self.net_addr);
 
     e.is_set = 1;
     sn_addr_from_hex(&e.sn_addr, "abcdef");
-    sn_realaddr_from_str(&e.net_addr, "5.6.7.8:8765");
+    sn_io_naddr_from_str(&e.net_addr, "INET:5.6.7.8:8765");
 
     sn_router_table_set(&r, 1, 2, &e);
     sn_router_table_set(&r, 1, 4, &e);

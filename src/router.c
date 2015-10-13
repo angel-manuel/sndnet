@@ -14,7 +14,7 @@ void leafset_extract(sn_entry_t* leafset, const sn_entry_t* sne, int right);
 void leafset_sort(sn_entry_t* leafset, int right);
 int leafset_is_on_range(const sn_router_t* snr, const sn_addr_t* addr);
 
-void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_netaddr_t* self_net_addr) {
+void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_io_naddr_t* self_net_addr) {
     assert(snr != 0);
     assert(self_addr != 0);
 
@@ -25,7 +25,7 @@ void sn_router_init(sn_router_t* snr, const sn_addr_t* self_addr, const sn_netad
       snr->self.net_addr = *self_net_addr;
 }
 
-void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_netaddr_t* net_addr) {
+void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_io_naddr_t* net_addr) {
     sn_entry_t e;
 
     assert(addr != 0);
@@ -36,7 +36,7 @@ void sn_router_add(sn_router_t* snr, const sn_addr_t* addr, const sn_netaddr_t* 
     if(net_addr)
         e.net_addr = *net_addr;
     else
-        memset(&(e.net_addr), 0, sizeof(sn_netaddr_t));
+        memset(&(e.net_addr), 0, sizeof(sn_io_naddr_t));
 
     sn_router_set(snr, &e);
 
@@ -113,16 +113,16 @@ void sn_router_nexthop(const sn_router_t* snr, const sn_addr_t* dst, sn_entry_t*
     }
 }
 
-int sn_router_tostr(const sn_router_t* snr, char* out_str, size_t out_str_len) {
+int sn_router_to_str(const sn_router_t* snr, char* out_str, size_t out_str_len) {
     size_t used_len = 0;
 
     assert(snr != 0);
     assert(out_str != 0);
 
     {
-        char self_str[SN_ADDR_PRINTABLE_LEN];
+        char self_str[SN_ENTRY_PRINTABLE_LEN];
 
-        sn_entry_tostr(&snr->self, self_str, SN_ADDR_HEX_LEN);
+        sn_entry_to_str(&snr->self, self_str, SN_ADDR_HEX_LEN);
 
         used_len += snprintf(out_str + used_len, out_str_len - used_len,
         "Router is at %s\n", self_str);
@@ -141,7 +141,7 @@ int sn_router_tostr(const sn_router_t* snr, char* out_str, size_t out_str_len) {
         for(i = 0; i < left_leafset_size; ++i) {
             char entry[SN_ENTRY_PRINTABLE_LEN];
 
-            if(sn_entry_tostr(&snr->left_leafset[i], entry, 16))
+            if(sn_entry_to_str(&snr->left_leafset[i], entry, 16))
                 return -1;
 
             used_len += snprintf(out_str + used_len, out_str_len - used_len,
@@ -165,7 +165,7 @@ int sn_router_tostr(const sn_router_t* snr, char* out_str, size_t out_str_len) {
         for(i = 0; i < right_leafset_size; ++i) {
             char entry[SN_ENTRY_PRINTABLE_LEN];
 
-            if(sn_entry_tostr(&snr->right_leafset[i], entry, 16))
+            if(sn_entry_to_str(&snr->right_leafset[i], entry, 16))
                 return -1;
 
             used_len += snprintf(out_str + used_len, out_str_len - used_len,
@@ -189,7 +189,7 @@ int sn_router_tostr(const sn_router_t* snr, char* out_str, size_t out_str_len) {
                 if(snr->table[level][column].is_set) {
                     char entry[SN_ENTRY_PRINTABLE_LEN];
 
-                    if(sn_entry_tostr(&snr->table[level][column], entry, 16))
+                    if(sn_entry_to_str(&snr->table[level][column], entry, 16))
                         return -1;
 
                     used_len += snprintf(out_str + used_len, out_str_len - used_len,
