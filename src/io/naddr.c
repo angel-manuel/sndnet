@@ -96,7 +96,8 @@ int sn_io_naddr_to_str(const sn_io_naddr_t* addr, char* out_str) {
         case AF_UNIX:
             {
                 char path_str[SN_IO_NADDR_MAX_PATH_LEN];
-                strncpy(path_str, ((struct sockaddr_un*)addr)->sun_path, SN_IO_NADDR_MAX_PATH_LEN);
+                memcpy(path_str, ((struct sockaddr_un*)addr)->sun_path, SN_IO_NADDR_MAX_PATH_LEN);
+                path_str[0] = path_str[0] == '\0' ? '_' : path_str[0];
                 path_str[SN_IO_NADDR_MAX_PATH_LEN-1] = '\0';
                 snprintf(out_str, SN_IO_NADDR_PRINTABLE_LEN, "UNIX:%s", path_str);
             }
