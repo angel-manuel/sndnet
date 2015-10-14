@@ -12,12 +12,15 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#define asm __asm
+#include <mintomic/mintomic.h>
+
 #include "addr.h"
 #include "msg.h"
 #include "msg_type.h"
 
 int sn_send_typed(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload, sn_msg_type_t type);
-void sn_deliver(sn_state_t* sns, const sn_msg_t* msg);
+void sn_deliver(sn_state_t* sns, sn_msg_t* msg);
 int sn_forward(sn_state_t* sns, sn_msg_t* msg);
 void sn_log(sn_state_t* sns, const char* format, ...);
 void* sn_background(void* arg);
@@ -26,9 +29,13 @@ int on_msg_query_table(sn_state_t* sns, const sn_msg_t* msg);
 int on_msg_query_leafset(sn_state_t* sns, const sn_msg_t* msg);
 int on_msg_query_result(sn_state_t* sns, const sn_msg_t* msg);
 
-void default_log_cb(const char* msg, void* extra);
-void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop, void* extra);
-void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns, void* extra);
+void call_log_cb(sn_state_t* sns, char* msg);
+void call_forward_cb(sn_state_t* sns, sn_msg_t* msg, sn_entry_t* nexthop);
+void call_deliver_cb(sn_state_t* sns, sn_msg_t* msg);
+
+void default_log_cb(int argc, void* argv[]);
+void default_forward_cb(int argc, void* argv[]);
+void default_deliver_cb(int argc, void* argv[]);
 
 int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket) {
     sn_io_naddr_t self_net;
@@ -39,13 +46,19 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket) {
     /* Copying */
 
     sns->self = *self;
-    sns->log_cb = default_log_cb;
-    sns->log_extra = 0;
-    sns->deliver_cb = default_deliver_cb;
-    sns->deliver_extra = 0;
-    sns->forward_cb = default_forward_cb;
-    sns->forward_extra = 0;
     sns->socket = socket;
+
+    /* Callback registering */
+
+    /*sns->log_closure._nonatomic = sns->forward_closure._nonatomic = sns->deliver_closure._nonatomic = NULL;*/
+
+    void* c_argv[] = { NULL };
+    sn_closure_init_curried(&sns->default_log_closure, default_log_cb, 1, c_argv);
+    sn_closure_init_curried(&sns->default_forward_closure, default_forward_cb, 1, c_argv);
+    sn_closure_init_curried(&sns->default_deliver_closure, default_deliver_cb, 1, c_argv);
+    sn_set_log_callback(sns, NULL);
+    sn_set_forward_callback(sns, NULL);
+    sn_set_deliver_callback(sns, NULL);
 
     /* Initializing */
 
@@ -94,47 +107,74 @@ error:
 void sn_destroy(sn_state_t* sns) {
     assert(sns != 0);
 
-    /* Socket closing */
-
-    sn_io_sock_close(sns->socket);
-
     /* Thread closing */
 
     pthread_cancel(sns->bg_thrd);
     pthread_join(sns->bg_thrd, 0);
+
+    /* Socket closing */
+
+    sn_io_sock_close(sns->socket);
 }
 
-void sn_set_log_callback(sn_state_t* sns, sn_log_callback_t cb, void* extra) {
-    assert(sns != 0);
+void sn_set_log_callback(sn_state_t* sns, sn_closure_t* closure) {
+    sn_closure_t *new_closure;
 
-    if(cb)
-        sns->log_cb = cb;
-    else
-        sns->log_cb = default_log_cb;
+    assert(sns != NULL);
 
-    sns->log_extra = extra;
+    new_closure = closure ? closure : &sns->default_log_closure;
+    mint_store_ptr_relaxed(&sns->log_closure, new_closure);
+    mint_thread_fence_release();
 }
 
-void sn_set_forward_callback(sn_state_t* sns, sn_forward_callback_t cb, void* extra) {
-    assert(sns != 0);
+inline void call_log_cb(sn_state_t* sns, char* msg) {
+    void* argv[] = { msg };
 
-    if(cb)
-        sns->forward_cb = cb;
-    else
-        sns->forward_cb = default_forward_cb;
+    assert(msg != NULL);
 
-    sns->forward_extra = extra;
+    mint_thread_fence_acquire();
+    sn_closure_call(mint_load_ptr_relaxed(&sns->log_closure), 1, argv);
 }
 
-void sn_set_deliver_callback(sn_state_t* sns, sn_deliver_callback_t cb, void* extra) {
-    assert(sns != 0);
+void sn_set_forward_callback(sn_state_t* sns, sn_closure_t* closure) {
+    sn_closure_t *new_closure;
 
-    if(cb)
-        sns->deliver_cb = cb;
-    else
-        sns->deliver_cb = default_deliver_cb;
+    assert(sns != NULL);
 
-    sns->deliver_extra = extra;
+    new_closure = closure ? closure : &sns->default_forward_closure;
+    mint_store_ptr_relaxed(&sns->forward_closure, new_closure);
+    mint_thread_fence_release();
+}
+
+inline void call_forward_cb(sn_state_t* sns, sn_msg_t* msg, sn_entry_t* nexthop) {
+    void* argv[] = { msg, sns, nexthop };
+
+    assert(msg != NULL);
+    assert(sns != NULL);
+    assert(nexthop != NULL);
+
+    mint_thread_fence_acquire();
+    sn_closure_call(mint_load_ptr_relaxed(&sns->forward_closure), 3, argv);
+}
+
+void sn_set_deliver_callback(sn_state_t* sns, sn_closure_t* closure) {
+    sn_closure_t *new_closure;
+
+    assert(sns != NULL);
+
+    new_closure = closure ? closure : &sns->default_log_closure;
+    mint_store_ptr_relaxed(&sns->log_closure, new_closure);
+    mint_thread_fence_release();
+}
+
+inline void call_deliver_cb(sn_state_t* sns, sn_msg_t* msg) {
+    void* argv[] = { msg, sns };
+
+    assert(msg != NULL);
+    assert(sns != NULL);
+
+    mint_thread_fence_acquire();
+    sn_closure_call(mint_load_ptr_relaxed(&sns->deliver_closure), 2, argv);
 }
 
 int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload) {
@@ -184,13 +224,13 @@ int sn_send_typed(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char*
     return 0;
 }
 
-void sn_deliver(sn_state_t* sns, const sn_msg_t* msg) {
+void sn_deliver(sn_state_t* sns, sn_msg_t* msg) {
     assert(sns != 0);
     assert(msg != 0);
 
     switch (msg->header.type) {
         case SN_MSG_TYPE_USER:
-            sns->deliver_cb(msg, sns, sns->deliver_extra);
+            call_deliver_cb(sns, msg);
             break;
         case SN_MSG_TYPE_QUERY_TABLE:
             on_msg_query_table(sns, msg);
@@ -225,7 +265,7 @@ int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
 
         msg->header.ttl--;
 
-        sns->forward_cb(msg, sns, &nexthop, sns->forward_extra);
+        call_forward_cb(sns, msg, &nexthop);
 
         sent = sn_msg_send(msg, sns->socket, &(nexthop.net_addr));
 
@@ -246,14 +286,13 @@ void sn_log(sn_state_t* sns, const char* format, ...) {
     va_list args;
 
     assert(sns != 0);
-    assert(sns->log_cb != 0);
     assert(format != 0);
 
     va_start(args, format);
     vsnprintf(str, 1024, format, args);
     va_end(args);
 
-    sns->log_cb(str, sns->log_extra);
+    call_log_cb(sns, str);
 }
 
 void* sn_background(void* arg) {
@@ -381,32 +420,38 @@ int on_msg_query_result(sn_state_t* sns, const sn_msg_t* msg) {
 
 /* Predifined callback */
 
-void sn_silent_log_callback(const char* msg, void* extra) {
-    assert(msg != 0);
+void sn_silent_log_callback(int argc, void* argv[]) {
 }
 
-void sn_named_log_callback(const char* msg, void* extra) {
-    assert(msg != 0);
+void sn_named_log_callback(int argc, void* argv[]) {
+    assert(argc >= 2);
+    assert(argv[0] != NULL);
+    assert(argv[1] != NULL);
 
-    fprintf(stderr, "%s: %s\n", (char*)extra, msg);
+    fprintf(stderr, "%s: %s\n", (char*)argv[0], (char*)argv[1]);
 }
 
 /* Default callbacks */
 
-void default_log_cb(const char* msg, void* extra) {
-    assert(msg != 0);
+void default_log_cb(int argc, void* argv[]) {
+    assert(argc >= 2);
+    assert(argv[1] != NULL);
 
-    fprintf(stderr, "sndnet: %s\n", msg);
+    fprintf(stderr, "sndnet: %s\n", (char*)argv[1]);
 }
 
-void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop, void* extra) {
+void default_forward_cb(int argc, void* argv[]) {
     char nh_addr[SN_ADDR_PRINTABLE_LEN];
     char nh_raddr[SN_IO_NADDR_PRINTABLE_LEN];
     char msg_str[SN_MSG_PRINTABLE_LEN];
+    const sn_msg_t* msg = argv[1];
+    sn_state_t* sns = argv[2];
+    sn_entry_t* nexthop = argv[3];
 
-    assert(msg != 0);
-    assert(sns != 0);
-    assert(nexthop != 0);
+    assert(argc >= 4);
+    assert(msg != NULL);
+    assert(sns != NULL);
+    assert(nexthop != NULL);
 
     sn_addr_to_str(&nexthop->sn_addr, nh_addr);
     sn_io_naddr_to_str(&nexthop->net_addr, nh_raddr);
@@ -419,11 +464,14 @@ void default_forward_cb(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nextho
         msg_str, nh_addr, nh_raddr);
 }
 
-void default_deliver_cb(const sn_msg_t* msg, sn_state_t* sns, void* extra) {
+void default_deliver_cb(int argc, void* argv[]) {
     char msg_str[SN_MSG_PRINTABLE_LEN];
+    const sn_msg_t* msg = argv[1];
+    sn_state_t* sns = argv[2];
 
-    assert(msg != 0);
-    assert(sns != 0);
+    assert(argc >= 3);
+    assert(msg != NULL);
+    assert(sns != NULL);
 
     sn_msg_header_to_str(msg, msg_str);
 

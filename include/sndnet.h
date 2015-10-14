@@ -8,11 +8,15 @@
 #define SN_SN_H_
 
 #include "addr.h"
+#include "closure.h"
 #include "msg.h"
 #include "io/sock.h"
 #include "router.h"
 
 #include <pthread.h>
+
+#define asm __asm
+#include <mintomic/mintomic.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,21 +27,6 @@ extern "C" {
  * Should NOT be modified directly.
  * */
 typedef struct sn_state_t_ sn_state_t;
-
-/**
- * Callback for logging
- * */
-typedef void (*sn_log_callback_t)(const char* msg, void* extra);
-
-/**
- * Callback for forward
- * */
-typedef void (*sn_forward_callback_t)(const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop, void* extra);
-
-/**
- * Callback for delivery
- * */
-typedef void (*sn_deliver_callback_t)(const sn_msg_t* msg, sn_state_t* sns, void* extra);
 
 /**
  * Initializes a node
@@ -66,23 +55,23 @@ void sn_destroy(sn_state_t* sns);
 /**
  * Changes the logging callback
  * @param sns Node state
- * @param[in] cb The new callback. If it is NULL, default logging(stderr) will be used
+ * @param cb The new callback. If it is NULL, default logging(stderr) will be used
  * */
-void sn_set_log_callback(sn_state_t* sns, sn_log_callback_t cb, void* extra);
+void sn_set_log_callback(sn_state_t* sns, sn_closure_t* cb);
 
 /**
  * Changes the forwarding callback
  * @param sns Node state
- * @param[in] cb The new callback. If it is NULL default forwarding will be used.
+ * @param cb The new callback. If it is NULL default forwarding will be used.
  * */
-void sn_set_forward_callback(sn_state_t* sns, sn_forward_callback_t cb, void* extra);
+void sn_set_forward_callback(sn_state_t* sns, sn_closure_t* cb);
 
 /**
  * Changes the delivering callback
  * @param sns Node state
- * @param[in] cb The new callback. If it is NULL, message will be just logged.
+ * @param cb The new callback. If it is NULL, message will be just logged.
  * */
-void sn_set_deliver_callback(sn_state_t* sns, sn_deliver_callback_t cb, void* extra);
+void sn_set_deliver_callback(sn_state_t* sns, sn_closure_t* cb);
 
 /**
  * Sends a message without need for acknowledgement
@@ -102,20 +91,44 @@ int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* paylo
  * */
 int sn_join(sn_state_t* sns, const sn_io_naddr_t* gateway);
 
-void sn_silent_log_callback(const char* msg, void* extra);
-void sn_named_log_callback(const char* msg, void* extra);
+void sn_silent_log_callback(int argc, void* argv[]);
+void sn_named_log_callback(int argc, void* argv[]);
 
 struct sn_state_t_ {
+    /* Background thread state */
     sn_addr_t self; /**< Node SecondNet address */
     sn_router_t router; /**< Routing state */
     pthread_t bg_thrd; /**< Background thread for routing */
-    sn_log_callback_t log_cb; /**< Callback for logging */
-    void* log_extra; /**< Extra data for log callback */
-    sn_forward_callback_t forward_cb; /**< Callback for forward */
-    void* forward_extra; /**< Extra data for forward callback */
-    sn_deliver_callback_t deliver_cb; /**< Callback for deliver */
-    void* deliver_extra; /**< Extra data for deliver callback */
     sn_io_sock_t socket; /**< Listening socket file descriptor */
+    /* Shared state */
+    /**
+     * Callback for logging
+     * Log callback format is (void* extra, const char* msg) where
+     * extra -> User-defined data
+     * msg -> Log message
+     * */
+    mint_atomicPtr_t log_closure;
+    /**
+     * Callback for forward
+     * Forward callback format is (void* extra, const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop) where
+     * extra -> User-defined data
+     * msg -> Message to be forwarded
+     * sns -> Node state
+     * nexthop -> Default nexthop, can be overwritten
+     * */
+    mint_atomicPtr_t forward_closure;
+    /**
+     * Callback for delivery
+     * Forward callback format is (void* extra, const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop) where
+     * extra -> User-defined data
+     * msg -> Message to be delivered
+     * sns -> Node state
+     * */
+    mint_atomicPtr_t deliver_closure;
+    /* Default closures */
+    sn_closure_t default_log_closure; /**< Default log closure */
+    sn_closure_t default_forward_closure; /**< Default forward closure */
+    sn_closure_t default_deliver_closure; /**< Default deliver closure */
 };
 
 #ifdef __cplusplus

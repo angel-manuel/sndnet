@@ -13,6 +13,9 @@ TEST_CASE("Emulated network #1", "[network]") {
     sn_addr_t a3f4, b567, b666;
     sn_io_sock_t sockA, sockB, sockC;
     sn_io_naddr_t addrA, addrB, addrC;
+    sn_closure_t silent;
+
+    sn_closure_init_curried_once(&silent, sn_silent_log_callback, NULL);
 
     sn_addr_from_hex(&a3f4, "a3f4");
     sn_addr_from_hex(&b567, "b567");
@@ -29,9 +32,9 @@ TEST_CASE("Emulated network #1", "[network]") {
     REQUIRE(sn_init(&A, &a3f4, sockA) == 0);
     REQUIRE(sn_init(&B, &b567, sockB) == 0);
     REQUIRE(sn_init(&C, &b666, sockC) == 0);
-    sn_set_log_callback(&A, sn_silent_log_callback, NULL);
-    sn_set_log_callback(&B, sn_silent_log_callback, NULL);
-    sn_set_log_callback(&C, sn_silent_log_callback, NULL);
+    sn_set_log_callback(&A, &silent);
+    sn_set_log_callback(&B, &silent);
+    sn_set_log_callback(&C, &silent);
 
     sn_router_add(&A.router, &b567, &addrB);
     sn_router_add(&B.router, &a3f4, &addrA);
