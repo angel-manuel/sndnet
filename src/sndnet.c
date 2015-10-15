@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,8 +41,9 @@ void default_deliver_cb(int argc, void* argv[]);
 int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket) {
     sn_io_naddr_t self_net;
 
-    assert(sns != 0);
-    assert(self != 0);
+    assert(sns != NULL);
+    assert(self != NULL);
+    assert(socket != SN_IO_SOCK_INVALID);
 
     /* Copying */
 
@@ -49,8 +51,6 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket) {
     sns->socket = socket;
 
     /* Callback registering */
-
-    /*sns->log_closure._nonatomic = sns->forward_closure._nonatomic = sns->deliver_closure._nonatomic = NULL;*/
 
     void* c_argv[] = { NULL };
     sn_closure_init_curried(&sns->default_log_closure, default_log_cb, 1, c_argv);
@@ -82,8 +82,8 @@ int sn_init_at_port(sn_state_t* sns, const char hexaddr[SN_ADDR_PRINTABLE_LEN], 
     sn_io_naddr_t net_self;
     sn_io_sock_t socket;
 
-    assert(sns != 0);
-    assert(hexaddr != 0);
+    assert(sns != NULL);
+    assert(hexaddr != NULL);
 
     sn_addr_from_hex(&self, hexaddr);
 
@@ -105,7 +105,7 @@ error:
 }
 
 void sn_destroy(sn_state_t* sns) {
-    assert(sns != 0);
+    assert(sns != NULL);
 
     /* Thread closing */
 
@@ -178,16 +178,16 @@ inline void call_deliver_cb(sn_state_t* sns, sn_msg_t* msg) {
 }
 
 int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload) {
-    assert(sns != 0);
-    assert(dst != 0);
-    assert(payload != 0 || len == 0);
+    assert(sns != NULL);
+    assert(dst != NULL);
+    assert(payload != NULL || len == 0);
 
     return sn_send_typed(sns, dst, len, payload, SN_MSG_TYPE_USER);
 }
 
 int sn_join(sn_state_t* sns, const sn_io_naddr_t* gateway) {
-    assert(sns != 0);
-    assert(gateway != 0);
+    assert(sns != NULL);
+    assert(gateway != NULL);
 
     /*
     Join steps:
@@ -207,9 +207,9 @@ int sn_join(sn_state_t* sns, const sn_io_naddr_t* gateway) {
 int sn_send_typed(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload, sn_msg_type_t type) {
     sn_msg_t* msg;
 
-    assert(sns != 0);
-    assert(dst != 0);
-    assert(payload != 0 || len == 0);
+    assert(sns != NULL);
+    assert(dst != NULL);
+    assert(payload != NULL || len == 0);
 
     msg = sn_msg_pack(dst, &(sns->self), type, len, payload);
 
@@ -225,8 +225,8 @@ int sn_send_typed(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char*
 }
 
 void sn_deliver(sn_state_t* sns, sn_msg_t* msg) {
-    assert(sns != 0);
-    assert(msg != 0);
+    assert(sns != NULL);
+    assert(msg != NULL);
 
     switch (msg->header.type) {
         case SN_MSG_TYPE_USER:
@@ -251,8 +251,8 @@ int sn_forward(sn_state_t* sns, sn_msg_t* msg) {
     sn_entry_t nexthop;
     int sent;
 
-    assert(sns != 0);
-    assert(msg != 0);
+    assert(sns != NULL);
+    assert(msg != NULL);
 
     sn_msg_get_dst(msg, &dst);
 
@@ -285,8 +285,8 @@ void sn_log(sn_state_t* sns, const char* format, ...) {
     char str[1024];
     va_list args;
 
-    assert(sns != 0);
-    assert(format != 0);
+    assert(sns != NULL);
+    assert(format != NULL);
 
     va_start(args, format);
     vsnprintf(str, 1024, format, args);
@@ -300,7 +300,7 @@ void* sn_background(void* arg) {
     sn_io_naddr_t rem_addr;
     sn_msg_t* msg;
 
-    assert(sns != 0);
+    assert(sns != NULL);
 
     do {
         msg = sn_msg_recv(sns->socket, &rem_addr);
@@ -324,8 +324,8 @@ int on_msg_query_table(sn_state_t* sns, const sn_msg_t* msg) {
     size_t qsize;
     sn_msg_type_query_result_t* msg_result;
 
-    assert(sns != 0);
-    assert(msg != 0);
+    assert(sns != NULL);
+    assert(msg != NULL);
     assert(msg->header.type == SN_MSG_TYPE_QUERY_TABLE);
 
     qsize = sn_router_query_table(&sns->router, query->min_level, query->max_level, &query_result);
@@ -337,7 +337,7 @@ int on_msg_query_table(sn_state_t* sns, const sn_msg_t* msg) {
 
     msg_result = (sn_msg_type_query_result_t*)malloc(sizeof(sn_msg_type_query_result_t) + qsize);
 
-    if(msg_result == 0) {
+    if(msg_result == NULL) {
         sn_log(sns, "Error on malloc");
         free(query_result);
         return -1;
@@ -365,8 +365,8 @@ int on_msg_query_leafset(sn_state_t* sns, const sn_msg_t* msg) {
     size_t qsize;
     sn_msg_type_query_result_t* msg_result;
 
-    assert(sns != 0);
-    assert(msg != 0);
+    assert(sns != NULL);
+    assert(msg != NULL);
     assert(msg->header.type == SN_MSG_TYPE_QUERY_LEAFSET);
 
     qsize = sn_router_query_leafset(&sns->router, query->min_position, query->max_position, &query_result);
@@ -378,7 +378,7 @@ int on_msg_query_leafset(sn_state_t* sns, const sn_msg_t* msg) {
 
     msg_result = (sn_msg_type_query_result_t*)malloc(sizeof(sn_msg_type_query_result_t) + qsize);
 
-    if(msg_result == 0) {
+    if(msg_result == NULL) {
         sn_log(sns, "Error on malloc");
         free(query_result);
         return -1;
@@ -404,8 +404,8 @@ int on_msg_query_result(sn_state_t* sns, const sn_msg_t* msg) {
     sn_entry_t e;
     const sn_router_query_ser_t* res;
 
-    assert(sns != 0);
-    assert(msg != 0);
+    assert(sns != NULL);
+    assert(msg != NULL);
     assert(msg->header.type == SN_MSG_TYPE_QUERY_RESULT);
 
     res = (sn_router_query_ser_t*)msg->payload;
