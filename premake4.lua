@@ -15,7 +15,7 @@ solution "sndnet"
         location "build/sndnet"
         kind "StaticLib"
         language "C"
-        buildoptions { "-D_POSIX_C_SOURCE=200112L -std=c99 -Werror -Wfatal-errors" }
+        buildoptions { "-D_POSIX_C_SOURCE=200112L -std=c99 -Wall -Wextra -Werror -Wfatal-errors" }
         includedirs {"include", "third_party/include"}
         files { "src/**.c"}
 
@@ -23,7 +23,7 @@ solution "sndnet"
         location "build/prototype"
         kind "ConsoleApp"
         language "C"
-        buildoptions { "-std=c99 -Werror -Wfatal-errors" }
+        buildoptions { "-std=c99 -Wall -Wextra -Werror -Wfatal-errors" }
         links { "sndnet", "pthread" }
         includedirs {"include", "third_party/include"}
         files { "prototype/**.c" }

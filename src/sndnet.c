@@ -17,6 +17,7 @@
 #include <mintomic/mintomic.h>
 
 #include "addr.h"
+#include "common.h"
 #include "msg.h"
 #include "msg_type.h"
 
@@ -421,8 +422,8 @@ int on_msg_query_result(sn_state_t* sns, const sn_msg_t* msg) {
 /* Predifined callback */
 
 void sn_silent_log_callback(int argc, void* argv[]) {
-    assert(argc >= 2);
-    assert(argv[1] != NULL);
+    SN_UNUSED(argc);
+    SN_UNUSED(argv);
 }
 
 void sn_named_log_callback(int argc, void* argv[]) {
