@@ -421,6 +421,8 @@ int on_msg_query_result(sn_state_t* sns, const sn_msg_t* msg) {
 /* Predifined callback */
 
 void sn_silent_log_callback(int argc, void* argv[]) {
+    assert(argc >= 2);
+    assert(argv[1] != NULL);
 }
 
 void sn_named_log_callback(int argc, void* argv[]) {

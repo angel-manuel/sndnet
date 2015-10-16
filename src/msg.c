@@ -80,7 +80,7 @@ sn_msg_t* sn_msg_pack(const sn_addr_t* dst, const sn_addr_t* src, sn_msg_type_t 
 }
 
 int sn_msg_send(const sn_msg_t* msg, sn_io_sock_t socket, const sn_io_naddr_t* dst_addr) {
-    size_t packet_size;
+    ssize_t packet_size;
     ssize_t sent;
 
     assert(msg != NULL);

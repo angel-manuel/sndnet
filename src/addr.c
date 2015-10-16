@@ -49,7 +49,7 @@ void sn_addr_to_str(const sn_addr_t* sna, char* out_str) {
     sn_addr_get_hex(sna, hexstr);
     hexstring_to_printable(hexstr, out_str);
 
-    for(unsigned int i = SN_ADDR_HEX_LEN - 1; i >= 0; --i) {
+    for(int i = SN_ADDR_HEX_LEN - 1; i >= 0; --i) {
         if(out_str[i] != '0')
             break;
         

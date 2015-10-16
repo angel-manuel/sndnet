@@ -94,7 +94,7 @@ int sn_entry_to_str(const sn_entry_t* sne, char* out_str, size_t sn_addr_precisi
 
 
     if(snprintf(out_str, SN_ENTRY_PRINTABLE_LEN, "%s@%s", sn_addr_str, net_addr_str)
-        < strlen(sn_addr_str) + strlen(net_addr_str) + 1)
+        < (ssize_t)(strlen(sn_addr_str) + strlen(net_addr_str) + 1))
         return -1;
 
     return 0;

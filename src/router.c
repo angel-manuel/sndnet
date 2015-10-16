@@ -441,7 +441,7 @@ void leafset_insert(sn_entry_t* leafset, const sn_entry_t* sne, int right) {
 
 void leafset_extract(sn_entry_t* leafset, const sn_entry_t* sne, int right) {
     size_t ls;
-    int i;
+    unsigned int i;
 
     assert(leafset != 0);
     assert(sne != 0);
