@@ -16,24 +16,24 @@
 #define asm __asm
 #include <mintomic/mintomic.h>
 
-#include "addr.h"
+#include "net/addr.h"
 #include "common.h"
-#include "packet.h"
+#include "net/packet.h"
 
-void sn_deliver(sn_state_t* sns, sn_packet_t* msg);
-int sn_forward(sn_state_t* sns, sn_packet_t* msg);
+void sn_deliver(sn_state_t* sns, sn_net_packet_t* msg);
+int sn_forward(sn_state_t* sns, sn_net_packet_t* msg);
 void sn_log(sn_state_t* sns, const char* format, ...);
 void* sn_background(void* arg);
 
 void call_log_cb(sn_state_t* sns, char* msg);
-void call_forward_cb(sn_state_t* sns, sn_packet_t* msg, sn_entry_t* nexthop);
-void call_deliver_cb(sn_state_t* sns, sn_packet_t* msg);
+void call_forward_cb(sn_state_t* sns, sn_net_packet_t* msg, sn_net_entry_t* nexthop);
+void call_deliver_cb(sn_state_t* sns, sn_net_packet_t* msg);
 
 void default_log_cb(int argc, void* argv[]);
 void default_forward_cb(int argc, void* argv[]);
 void default_deliver_cb(int argc, void* argv[]);
 
-int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket) {
+int sn_init(sn_state_t* sns, const sn_net_addr_t* self, const sn_io_sock_t socket) {
     sn_io_naddr_t self_net;
 
     assert(sns != NULL);
@@ -60,7 +60,7 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket) {
     if(sn_io_sock_get_name(socket, &self_net) == -1)
         return -1;
 
-    sn_router_init(&sns->router, &sns->self, &self_net);
+    sn_net_router_init(&sns->router, &sns->self, &self_net);
 
     /* Background thread initialization */
 
@@ -72,15 +72,15 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket) {
     return 0;
 }
 
-int sn_init_at_port(sn_state_t* sns, const char hexaddr[SN_ADDR_PRINTABLE_LEN], uint16_t port) {
-    sn_addr_t self;
+int sn_init_at_port(sn_state_t* sns, const char hexaddr[SN_NET_ADDR_PRINTABLE_LEN], uint16_t port) {
+    sn_net_addr_t self;
     sn_io_naddr_t net_self;
     sn_io_sock_t socket;
 
     assert(sns != NULL);
     assert(hexaddr != NULL);
 
-    sn_addr_from_hex(&self, hexaddr);
+    sn_net_addr_from_hex(&self, hexaddr);
 
     if(sn_io_naddr_ipv4(&net_self, "0.0.0.0", port) == -1)
         goto error;
@@ -141,7 +141,7 @@ void sn_set_forward_callback(sn_state_t* sns, sn_closure_t* closure) {
     mint_thread_fence_release();
 }
 
-inline void call_forward_cb(sn_state_t* sns, sn_packet_t* msg, sn_entry_t* nexthop) {
+inline void call_forward_cb(sn_state_t* sns, sn_net_packet_t* msg, sn_net_entry_t* nexthop) {
     void* argv[] = { msg, sns, nexthop };
 
     assert(msg != NULL);
@@ -162,7 +162,7 @@ void sn_set_deliver_callback(sn_state_t* sns, sn_closure_t* closure) {
     mint_thread_fence_release();
 }
 
-inline void call_deliver_cb(sn_state_t* sns, sn_packet_t* msg) {
+inline void call_deliver_cb(sn_state_t* sns, sn_net_packet_t* msg) {
     void* argv[] = { msg, sns };
 
     assert(msg != NULL);
@@ -172,14 +172,14 @@ inline void call_deliver_cb(sn_state_t* sns, sn_packet_t* msg) {
     sn_closure_call(mint_load_ptr_relaxed(&sns->deliver_closure), 2, argv);
 }
 
-int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload) {
-    sn_packet_t* msg;
+int sn_send(sn_state_t* sns, const sn_net_addr_t* dst, size_t len, const char* payload) {
+    sn_net_packet_t* msg;
 
     assert(sns != NULL);
     assert(dst != NULL);
     assert(payload != NULL || len == 0);
 
-    msg = sn_packet_pack(dst, &(sns->self), len, payload);
+    msg = sn_net_packet_pack(dst, &(sns->self), len, payload);
 
     if(!msg)
         return -1;
@@ -211,24 +211,24 @@ int sn_join(sn_state_t* sns, const sn_io_naddr_t* gateway) {
 
 /*Private functions*/
 
-void sn_deliver(sn_state_t* sns, sn_packet_t* msg) {
+void sn_deliver(sn_state_t* sns, sn_net_packet_t* msg) {
     assert(sns != NULL);
     assert(msg != NULL);
 
     call_deliver_cb(sns, msg);
 }
 
-int sn_forward(sn_state_t* sns, sn_packet_t* msg) {
-    sn_addr_t dst;
-    sn_entry_t nexthop;
+int sn_forward(sn_state_t* sns, sn_net_packet_t* msg) {
+    sn_net_addr_t dst;
+    sn_net_entry_t nexthop;
     int sent;
 
     assert(sns != NULL);
     assert(msg != NULL);
 
-    sn_packet_get_dst(msg, &dst);
+    sn_net_packet_get_dst(msg, &dst);
 
-    sn_router_nexthop(&(sns->router), &dst, &nexthop);
+    sn_net_router_nexthop(&(sns->router), &dst, &nexthop);
 
     if(nexthop.is_set) {
         if(!msg->header.ttl) {
@@ -239,7 +239,7 @@ int sn_forward(sn_state_t* sns, sn_packet_t* msg) {
 
         call_forward_cb(sns, msg, &nexthop);
 
-        sent = sn_packet_send(msg, sns->socket, &(nexthop.net_addr));
+        sent = sn_net_packet_send(msg, sns->socket, &(nexthop.net_addr));
 
         if(sent == -1) {
             msg->header.ttl++;
@@ -270,12 +270,12 @@ void sn_log(sn_state_t* sns, const char* format, ...) {
 void* sn_background(void* arg) {
     sn_state_t* sns = (sn_state_t*)arg;
     sn_io_naddr_t rem_addr;
-    sn_packet_t* msg;
+    sn_net_packet_t* msg;
 
     assert(sns != NULL);
 
     do {
-        msg = sn_packet_recv(sns->socket, &rem_addr);
+        msg = sn_net_packet_recv(sns->socket, &rem_addr);
 
         if(!msg)
             continue;
@@ -313,21 +313,21 @@ void default_log_cb(int argc, void* argv[]) {
 }
 
 void default_forward_cb(int argc, void* argv[]) {
-    char nh_addr[SN_ADDR_PRINTABLE_LEN];
+    char nh_addr[SN_NET_ADDR_PRINTABLE_LEN];
     char nh_raddr[SN_IO_NADDR_PRINTABLE_LEN];
-    char msg_str[SN_PACKET_PRINTABLE_LEN];
-    const sn_packet_t* msg = argv[1];
+    char msg_str[SN_NET_PACKET_PRINTABLE_LEN];
+    const sn_net_packet_t* msg = argv[1];
     sn_state_t* sns = argv[2];
-    sn_entry_t* nexthop = argv[3];
+    sn_net_entry_t* nexthop = argv[3];
 
     assert(argc >= 4);
     assert(msg != NULL);
     assert(sns != NULL);
     assert(nexthop != NULL);
 
-    sn_addr_to_str(&nexthop->sn_addr, nh_addr);
+    sn_net_addr_to_str(&nexthop->sn_net_addr, nh_addr);
     sn_io_naddr_to_str(&nexthop->net_addr, nh_raddr);
-    sn_packet_header_to_str(msg, msg_str);
+    sn_net_packet_header_to_str(msg, msg_str);
 
     sn_log(sns,
         "msg forward\n"
@@ -337,15 +337,15 @@ void default_forward_cb(int argc, void* argv[]) {
 }
 
 void default_deliver_cb(int argc, void* argv[]) {
-    char msg_str[SN_PACKET_PRINTABLE_LEN];
-    const sn_packet_t* msg = argv[1];
+    char msg_str[SN_NET_PACKET_PRINTABLE_LEN];
+    const sn_net_packet_t* msg = argv[1];
     sn_state_t* sns = argv[2];
 
     assert(argc >= 3);
     assert(msg != NULL);
     assert(sns != NULL);
 
-    sn_packet_header_to_str(msg, msg_str);
+    sn_net_packet_header_to_str(msg, msg_str);
 
     sn_log(sns,
         "msg deliver\n"

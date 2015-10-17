@@ -7,11 +7,11 @@
 #ifndef SN_SN_H_
 #define SN_SN_H_
 
-#include "addr.h"
+#include "net/addr.h"
 #include "closure.h"
-#include "packet.h"
+#include "net/packet.h"
 #include "io/sock.h"
-#include "router.h"
+#include "net/router.h"
 
 #include <pthread.h>
 
@@ -35,7 +35,7 @@ typedef struct sn_state_t_ sn_state_t;
  * @param socket Listening socket
  * @return 0 if OK, -1 otherwise
  * */
-int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket);
+int sn_init(sn_state_t* sns, const sn_net_addr_t* self, const sn_io_sock_t socket);
 
 /**
  * Initializes a node from a string address and a listening port
@@ -44,7 +44,7 @@ int sn_init(sn_state_t* sns, const sn_addr_t* self, const sn_io_sock_t socket);
  * @param port Listening port number.
  * @return 0 if OK, -1 otherwise
  * */
-int sn_init_at_port(sn_state_t* sns, const char hexaddr[SN_ADDR_PRINTABLE_LEN], uint16_t port);
+int sn_init_at_port(sn_state_t* sns, const char hexaddr[SN_NET_ADDR_PRINTABLE_LEN], uint16_t port);
 
 /**
  * Destroys a node
@@ -81,7 +81,7 @@ void sn_set_deliver_callback(sn_state_t* sns, sn_closure_t* cb);
  * @param payload Message payload
  * @return -1 if error
  */
-int sn_send(sn_state_t* sns, const sn_addr_t* dst, size_t len, const char* payload);
+int sn_send(sn_state_t* sns, const sn_net_addr_t* dst, size_t len, const char* payload);
 
 /**
  * Joins a SecondNet network using a know gateway
@@ -96,8 +96,8 @@ void sn_named_log_callback(int argc, void* argv[]);
 
 struct sn_state_t_ {
     /* Background thread state */
-    sn_addr_t self; /**< Node SecondNet address */
-    sn_router_t router; /**< Routing state */
+    sn_net_addr_t self; /**< Node SecondNet address */
+    sn_net_router_t router; /**< Routing state */
     pthread_t bg_thrd; /**< Background thread for routing */
     sn_io_sock_t socket; /**< Listening socket file descriptor */
     /* Shared state */
@@ -110,7 +110,7 @@ struct sn_state_t_ {
     mint_atomicPtr_t log_closure;
     /**
      * Callback for forward
-     * Forward callback format is (void* extra, const sn_packet_t* msg, sn_state_t* sns, sn_entry_t* nexthop) where
+     * Forward callback format is (void* extra, const sn_net_packet_t* msg, sn_state_t* sns, sn_net_entry_t* nexthop) where
      * extra -> User-defined data
      * msg -> Message to be forwarded
      * sns -> Node state
@@ -119,7 +119,7 @@ struct sn_state_t_ {
     mint_atomicPtr_t forward_closure;
     /**
      * Callback for delivery
-     * Forward callback format is (void* extra, const sn_packet_t* msg, sn_state_t* sns, sn_entry_t* nexthop) where
+     * Forward callback format is (void* extra, const sn_net_packet_t* msg, sn_state_t* sns, sn_net_entry_t* nexthop) where
      * extra -> User-defined data
      * msg -> Message to be delivered
      * sns -> Node state

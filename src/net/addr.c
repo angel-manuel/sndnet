@@ -1,4 +1,4 @@
-#include "addr.h"
+#include "net/addr.h"
 
 #include <assert.h>
 #include <ctype.h>
@@ -9,47 +9,47 @@ void bytestring_negate(const unsigned char* bytestring, unsigned char* negated);
 void hexstring_to_printable(const unsigned char* hexstring, char* printable);
 void printable_to_bytestring(const char* printable, unsigned char* bytestring);
 
-void sn_addr_init(sn_addr_t* sna, const unsigned char key[SN_ADDR_LEN]) {
+void sn_net_addr_init(sn_net_addr_t* sna, const unsigned char key[SN_NET_ADDR_LEN]) {
     assert(sna != 0);
     assert(key != 0);
 
-    memcpy(sna->key, key, SN_ADDR_LEN);
+    memcpy(sna->key, key, SN_NET_ADDR_LEN);
 }
 
-void sn_addr_from_hex(sn_addr_t* sna, const char hexstr[SN_ADDR_HEX_LEN]) {
-    unsigned char key[SN_ADDR_LEN];
+void sn_net_addr_from_hex(sn_net_addr_t* sna, const char hexstr[SN_NET_ADDR_HEX_LEN]) {
+    unsigned char key[SN_NET_ADDR_LEN];
 
     assert(hexstr != 0);
 
     printable_to_bytestring(hexstr, key);
 
-    sn_addr_init(sna, key);
+    sn_net_addr_init(sna, key);
 }
 
-void sn_addr_get_raw(const sn_addr_t* sna, unsigned char* out_raw) {
+void sn_net_addr_get_raw(const sn_net_addr_t* sna, unsigned char* out_raw) {
     assert(sna != 0);
     assert(out_raw != 0);
 
-    memcpy(out_raw, sna->key, SN_ADDR_LEN);
+    memcpy(out_raw, sna->key, SN_NET_ADDR_LEN);
 }
 
-void sn_addr_get_hex(const sn_addr_t* sna, unsigned char* out_hex) {
+void sn_net_addr_get_hex(const sn_net_addr_t* sna, unsigned char* out_hex) {
     assert(sna != 0);
     assert(out_hex != 0);
 
     bytestring_to_hexstring(sna->key, out_hex);
 }
 
-void sn_addr_to_str(const sn_addr_t* sna, char* out_str) {
-    unsigned char hexstr[SN_ADDR_HEX_LEN];
+void sn_net_addr_to_str(const sn_net_addr_t* sna, char* out_str) {
+    unsigned char hexstr[SN_NET_ADDR_HEX_LEN];
 
     assert(sna != 0);
     assert(out_str != 0);
 
-    sn_addr_get_hex(sna, hexstr);
+    sn_net_addr_get_hex(sna, hexstr);
     hexstring_to_printable(hexstr, out_str);
 
-    for(int i = SN_ADDR_HEX_LEN - 1; i >= 0; --i) {
+    for(int i = SN_NET_ADDR_HEX_LEN - 1; i >= 0; --i) {
         if(out_str[i] != '0')
             break;
         
@@ -57,13 +57,13 @@ void sn_addr_to_str(const sn_addr_t* sna, char* out_str) {
     }
 }
 
-int sn_addr_cmp(const sn_addr_t* a, const sn_addr_t* b) {
+int sn_net_addr_cmp(const sn_net_addr_t* a, const sn_net_addr_t* b) {
     int d, i;
 
     assert(a != 0);
     assert(b != 0);
 
-    for(i = 0; i < SN_ADDR_LEN; ++i) {
+    for(i = 0; i < SN_NET_ADDR_LEN; ++i) {
         d = (int)a->key[i] - (int)b->key[i];
 
         if(d)
@@ -73,10 +73,10 @@ int sn_addr_cmp(const sn_addr_t* a, const sn_addr_t* b) {
     return 0;
 }
 
-void sn_addr_dist(const sn_addr_t* a, const sn_addr_t* b, sn_addr_t* dist) {
+void sn_net_addr_dist(const sn_net_addr_t* a, const sn_net_addr_t* b, sn_net_addr_t* dist) {
     int i;
     unsigned char carry, ca, cb, cc;
-    unsigned char sub[SN_ADDR_LEN];
+    unsigned char sub[SN_NET_ADDR_LEN];
 
     assert(a != 0);
     assert(b != 0);
@@ -85,7 +85,7 @@ void sn_addr_dist(const sn_addr_t* a, const sn_addr_t* b, sn_addr_t* dist) {
     // a - b
 
     carry = 0;
-    for(i = (SN_ADDR_LEN - 1); i >= 0; --i) {
+    for(i = (SN_NET_ADDR_LEN - 1); i >= 0; --i) {
         ca = a->key[i];
         cb = b->key[i] + carry;
 
@@ -99,26 +99,26 @@ void sn_addr_dist(const sn_addr_t* a, const sn_addr_t* b, sn_addr_t* dist) {
         bytestring_negate(sub, sub);
     }
 
-    sn_addr_init(dist, sub);
+    sn_net_addr_init(dist, sub);
 }
 
-void sn_addr_index(const sn_addr_t* self, const sn_addr_t* addr, unsigned int* level, unsigned char* column) {
+void sn_net_addr_index(const sn_net_addr_t* self, const sn_net_addr_t* addr, unsigned int* level, unsigned char* column) {
     unsigned int l = 0;
     unsigned int i;
-    unsigned char hex_a[SN_ADDR_HEX_LEN];
-    unsigned char hex_b[SN_ADDR_HEX_LEN];
+    unsigned char hex_a[SN_NET_ADDR_HEX_LEN];
+    unsigned char hex_b[SN_NET_ADDR_HEX_LEN];
 
     assert(self != 0);
     assert(addr != 0);
     assert(level != 0 || column != 0);
 
-    sn_addr_get_hex(self, hex_a);
-    sn_addr_get_hex(addr, hex_b);
+    sn_net_addr_get_hex(self, hex_a);
+    sn_net_addr_get_hex(addr, hex_b);
 
     if(column)
         *column = 255;
 
-    for(i = 0; i < (SN_ADDR_LEN*2); ++i) {
+    for(i = 0; i < (SN_NET_ADDR_LEN*2); ++i) {
         if(hex_a[i] == hex_b[i]) {
             ++l;
         } else {
@@ -128,26 +128,26 @@ void sn_addr_index(const sn_addr_t* self, const sn_addr_t* addr, unsigned int* l
         }
     }
 
-    assert(l <= SN_ADDR_LEN*2);
+    assert(l <= SN_NET_ADDR_LEN*2);
 
     if(level)
         *level = l;
 }
 
-int sn_addr_ser(const sn_addr_t* sna, sn_addr_ser_t* ser) {
+int sn_net_addr_ser(const sn_net_addr_t* sna, sn_net_addr_ser_t* ser) {
     assert(sna != 0);
     assert(ser != 0);
 
-    memcpy(&ser->key, sna, SN_ADDR_LEN);
+    memcpy(&ser->key, sna, SN_NET_ADDR_LEN);
 
     return 0;
 }
 
-int sn_addr_deser(sn_addr_t* sna, const sn_addr_ser_t* ser) {
+int sn_net_addr_deser(sn_net_addr_t* sna, const sn_net_addr_ser_t* ser) {
     assert(sna != 0);
     assert(ser != 0);
 
-    memcpy(sna, &ser->key, SN_ADDR_LEN);
+    memcpy(sna, &ser->key, SN_NET_ADDR_LEN);
 
     return 0;
 }
@@ -161,7 +161,7 @@ void bytestring_to_hexstring(const unsigned char* bytestring, unsigned char* hex
     assert(bytestring != 0);
     assert(hexstring != 0);
 
-    for(i = 0; i < SN_ADDR_LEN; ++i) {
+    for(i = 0; i < SN_NET_ADDR_LEN; ++i) {
         c = bytestring[i];
         hexstring[2*i] = c/16;
         hexstring[(2*i)+1] = c%16;
@@ -174,7 +174,7 @@ void bytestring_negate(const unsigned char* bytestring, unsigned char* negated) 
     assert(bytestring != 0);
     assert(negated != 0);
 
-    for(i = 0; i < SN_ADDR_LEN; ++i) {
+    for(i = 0; i < SN_NET_ADDR_LEN; ++i) {
         negated[i] = 255 ^ bytestring[i];
     }
 }
@@ -186,7 +186,7 @@ void hexstring_to_printable(const unsigned char* hexstring, char* printable) {
     assert(hexstring != 0);
     assert(printable != 0);
 
-    for(i = 0; i < SN_ADDR_LEN*2; ++i) {
+    for(i = 0; i < SN_NET_ADDR_LEN*2; ++i) {
         c = (char)hexstring[i];
 
         assert(c >= 0 && c < 16);
@@ -206,9 +206,9 @@ void printable_to_bytestring(const char* printable, unsigned char* bytestring) {
     int c;
     unsigned char ac = 0;
 
-    memset(bytestring, 0, SN_ADDR_LEN);
+    memset(bytestring, 0, SN_NET_ADDR_LEN);
 
-    for(i = 0; printable[i] != '\0' && i < SN_ADDR_LEN*2; ++i) {
+    for(i = 0; printable[i] != '\0' && i < SN_NET_ADDR_LEN*2; ++i) {
         c = (int)printable[i];
 
         assert(isalnum(c));
