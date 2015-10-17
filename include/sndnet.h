@@ -9,7 +9,7 @@
 
 #include "addr.h"
 #include "closure.h"
-#include "msg.h"
+#include "packet.h"
 #include "io/sock.h"
 #include "router.h"
 
@@ -110,7 +110,7 @@ struct sn_state_t_ {
     mint_atomicPtr_t log_closure;
     /**
      * Callback for forward
-     * Forward callback format is (void* extra, const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop) where
+     * Forward callback format is (void* extra, const sn_packet_t* msg, sn_state_t* sns, sn_entry_t* nexthop) where
      * extra -> User-defined data
      * msg -> Message to be forwarded
      * sns -> Node state
@@ -119,7 +119,7 @@ struct sn_state_t_ {
     mint_atomicPtr_t forward_closure;
     /**
      * Callback for delivery
-     * Forward callback format is (void* extra, const sn_msg_t* msg, sn_state_t* sns, sn_entry_t* nexthop) where
+     * Forward callback format is (void* extra, const sn_packet_t* msg, sn_state_t* sns, sn_entry_t* nexthop) where
      * extra -> User-defined data
      * msg -> Message to be delivered
      * sns -> Node state

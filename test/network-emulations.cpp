@@ -56,9 +56,9 @@ TEST_CASE("Emulated network #1", "[network]") {
         REQUIRE(sn_send(&A, &b667, 5, "Hola") == 0);
 
         SECTION("Receiving at b667") {
-            sn_msg_t* msg;
+            sn_packet_t* msg;
 
-            msg = sn_msg_recv(sockTEST, NULL);
+            msg = sn_packet_recv(sockTEST, NULL);
 
             REQUIRE(msg != NULL);
 
@@ -84,9 +84,9 @@ TEST_CASE("Emulated network #1", "[network]") {
         REQUIRE(sn_send(&A, &b667, 5, "Hola") == 0);
 
         SECTION("Receiving at b667") {
-            sn_msg_t* msg;
+            sn_packet_t* msg;
 
-            msg = sn_msg_recv(sockTEST, NULL);
+            msg = sn_packet_recv(sockTEST, NULL);
 
             REQUIRE(msg != 0);
 

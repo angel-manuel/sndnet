@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "addr.h"
-#include "msg.h"
+#include "packet.h"
 #include "io/naddr.h"
 #include "router.h"
 #include "sndnet.h"
