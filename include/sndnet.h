@@ -29,6 +29,11 @@ extern "C" {
 typedef struct sn_state_t_ sn_state_t;
 
 /**
+ * Upcall callback type. Called when a message is received.
+ * */
+typedef void (*sn_upcall_t)(const unsigned char msg[], unsigned long long msg_len);
+
+/**
  * Initializes a node
  * @param sns State to be initialized(must be already allocated)
  * @param self Node address
@@ -51,6 +56,21 @@ int sn_init_at_port(sn_state_t* sns, const char hexaddr[SN_NET_ADDR_PRINTABLE_LE
  * @param sns State to be destroyed(but not deallocated)
  * */
 void sn_destroy(sn_state_t* sns);
+
+/**
+ * Sets the upcall
+ * @param sns The state
+ * @param upcall The new upcall. NULL to deregister the current upcall.
+ * */
+void sn_set_upcall(sn_state_t* sns, sn_upcall_t upcall);
+
+/**
+ * Call the upcall, if present.
+ * @param sns Node state
+ * @param msg Message
+ * @param msg_len Message length
+ * */
+void sn_upcall(const sn_state_t* sns, const unsigned char msg[], unsigned long long msg_len);
 
 /**
  * Changes the logging callback
@@ -101,6 +121,7 @@ struct sn_state_t_ {
     pthread_t bg_thrd; /**< Background thread for routing */
     sn_io_sock_t socket; /**< Listening socket file descriptor */
     /* Shared state */
+    mint_atomicPtr_t upcall; /**< General upcall, received messages go up using this*/
     /**
      * Callback for logging
      * Log callback format is (void* extra, const char* msg) where

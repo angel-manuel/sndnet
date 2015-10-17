@@ -48,6 +48,8 @@ int sn_init(sn_state_t* sns, const sn_net_addr_t* self, const sn_io_sock_t socke
 
     /* Callback registering */
 
+    sn_set_upcall(sns, NULL);
+
     void* c_argv[] = { NULL };
     sn_util_closure_init_curried(&sns->default_log_closure, default_log_cb, 1, c_argv);
     sn_util_closure_init_curried(&sns->default_forward_closure, default_forward_cb, 1, c_argv);
@@ -111,6 +113,26 @@ void sn_destroy(sn_state_t* sns) {
     /* Socket closing */
 
     sn_io_sock_close(sns->socket);
+}
+
+void sn_set_upcall(sn_state_t* sns, sn_upcall_t upcall) {
+    assert(sns != NULL);
+
+    mint_store_ptr_relaxed(&sns->upcall, upcall);
+    mint_thread_fence_release();
+}
+
+void sn_upcall(const sn_state_t* sns, const unsigned char msg[], unsigned long long msg_len) {
+    sn_upcall_t up;
+
+    assert(sns != NULL);
+    assert(msg != NULL);
+
+    mint_thread_fence_acquire();
+    up = (sn_upcall_t)mint_load_ptr_relaxed(&sns->upcall);
+
+    if(up)
+        up(msg, msg_len);
 }
 
 void sn_set_log_callback(sn_state_t* sns, sn_util_closure_t* closure) {

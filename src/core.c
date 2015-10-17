@@ -9,10 +9,23 @@
 #include <stdint.h>
 
 int sn_core_deliver(sn_state_t* state, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr) {
+    unsigned char type;
+
     assert(state != NULL);
     assert(packet != NULL);
 
     SN_UNUSED(rem_addr);
+
+    if(packet->header.len < 1)
+        return -1;
+
+    type = packet->payload[0];
+
+    switch (type) {
+        case 0: /*User msg*/
+            sn_upcall(state, packet->payload + 1, packet->header.len - 1);
+            break;
+    }
 
     return 0;
 }
