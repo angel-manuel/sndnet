@@ -3,8 +3,10 @@
 #include "common.h"
 #include "net/entry.h"
 #include "net/packet.h"
+#include "wire.h"
 
 #include <assert.h>
+#include <stdint.h>
 
 int sn_core_deliver(sn_state_t* state, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr) {
     assert(state != NULL);

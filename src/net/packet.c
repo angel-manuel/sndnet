@@ -7,7 +7,7 @@
 #include <string.h>
 
 sn_net_packet_t* sn_net_packet_recv(sn_io_sock_t socket, sn_io_naddr_t* src_addr) {
-    sn_net_packet_header_t header;
+    sn_wire_net_header_t header;
     sn_net_packet_t* msg;
     int recv_count;
     uint16_t size;
@@ -42,7 +42,7 @@ sn_net_packet_t* sn_net_packet_recv(sn_io_sock_t socket, sn_io_naddr_t* src_addr
 
     recv_count = sn_io_sock_recv(socket, &msg->header, size, NULL);
 
-    if(recv_count < (ssize_t)sizeof(sn_net_packet_header_t) + (ssize_t)header.len) {
+    if(recv_count < (ssize_t)sizeof(sn_wire_net_header_t) + (ssize_t)header.len) {
         if(recv_count < 0) {
             return 0;
         } else {
@@ -86,7 +86,7 @@ int sn_net_packet_send(const sn_net_packet_t* msg, sn_io_sock_t socket, const sn
     assert(socket != SN_IO_SOCK_INVALID);
     assert(dst_addr != NULL);
 
-    packet_size = sizeof(sn_net_packet_header_t) + (size_t)msg->header.len;
+    packet_size = sizeof(sn_wire_net_header_t) + (size_t)msg->header.len;
 
     sent = sn_io_sock_send(socket, msg, packet_size, dst_addr);
 

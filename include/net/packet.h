@@ -9,6 +9,7 @@
 #include "net/addr.h"
 #include "io/naddr.h"
 #include "io/sock.h"
+#include "../wire.h"
 
 #include <stdint.h>
 
@@ -27,11 +28,6 @@ extern "C" {
 #define SN_NET_PACKET_MAX_LEN 1000
 
 #define SN_NET_PACKET_PRINTABLE_LEN (25 + 3*5 + 2*SN_NET_ADDR_PRINTABLE_LEN)
-
-/**
- * Message header as used on real messages
- * */
-typedef struct sn_net_packet_header_t_ sn_net_packet_header_t;
 
 /**
  * Holds an message(header + payload). Usually malloc'd
@@ -89,15 +85,8 @@ void sn_net_packet_header_to_str(const sn_net_packet_t* msg, char* out_str);
 
 /*Struct definition*/
 
-struct sn_net_packet_header_t_ {
-    sn_net_addr_ser_t dst; /**< SecondNet destination address */
-    sn_net_addr_ser_t src; /**< SecondNet source address(spoofable) */
-    uint16_t ttl; /**< TTL(Time To Live), decreased when forwarded, when 0 message isnt forwarded any more */
-    uint16_t len; /**< Length of the payload */
-};
-
 struct sn_net_packet_t_ {
-    sn_net_packet_header_t header; /**< Header part */
+    sn_wire_net_header_t header; /**< Header part */
     unsigned char payload[0]; /**< O-length array used to represent the variable size payload */
 };
 

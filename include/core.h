@@ -1,3 +1,8 @@
+/**
+ * @file
+ * Contains the main logic
+ * */
+
 #ifndef SN_CORE_H_
 #define SN_CORE_H_
 
