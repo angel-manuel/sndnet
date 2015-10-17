@@ -48,9 +48,9 @@ int sn_init(sn_state_t* sns, const sn_net_addr_t* self, const sn_io_sock_t socke
     /* Callback registering */
 
     void* c_argv[] = { NULL };
-    sn_closure_init_curried(&sns->default_log_closure, default_log_cb, 1, c_argv);
-    sn_closure_init_curried(&sns->default_forward_closure, default_forward_cb, 1, c_argv);
-    sn_closure_init_curried(&sns->default_deliver_closure, default_deliver_cb, 1, c_argv);
+    sn_util_closure_init_curried(&sns->default_log_closure, default_log_cb, 1, c_argv);
+    sn_util_closure_init_curried(&sns->default_forward_closure, default_forward_cb, 1, c_argv);
+    sn_util_closure_init_curried(&sns->default_deliver_closure, default_deliver_cb, 1, c_argv);
     sn_set_log_callback(sns, NULL);
     sn_set_forward_callback(sns, NULL);
     sn_set_deliver_callback(sns, NULL);
@@ -112,8 +112,8 @@ void sn_destroy(sn_state_t* sns) {
     sn_io_sock_close(sns->socket);
 }
 
-void sn_set_log_callback(sn_state_t* sns, sn_closure_t* closure) {
-    sn_closure_t *new_closure;
+void sn_set_log_callback(sn_state_t* sns, sn_util_closure_t* closure) {
+    sn_util_closure_t *new_closure;
 
     assert(sns != NULL);
 
@@ -128,11 +128,11 @@ inline void call_log_cb(sn_state_t* sns, char* msg) {
     assert(msg != NULL);
 
     mint_thread_fence_acquire();
-    sn_closure_call(mint_load_ptr_relaxed(&sns->log_closure), 1, argv);
+    sn_util_closure_call(mint_load_ptr_relaxed(&sns->log_closure), 1, argv);
 }
 
-void sn_set_forward_callback(sn_state_t* sns, sn_closure_t* closure) {
-    sn_closure_t *new_closure;
+void sn_set_forward_callback(sn_state_t* sns, sn_util_closure_t* closure) {
+    sn_util_closure_t *new_closure;
 
     assert(sns != NULL);
 
@@ -149,11 +149,11 @@ inline void call_forward_cb(sn_state_t* sns, sn_net_packet_t* msg, sn_net_entry_
     assert(nexthop != NULL);
 
     mint_thread_fence_acquire();
-    sn_closure_call(mint_load_ptr_relaxed(&sns->forward_closure), 3, argv);
+    sn_util_closure_call(mint_load_ptr_relaxed(&sns->forward_closure), 3, argv);
 }
 
-void sn_set_deliver_callback(sn_state_t* sns, sn_closure_t* closure) {
-    sn_closure_t *new_closure;
+void sn_set_deliver_callback(sn_state_t* sns, sn_util_closure_t* closure) {
+    sn_util_closure_t *new_closure;
 
     assert(sns != NULL);
 
@@ -169,7 +169,7 @@ inline void call_deliver_cb(sn_state_t* sns, sn_net_packet_t* msg) {
     assert(sns != NULL);
 
     mint_thread_fence_acquire();
-    sn_closure_call(mint_load_ptr_relaxed(&sns->deliver_closure), 2, argv);
+    sn_util_closure_call(mint_load_ptr_relaxed(&sns->deliver_closure), 2, argv);
 }
 
 int sn_send(sn_state_t* sns, const sn_net_addr_t* dst, size_t len, const char* payload) {

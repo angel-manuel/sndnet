@@ -8,7 +8,7 @@
 #define SN_SN_H_
 
 #include "net/addr.h"
-#include "closure.h"
+#include "util/closure.h"
 #include "net/packet.h"
 #include "io/sock.h"
 #include "net/router.h"
@@ -57,21 +57,21 @@ void sn_destroy(sn_state_t* sns);
  * @param sns Node state
  * @param cb The new callback. If it is NULL, default logging(stderr) will be used
  * */
-void sn_set_log_callback(sn_state_t* sns, sn_closure_t* cb);
+void sn_set_log_callback(sn_state_t* sns, sn_util_closure_t* cb);
 
 /**
  * Changes the forwarding callback
  * @param sns Node state
  * @param cb The new callback. If it is NULL default forwarding will be used.
  * */
-void sn_set_forward_callback(sn_state_t* sns, sn_closure_t* cb);
+void sn_set_forward_callback(sn_state_t* sns, sn_util_closure_t* cb);
 
 /**
  * Changes the delivering callback
  * @param sns Node state
  * @param cb The new callback. If it is NULL, message will be just logged.
  * */
-void sn_set_deliver_callback(sn_state_t* sns, sn_closure_t* cb);
+void sn_set_deliver_callback(sn_state_t* sns, sn_util_closure_t* cb);
 
 /**
  * Sends a message without need for acknowledgement
@@ -126,9 +126,9 @@ struct sn_state_t_ {
      * */
     mint_atomicPtr_t deliver_closure;
     /* Default closures */
-    sn_closure_t default_log_closure; /**< Default log closure */
-    sn_closure_t default_forward_closure; /**< Default forward closure */
-    sn_closure_t default_deliver_closure; /**< Default deliver closure */
+    sn_util_closure_t default_log_closure; /**< Default log closure */
+    sn_util_closure_t default_forward_closure; /**< Default forward closure */
+    sn_util_closure_t default_deliver_closure; /**< Default deliver closure */
 };
 
 #ifdef __cplusplus

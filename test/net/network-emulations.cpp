@@ -13,9 +13,9 @@ TEST_CASE("Emulated network #1", "[network]") {
     sn_net_addr_t a3f4, b567, b666;
     sn_io_sock_t sockA, sockB, sockC;
     sn_io_naddr_t addrA, addrB, addrC;
-    sn_closure_t silent;
+    sn_util_closure_t silent;
 
-    sn_closure_init_curried_once(&silent, sn_silent_log_callback, NULL);
+    sn_util_closure_init_curried_once(&silent, sn_silent_log_callback, NULL);
 
     sn_net_addr_from_hex(&a3f4, "a3f4");
     sn_net_addr_from_hex(&b567, "b567");

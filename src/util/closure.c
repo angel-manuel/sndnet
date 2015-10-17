@@ -1,9 +1,9 @@
-#include "closure.h"
+#include "util/closure.h"
 
 #include <assert.h>
 #include <stddef.h>
 
-void sn_closure_init(sn_closure_t* closure, sn_closure_body_t body) {
+void sn_util_closure_init(sn_util_closure_t* closure, sn_util_closure_body_t body) {
     assert(closure != NULL);
     assert(body != NULL);
 
@@ -11,17 +11,17 @@ void sn_closure_init(sn_closure_t* closure, sn_closure_body_t body) {
     closure->c_argc = 0;
 }
 
-int sn_closure_init_curried(sn_closure_t* closure, sn_closure_body_t body, int argc, void* argv[]) {
-    sn_closure_init(closure, body);
-    return sn_closure_curry(closure, argc, argv);
+int sn_util_closure_init_curried(sn_util_closure_t* closure, sn_util_closure_body_t body, int argc, void* argv[]) {
+    sn_util_closure_init(closure, body);
+    return sn_util_closure_curry(closure, argc, argv);
 }
 
-int sn_closure_init_curried_once(sn_closure_t* closure, sn_closure_body_t body, void* arg) {
-    sn_closure_init(closure, body);
-    return sn_closure_curry_once(closure, arg);
+int sn_util_closure_init_curried_once(sn_util_closure_t* closure, sn_util_closure_body_t body, void* arg) {
+    sn_util_closure_init(closure, body);
+    return sn_util_closure_curry_once(closure, arg);
 }
 
-void sn_closure_call(sn_closure_t* closure, int argc, void* argv[]) {
+void sn_util_closure_call(sn_util_closure_t* closure, int argc, void* argv[]) {
     assert(closure != NULL);
     assert(argv != NULL || argc == 0);
 
@@ -39,7 +39,7 @@ void sn_closure_call(sn_closure_t* closure, int argc, void* argv[]) {
     }
 }
 
-int sn_closure_curry(sn_closure_t* closure, int argc, void* argv[]) {
+int sn_util_closure_curry(sn_util_closure_t* closure, int argc, void* argv[]) {
     int orig_argc;
 
     assert(closure != NULL);
@@ -48,7 +48,7 @@ int sn_closure_curry(sn_closure_t* closure, int argc, void* argv[]) {
     orig_argc = closure->c_argc;
 
     for(int i = 0; i < argc; ++i) {
-        if(sn_closure_curry_once(closure, argv[i]) == -1) {
+        if(sn_util_closure_curry_once(closure, argv[i]) == -1) {
             closure->c_argc = orig_argc;
             return -1;
         }
@@ -57,10 +57,10 @@ int sn_closure_curry(sn_closure_t* closure, int argc, void* argv[]) {
     return 0;
 }
 
-int sn_closure_curry_once(sn_closure_t* closure, void* arg) {
+int sn_util_closure_curry_once(sn_util_closure_t* closure, void* arg) {
     assert(closure != NULL);
 
-    if(closure->c_argc >= SN_CLOSURE_MAX_CURRYING)
+    if(closure->c_argc >= SN_UTIL_CLOSURE_MAX_CURRYING)
         return -1;
 
     closure->c_argv[closure->c_argc++] = arg;
