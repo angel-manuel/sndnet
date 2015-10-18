@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <sodium.h>
 #define asm __asm
 #include <mintomic/mintomic.h>
 
@@ -40,6 +41,11 @@ int sn_init(sn_state_t* sns, const sn_net_addr_t* self, const sn_io_sock_t socke
     assert(sns != NULL);
     assert(self != NULL);
     assert(socket != SN_IO_SOCK_INVALID);
+
+    /* Sodium */
+
+    if(sodium_init() == -1)
+        return -1;
 
     /* Copying */
 
