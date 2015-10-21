@@ -13,8 +13,8 @@ extern "C" {
 #endif
 
 /**
- * Initialized common SecondNet data. Not thread safe. Must be called just once.
- * @return 0 if OK, -1 if ERR
+ * Initializes common SecondNet data. Thread safe, can be called multiple times.
+ * @return 0 if correctly initialized, 1 if was already initialized, -1 if error
  * */
 int sn_init();
 
