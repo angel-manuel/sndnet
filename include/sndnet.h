@@ -12,6 +12,10 @@
 extern "C" {
 #endif
 
+/**
+ * Initialized common SecondNet data. Not thread safe. Must be called just once.
+ * @return 0 if OK, -1 if ERR
+ * */
 int sn_init();
 
 #ifdef __cplusplus
