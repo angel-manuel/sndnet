@@ -3,12 +3,13 @@
 #include "common.h"
 #include "net/entry.h"
 #include "net/packet.h"
+#include "node.h"
 #include "wire.h"
 
 #include <assert.h>
 #include <stdint.h>
 
-int sn_core_deliver(sn_state_t* state, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr) {
+int sn_core_deliver(sn_node_t* state, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr) {
     unsigned char type;
 
     assert(state != NULL);
@@ -23,14 +24,14 @@ int sn_core_deliver(sn_state_t* state, const sn_net_packet_t* packet, const sn_i
 
     switch (type) {
         case 0: /*User msg*/
-            sn_upcall(state, packet->payload + 1, packet->header.len - 1);
+            sn_node_upcall(state, packet->payload + 1, packet->header.len - 1);
             break;
     }
 
     return 0;
 }
 
-int sn_core_forward(sn_state_t* state, sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop) {
+int sn_core_forward(sn_node_t* state, sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop) {
     int sent;
 
     assert(state != NULL);

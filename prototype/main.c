@@ -10,7 +10,7 @@
 #include "net/router.h"
 #include "sndnet.h"
 
-sn_state_t sns;
+sn_node_t sns;
 
 int main(int argc, char* argv[]) {
     char* self_addr;
@@ -24,9 +24,13 @@ int main(int argc, char* argv[]) {
     }
 
     self_addr = argv[1];
-    sscanf(argv[2], "%hu", &port);
+    if(sscanf(argv[2], "%hu", &port) < 1)
+        return -1;
 
-    if(sn_init_at_port(&sns, self_addr, port) == -1) {
+    if(sn_init() == -1)
+        return -1;
+
+    if(sn_node_at_port(&sns, self_addr, port) == -1) {
         fprintf(stderr, "Error initializing\n");
         return 1;
     }
@@ -61,7 +65,7 @@ int main(int argc, char* argv[]) {
                 continue;
             }
 
-            sn_send(&sns, &sn_dst, strlen(payload), payload);
+            sn_node_send(&sns, &sn_dst, strlen(payload), payload);
         }
 
         if(strcmp(command, "insert") == 0) {
@@ -103,7 +107,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sn_destroy(&sns);
+    sn_node_destroy(&sns);
 
     return 0;
 }

@@ -1,6 +1,8 @@
 #include "../catch.hpp"
 
 #include <sndnet.h>
+#include <net/packet.h>
+#include <callbacks.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -9,11 +11,13 @@
 #include <unistd.h>
 
 TEST_CASE("Emulated network #1", "[network]") {
-    sn_state_t A, B, C;
+    sn_node_t A, B, C;
     sn_net_addr_t a3f4, b567, b666;
     sn_io_sock_t sockA, sockB, sockC;
     sn_io_naddr_t addrA, addrB, addrC;
     sn_util_closure_t silent;
+
+    REQUIRE(sn_init() != -1);
 
     sn_util_closure_init_curried_once(&silent, sn_silent_log_callback, NULL);
 
@@ -29,12 +33,12 @@ TEST_CASE("Emulated network #1", "[network]") {
     REQUIRE((sockB = sn_io_sock_named(&addrB)) != SN_IO_SOCK_INVALID);
     REQUIRE((sockC = sn_io_sock_named(&addrC)) != SN_IO_SOCK_INVALID);
 
-    REQUIRE(sn_init(&A, &a3f4, sockA) == 0);
-    REQUIRE(sn_init(&B, &b567, sockB) == 0);
-    REQUIRE(sn_init(&C, &b666, sockC) == 0);
-    sn_set_log_callback(&A, &silent);
-    sn_set_log_callback(&B, &silent);
-    sn_set_log_callback(&C, &silent);
+    REQUIRE(sn_node_at_socket(&A, &a3f4, sockA) == 0);
+    REQUIRE(sn_node_at_socket(&B, &b567, sockB) == 0);
+    REQUIRE(sn_node_at_socket(&C, &b666, sockC) == 0);
+    sn_node_set_log_callback(&A, &silent);
+    sn_node_set_log_callback(&B, &silent);
+    sn_node_set_log_callback(&C, &silent);
 
     sn_net_router_add(&A.router, &b567, &addrB);
     sn_net_router_add(&B.router, &a3f4, &addrA);
@@ -53,7 +57,7 @@ TEST_CASE("Emulated network #1", "[network]") {
 
         sn_net_router_add(&A.router, &b667, &addrTEST);
 
-        REQUIRE(sn_send(&A, &b667, 5, "Hola") == 0);
+        REQUIRE(sn_node_send(&A, &b667, 5, "Hola") == 0);
 
         SECTION("Receiving at b667") {
             sn_net_packet_t* msg;
@@ -81,7 +85,7 @@ TEST_CASE("Emulated network #1", "[network]") {
 
         sn_net_router_add(&C.router, &b667, &addrTEST);
 
-        REQUIRE(sn_send(&A, &b667, 5, "Hola") == 0);
+        REQUIRE(sn_node_send(&A, &b667, 5, "Hola") == 0);
 
         SECTION("Receiving at b667") {
             sn_net_packet_t* msg;
@@ -98,7 +102,7 @@ TEST_CASE("Emulated network #1", "[network]") {
         sn_io_sock_close(sockTEST);
     }
 
-    sn_destroy(&A);
-    sn_destroy(&B);
-    sn_destroy(&C);
+    sn_node_destroy(&A);
+    sn_node_destroy(&B);
+    sn_node_destroy(&C);
 }
