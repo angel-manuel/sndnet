@@ -7,7 +7,7 @@
 mint_atomic32_t initialized = { 0 };
 
 int sn_init() {
-    /* Sodium */
+    //Checking if the library is already initialized
 
     mint_thread_fence_acquire();
 
@@ -18,6 +18,8 @@ int sn_init() {
         return 1;
 
     mint_thread_fence_release();
+
+    // Sodium
 
     if(sodium_init() == -1)
         return -1;
