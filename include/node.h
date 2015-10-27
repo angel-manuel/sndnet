@@ -10,6 +10,7 @@
 #include "net/router.h"
 #include "io/sock.h"
 #include "util/closure.h"
+#include "crypto/sign.h"
 
 #include <pthread.h>
 #define asm __asm
@@ -33,20 +34,22 @@ typedef void (*sn_upcall_t)(const unsigned char msg[], unsigned long long msg_le
 /**
  * Initializes a node
  * @param sns State to be initialized(must be already allocated)
- * @param self Node address
+ * @param sk Node secret key
+ * @param pk Node public key and SecondNet address
  * @param socket Listening socket
  * @return 0 if OK, -1 otherwise
  * */
-int sn_node_at_socket(sn_node_t* sns, const sn_net_addr_t* self, const sn_io_sock_t socket);
+int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket);
 
 /**
  * Initializes a node from a string address and a listening port
  * @param sns State to be initialized(must be already allocated)
- * @param hexaddr String representation of the node SecondNet address
+ * @param sk Node secret key
+ * @param pk Node public key and SecondNet address
  * @param port Listening port number.
  * @return 0 if OK, -1 otherwise
  * */
-int sn_node_at_port(sn_node_t* sns, const char hexaddr[SN_NET_ADDR_PRINTABLE_LEN], uint16_t port);
+int sn_node_at_port(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, uint16_t port);
 
 /**
  * Destroys a node
@@ -113,6 +116,7 @@ int sn_node_join(sn_node_t* sns, const sn_io_naddr_t* gateway);
 struct sn_node_t_ {
     /* Background thread state */
     sn_net_addr_t self; /**< Node SecondNet address */
+    sn_crypto_sign_key_t sk; /**< Node secret key*/
     sn_net_router_t router; /**< Routing state */
     pthread_t bg_thrd; /**< Background thread for routing */
     sn_io_sock_t socket; /**< Listening socket file descriptor */

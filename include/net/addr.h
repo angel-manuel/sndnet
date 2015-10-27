@@ -6,6 +6,9 @@
 #ifndef SN_NET_ADDR_H_
 #define SN_NET_ADDR_H_
 
+#include "../common.h"
+#include "crypto/sign.h"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -121,6 +124,8 @@ int sn_net_addr_deser(sn_net_addr_t* sna, const sn_net_addr_ser_t* ser);
 struct sn_net_addr_t_ {
     unsigned char key[SN_NET_ADDR_LEN]; /**< Address key */
 };
+
+SN_ASSERT_COMPILE(sizeof(sn_net_addr_t) == sizeof(sn_crypto_sign_pubkey_t));
 
 #ifdef __cplusplus
 } /*extern "C"*/

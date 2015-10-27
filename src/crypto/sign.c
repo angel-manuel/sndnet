@@ -26,3 +26,10 @@ int sn_crypto_sign_check(const sn_crypto_sign_t *sign, const sn_crypto_sign_pubk
 
     return crypto_sign_verify_detached(sign->signature, m, mlen, pk->pk);
 }
+
+int sn_crypto_sign_pk_from_sk(const sn_crypto_sign_key_t *sk, sn_crypto_sign_pubkey_t *pk) {
+    assert(sk != NULL);
+    assert(pk != NULL);
+
+    return crypto_sign_ed25519_sk_to_pk(pk->pk, sk->sk);
+}

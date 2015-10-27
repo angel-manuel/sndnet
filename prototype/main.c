@@ -13,27 +13,34 @@
 sn_node_t sns;
 
 int main(int argc, char* argv[]) {
-    char* self_addr;
+    sn_crypto_sign_pubkey_t pk;
+    sn_crypto_sign_key_t sk;
+    char self_addr_str[SN_NET_ADDR_PRINTABLE_LEN];
     uint16_t port;
     char line[1024];
     char* command;
 
-    if(argc < 3) {
-        fprintf(stderr, "Usage: %s <self_addr> <port>\n", argv[0]);
+    if(argc < 2) {
+        fprintf(stderr, "Usage: %s <port>\n", argv[0]);
         return 1;
     }
 
-    self_addr = argv[1];
-    if(sscanf(argv[2], "%hu", &port) < 1)
+    if(sscanf(argv[1], "%hu", &port) < 1)
         return -1;
 
     if(sn_init() == -1)
         return -1;
 
-    if(sn_node_at_port(&sns, self_addr, port) == -1) {
+    sn_crypto_sign_keypair(&pk, &sk);
+
+    if(sn_node_at_port(&sns, &sk, &pk, port) == -1) {
         fprintf(stderr, "Error initializing\n");
         return 1;
     }
+
+    sn_net_addr_to_str((sn_net_addr_t*)&pk, self_addr_str);
+
+    printf("Initialized @ %s\n", self_addr_str);
 
     while(printf("> "), fgets(line, 1024, stdin)) {
         command = strtok(line, " \n");

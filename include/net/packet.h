@@ -9,6 +9,7 @@
 #include "net/addr.h"
 #include "io/naddr.h"
 #include "io/sock.h"
+#include "crypto/sign.h"
 #include "../wire.h"
 
 #include <stdint.h>
@@ -51,7 +52,7 @@ sn_net_packet_t* sn_net_packet_recv(sn_io_sock_t socket, sn_io_naddr_t* src_addr
  * @param payload Pointer to payload(copied)
  * @return A new message(must be freed) or NULL if error
  * */
-sn_net_packet_t* sn_net_packet_pack(const sn_net_addr_t* dst, const sn_net_addr_t* src, size_t len, const char* payload);
+sn_net_packet_t* sn_net_packet_pack(const sn_net_addr_t* dst, const sn_net_addr_t* src, const sn_crypto_sign_key_t* key, uint8_t type, size_t len, const char* payload);
 
 /**
  * Sends a message(low-level)

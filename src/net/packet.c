@@ -7,56 +7,64 @@
 #include <string.h>
 
 sn_net_packet_t* sn_net_packet_recv(sn_io_sock_t socket, sn_io_naddr_t* src_addr) {
-    sn_wire_net_header_t header;
     sn_net_packet_t* msg;
     int recv_count;
-    uint16_t size;
+    size_t packet_size;
+    uint16_t payload_len = 0;
 
     assert(socket != SN_IO_SOCK_INVALID);
 
-    memset(&header, 0, sizeof(header));
+    recv_count = sn_io_sock_peek(socket, &payload_len, sizeof(payload_len), src_addr);
 
-    recv_count = sn_io_sock_peek(socket, &header, sizeof(header), src_addr);
-
-    if(recv_count < (ssize_t)sizeof(header)) {
+    if(recv_count < (ssize_t)sizeof(payload_len)) {
         if(recv_count < 0) {
-            return 0;
+            return NULL;
         } else {
             sn_io_sock_recv(socket, NULL, 0, NULL);
-            return 0;
+            return NULL;
         }
     }
 
-    if(header.len > SN_NET_PACKET_MAX_LEN) {
+    if(payload_len > SN_NET_PACKET_MAX_LEN) {
         sn_io_sock_recv(socket, NULL, 0, NULL);
-        return 0;
+        return NULL;
     }
 
-    size = sizeof(sn_net_packet_t) + (size_t)header.len + 1;
+    packet_size = sizeof(sn_net_packet_t) + (size_t)payload_len + 1;
 
-    msg = (sn_net_packet_t*)malloc(size);
+    msg = (sn_net_packet_t*)malloc(packet_size);
 
     if(!msg) {
-        return 0;
+        return NULL;
     }
 
-    recv_count = sn_io_sock_recv(socket, &msg->header, size, NULL);
+    recv_count = sn_io_sock_recv(socket, &msg->header, packet_size, NULL);
 
-    if(recv_count < (ssize_t)sizeof(sn_wire_net_header_t) + (ssize_t)header.len) {
+    if(recv_count < (ssize_t)sizeof(sn_wire_net_header_t) + (ssize_t)payload_len) {
         if(recv_count < 0) {
-            return 0;
+            return NULL;
         } else {
             free(msg);
-            return 0;
+            return NULL;
         }
     }
 
-    msg->payload[header.len] = '\0';
+    msg->payload[payload_len] = '\0';
+
+    if(sn_crypto_sign_check(
+        &msg->header.sign,
+        (sn_crypto_sign_pubkey_t*)&msg->header.src,
+        (unsigned char*)&msg->header.dst,
+        recv_count - offsetof(sn_wire_net_header_t, dst)
+        ) != 0) {
+        free(msg);
+        return NULL;
+    }
 
     return msg;
 }
 
-sn_net_packet_t* sn_net_packet_pack(const sn_net_addr_t* dst, const sn_net_addr_t* src, size_t len, const char* payload) {
+sn_net_packet_t* sn_net_packet_pack(const sn_net_addr_t* dst, const sn_net_addr_t* src, const sn_crypto_sign_key_t* key, uint8_t type, size_t len, const char* payload) {
     sn_net_packet_t* msg;
 
     assert(dst != NULL);
@@ -68,12 +76,17 @@ sn_net_packet_t* sn_net_packet_pack(const sn_net_addr_t* dst, const sn_net_addr_
     if(!msg)
         return 0;
 
-    sn_net_addr_ser(dst, &msg->header.dst);
-    sn_net_addr_ser(src, &msg->header.src);
     msg->header.ttl = SN_NET_PACKET_DEFAULT_TTL;
+    msg->header.type = type;
     msg->header.len = len;
+
+    sn_net_addr_ser(src, &msg->header.src);
+    sn_net_addr_ser(dst, &msg->header.dst);
+
     memcpy(msg->payload, payload, len);
     msg->payload[len] = '\0';
+
+    sn_crypto_sign(key, (unsigned char*)&msg->header.dst, len + SN_NET_ADDR_LEN, &msg->header.sign);
 
     return msg;
 }
@@ -124,6 +137,7 @@ void sn_net_packet_header_to_str(const sn_net_packet_t* msg, char* out_str) {
     "dst:%s\n"
     "src:%s\n"
     "ttl:%hhu\n"
-    "len:%hhu\n",
-    dst_str, src_str, msg->header.ttl, msg->header.len);
+    "type:%hhu\n"
+    "len:%hu\n",
+    dst_str, src_str, msg->header.ttl, msg->header.type, msg->header.len);
 }

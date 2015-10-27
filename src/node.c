@@ -31,16 +31,22 @@ void call_log_cb(sn_node_t* sns, char* packet);
 void call_forward_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop);
 void call_deliver_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
 
-int sn_node_at_socket(sn_node_t* sns, const sn_net_addr_t* self, const sn_io_sock_t socket) {
+int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket) {
     sn_io_naddr_t self_net;
 
     assert(sns != NULL);
-    assert(self != NULL);
+    assert(sk != NULL);
     assert(socket != SN_IO_SOCK_INVALID);
 
     /* Copying */
 
-    sns->self = *self;
+    sns->sk = *sk;
+
+    if(pk != NULL)
+        sns->self = *((sn_net_addr_t*)pk);
+    else
+        sn_crypto_sign_pk_from_sk(sk, (sn_crypto_sign_pubkey_t*)&sns->self);
+
     sns->socket = socket;
 
     /* Callback registering */
@@ -72,15 +78,12 @@ int sn_node_at_socket(sn_node_t* sns, const sn_net_addr_t* self, const sn_io_soc
     return 0;
 }
 
-int sn_node_at_port(sn_node_t* sns, const char hexaddr[SN_NET_ADDR_PRINTABLE_LEN], uint16_t port) {
-    sn_net_addr_t self;
+int sn_node_at_port(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, uint16_t port) {
     sn_io_naddr_t net_self;
     sn_io_sock_t socket;
 
     assert(sns != NULL);
-    assert(hexaddr != NULL);
-
-    sn_net_addr_from_hex(&self, hexaddr);
+    assert(sk != NULL);
 
     if(sn_io_naddr_ipv4(&net_self, "0.0.0.0", port) == -1)
         goto error;
@@ -88,7 +91,7 @@ int sn_node_at_port(sn_node_t* sns, const char hexaddr[SN_NET_ADDR_PRINTABLE_LEN
     if((socket = sn_io_sock_named(&net_self)) == SN_IO_SOCK_INVALID)
         goto error;
 
-    if(sn_node_at_socket(sns, &self, socket) == -1)
+    if(sn_node_at_socket(sns, sk, pk, socket) == -1)
         goto error_lib_socket;
 
     return 0;
@@ -191,8 +194,8 @@ void sn_node_set_deliver_callback(sn_node_t* sns, sn_util_closure_t* closure) {
 
     assert(sns != NULL);
 
-    new_closure = closure ? closure : &sns->default_log_closure;
-    mint_store_ptr_relaxed(&sns->log_closure, new_closure);
+    new_closure = closure ? closure : &sns->default_deliver_closure;
+    mint_store_ptr_relaxed(&sns->deliver_closure, new_closure);
     mint_thread_fence_release();
 }
 
@@ -213,7 +216,7 @@ int sn_node_send(sn_node_t* sns, const sn_net_addr_t* dst, size_t len, const cha
     assert(dst != NULL);
     assert(payload != NULL || len == 0);
 
-    packet = sn_net_packet_pack(dst, &(sns->self), NULL, 0, len, payload);
+    packet = sn_net_packet_pack(dst, &sns->self, &sns->sk, 0, len, payload);
 
     if(!packet)
         return -1;

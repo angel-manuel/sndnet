@@ -19,6 +19,8 @@ void sn_crypto_sign(const sn_crypto_sign_key_t *sk, const unsigned char *m, unsi
 
 int sn_crypto_sign_check(const sn_crypto_sign_t *sign, const sn_crypto_sign_pubkey_t *pk, const unsigned char *m, unsigned long long mlen);
 
+int sn_crypto_sign_pk_from_sk(const sn_crypto_sign_key_t *sk, sn_crypto_sign_pubkey_t *pk);
+
 struct sn_crypto_sign_pubkey_t_ {
     unsigned char pk[crypto_sign_PUBLICKEYBYTES];
 };
