@@ -15,9 +15,9 @@ typedef struct sn_crypto_sign_key_t_ sn_crypto_sign_key_t;
 
 void sn_crypto_sign_keypair(sn_crypto_sign_pubkey_t *pk, sn_crypto_sign_key_t *sk);
 
-void sn_crypto_sign(sn_crypto_sign_key_t *sk, unsigned char *m, unsigned long long mlen, sn_crypto_sign_t *out_sign);
+void sn_crypto_sign(const sn_crypto_sign_key_t *sk, const unsigned char *m, unsigned long long mlen, sn_crypto_sign_t *out_sign);
 
-int sn_crypto_sign_check(sn_crypto_sign_t *sign, sn_crypto_sign_pubkey_t *pk, unsigned char *m, unsigned long long mlen);
+int sn_crypto_sign_check(const sn_crypto_sign_t *sign, const sn_crypto_sign_pubkey_t *pk, const unsigned char *m, unsigned long long mlen);
 
 struct sn_crypto_sign_pubkey_t_ {
     unsigned char pk[crypto_sign_PUBLICKEYBYTES];
