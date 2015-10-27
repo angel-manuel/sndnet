@@ -88,7 +88,7 @@ int sn_node_at_port(sn_node_t* sns, const char hexaddr[SN_NET_ADDR_PRINTABLE_LEN
     if((socket = sn_io_sock_named(&net_self)) == SN_IO_SOCK_INVALID)
         goto error;
 
-    if(sn_init(sns, &self, socket) == -1)
+    if(sn_node_at_socket(sns, &self, socket) == -1)
         goto error_lib_socket;
 
     return 0;
@@ -213,7 +213,7 @@ int sn_node_send(sn_node_t* sns, const sn_net_addr_t* dst, size_t len, const cha
     assert(dst != NULL);
     assert(payload != NULL || len == 0);
 
-    packet = sn_net_packet_pack(dst, &(sns->self), len, payload);
+    packet = sn_net_packet_pack(dst, &(sns->self), NULL, 0, len, payload);
 
     if(!packet)
         return -1;
