@@ -1,6 +1,7 @@
 #include "net/router.h"
 
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,25 +16,25 @@ void leafset_sort(sn_net_entry_t* leafset, int right);
 int leafset_is_on_range(const sn_net_router_t* snr, const sn_net_addr_t* addr);
 
 void sn_net_router_init(sn_net_router_t* snr, const sn_net_addr_t* self_addr, const sn_io_naddr_t* self_net_addr) {
-    assert(snr != 0);
-    assert(self_addr != 0);
+    assert(snr != NULL);
+    assert(self_addr != NULL);
+    assert(self_net_addr != NULL);
 
     memset(snr, 0, sizeof(sn_net_router_t));
     snr->self.is_set = 1;
     snr->self.sn_net_addr = *self_addr;
-    if(self_net_addr)
-      snr->self.net_addr = *self_net_addr;
+    snr->self.net_addr = *self_net_addr;
 }
 
 void sn_net_router_add(sn_net_router_t* snr, const sn_net_addr_t* addr, const sn_io_naddr_t* net_addr) {
     sn_net_entry_t e;
 
-    assert(addr != 0);
+    assert(addr != NULL);
 
     e.is_set = 1;
     e.sn_net_addr = *addr;
 
-    if(net_addr)
+    if(net_addr != NULL)
         e.net_addr = *net_addr;
     else
         memset(&(e.net_addr), 0, sizeof(sn_io_naddr_t));
@@ -46,7 +47,7 @@ void sn_net_router_add(sn_net_router_t* snr, const sn_net_addr_t* addr, const sn
 void sn_net_router_remove(sn_net_router_t* snr, const sn_net_addr_t* addr) {
     sn_net_entry_t e;
 
-    assert(addr != 0);
+    assert(addr != NULL);
 
     e.is_set = 0;
     e.sn_net_addr = *addr;
@@ -62,9 +63,9 @@ void sn_net_router_nexthop(const sn_net_router_t* snr, const sn_net_addr_t* dst,
     const sn_net_entry_t* e;
     sn_net_entry_t bests[4];
 
-    assert(snr != 0);
-    assert(dst != 0);
-    assert(nexthop != 0);
+    assert(snr != NULL);
+    assert(dst != NULL);
+    assert(nexthop != NULL);
 
     nexthop->is_set = 0;
 
@@ -116,8 +117,8 @@ void sn_net_router_nexthop(const sn_net_router_t* snr, const sn_net_addr_t* dst,
 int sn_net_router_to_str(const sn_net_router_t* snr, char* out_str, size_t out_str_len) {
     size_t used_len = 0;
 
-    assert(snr != 0);
-    assert(out_str != 0);
+    assert(snr != NULL);
+    assert(out_str != NULL);
 
     {
         char self_str[SN_NET_ENTRY_PRINTABLE_LEN];
@@ -206,7 +207,7 @@ int sn_net_router_to_str(const sn_net_router_t* snr, char* out_str, size_t out_s
 }
 
 const sn_net_entry_t* sn_net_router_table_get(const sn_net_router_t* snr, unsigned int level, unsigned int column) {
-    assert(snr != 0);
+    assert(snr != NULL);
     assert(level <= SN_NET_ROUTER_LEVELS);
     assert(column <= SN_NET_ROUTER_COLUMNS);
 
@@ -214,7 +215,7 @@ const sn_net_entry_t* sn_net_router_table_get(const sn_net_router_t* snr, unsign
 }
 
 const sn_net_entry_t* sn_net_router_leafset_get(const sn_net_router_t* snr, int position) {
-    assert(snr != 0);
+    assert(snr != NULL);
     assert(position <= SN_NET_ROUTER_LEAFSET_SIZE);
     assert(-SN_NET_ROUTER_LEAFSET_SIZE <= position);
 
@@ -228,19 +229,19 @@ const sn_net_entry_t* sn_net_router_leafset_get(const sn_net_router_t* snr, int 
 }
 
 void sn_net_router_table_set(sn_net_router_t* snr, unsigned int level, unsigned int column, const sn_net_entry_t* e) {
-    assert(snr != 0);
+    assert(snr != NULL);
     assert(level < SN_NET_ROUTER_LEVELS);
     assert(column < SN_NET_ROUTER_COLUMNS);
-    assert(e != 0);
+    assert(e != NULL);
 
     snr->table[level][column] = *e;
 }
 
 void sn_net_router_leafset_set(sn_net_router_t* snr, int position, const sn_net_entry_t* e) {
-    assert(snr != 0);
+    assert(snr != NULL);
     assert(position <= SN_NET_ROUTER_LEAFSET_SIZE);
     assert(-SN_NET_ROUTER_LEAFSET_SIZE <= position);
-    assert(e != 0);
+    assert(e != NULL);
 
     if(position > 0) {
         snr->right_leafset[position - 1] = *e;
@@ -256,8 +257,8 @@ size_t sn_net_router_query_table(const sn_net_router_t* snr, uint16_t l_min, uin
     size_t final_size;
     sn_net_router_query_ser_t* ret;
 
-    assert(snr != 0);
-    assert(out_query != 0);
+    assert(snr != NULL);
+    assert(out_query != NULL);
 
     if(l_min >= SN_NET_ROUTER_LEVELS ||
        l_max >= SN_NET_ROUTER_LEVELS ||
@@ -307,8 +308,8 @@ size_t sn_net_router_query_leafset(const sn_net_router_t* snr, int32_t p_min, in
     size_t final_size;
     sn_net_router_query_ser_t* ret;
 
-    assert(snr != 0);
-    assert(out_query != 0);
+    assert(snr != NULL);
+    assert(out_query != NULL);
 
     if(p_min < -SN_NET_ROUTER_LEAFSET_SIZE ||
        p_max > SN_NET_ROUTER_LEAFSET_SIZE ||
@@ -319,7 +320,7 @@ size_t sn_net_router_query_leafset(const sn_net_router_t* snr, int32_t p_min, in
 
     ret = (sn_net_router_query_ser_t*)malloc(sizeof(sn_net_router_query_ser_t) + max_size*sizeof(sn_net_router_entry_ser_t));
 
-    if(ret == 0)
+    if(ret == NULL)
         return 0;
 
     ret->entries_len = 0;
@@ -342,7 +343,7 @@ size_t sn_net_router_query_leafset(const sn_net_router_t* snr, int32_t p_min, in
     final_size = sizeof(sn_net_router_query_ser_t) + (ret->entries_len)*sizeof(sn_net_router_entry_ser_t);
     *out_query = (sn_net_router_query_ser_t*)realloc(ret, final_size);
 
-    if(*out_query == 0) {
+    if(*out_query == NULL) {
         free(ret);
         return 0;
     }
@@ -383,8 +384,8 @@ void sn_net_router_set(sn_net_router_t* snr, const sn_net_entry_t* sne) {
     sn_net_entry_t* insert;
     const sn_net_addr_t* addr;
 
-    assert(snr != 0);
-    assert(sne != 0);
+    assert(snr != NULL);
+    assert(sne != NULL);
 
     addr = &(sne->sn_net_addr);
 
@@ -398,8 +399,8 @@ void sn_net_router_set(sn_net_router_t* snr, const sn_net_entry_t* sne) {
 }
 
 void leafset_add(sn_net_router_t* snr, const sn_net_entry_t* sne) {
-    assert(snr != 0);
-    assert(sne != 0);
+    assert(snr != NULL);
+    assert(sne != NULL);
 
     if(sn_net_entry_cmp(sne, &snr->self) < 0) {
         leafset_insert(snr->left_leafset, sne, 0);
@@ -409,8 +410,8 @@ void leafset_add(sn_net_router_t* snr, const sn_net_entry_t* sne) {
 }
 
 void leafset_remove(sn_net_router_t* snr, const sn_net_entry_t* sne) {
-    assert(snr != 0);
-    assert(sne != 0);
+    assert(snr != NULL);
+    assert(sne != NULL);
 
     if(sn_net_entry_cmp(sne, &snr->self) < 0) {
         leafset_extract(snr->left_leafset, sne, 0);
@@ -422,8 +423,8 @@ void leafset_remove(sn_net_router_t* snr, const sn_net_entry_t* sne) {
 void leafset_insert(sn_net_entry_t* leafset, const sn_net_entry_t* sne, int right) {
     size_t ls;
 
-    assert(leafset != 0);
-    assert(sne != 0);
+    assert(leafset != NULL);
+    assert(sne != NULL);
 
     ls = sn_net_entry_array_len(leafset, SN_NET_ROUTER_LEAFSET_SIZE);
 
@@ -443,8 +444,8 @@ void leafset_extract(sn_net_entry_t* leafset, const sn_net_entry_t* sne, int rig
     size_t ls;
     unsigned int i;
 
-    assert(leafset != 0);
-    assert(sne != 0);
+    assert(leafset != NULL);
+    assert(sne != NULL);
 
     ls = sn_net_entry_array_len(leafset, SN_NET_ROUTER_LEAFSET_SIZE);
 
