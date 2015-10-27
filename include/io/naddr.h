@@ -64,6 +64,14 @@ int sn_io_naddr_from_str(sn_io_naddr_t* addr, const char* str);
  * */
 int sn_io_naddr_to_str(const sn_io_naddr_t* addr, char* out_str);
 
+/**
+ * Compares the addresses
+ * @param A A
+ * @param B B
+ * @return A - B
+ **/
+int sn_io_naddr_cmp(const sn_io_naddr_t* A, const sn_io_naddr_t* B);
+
 typedef struct sn_io_naddr_ser_t_ {
     uint8_t type;
     union {

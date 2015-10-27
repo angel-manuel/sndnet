@@ -109,6 +109,10 @@ int sn_io_naddr_to_str(const sn_io_naddr_t* addr, char* out_str) {
     return 0;
 }
 
+int sn_io_naddr_cmp(const sn_io_naddr_t* A, const sn_io_naddr_t* B) {
+    return memcmp(A, B, sizeof(sn_io_naddr_t));
+}
+
 int sn_io_naddr_ser(const sn_io_naddr_t* addr, sn_io_naddr_ser_t* ser) {
     assert(addr != NULL);
     assert(ser != NULL);
