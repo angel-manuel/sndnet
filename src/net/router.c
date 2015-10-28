@@ -18,12 +18,13 @@ int leafset_is_on_range(const sn_net_router_t* snr, const sn_net_addr_t* addr);
 void sn_net_router_init(sn_net_router_t* snr, const sn_net_addr_t* self_addr, const sn_io_naddr_t* self_net_addr) {
     assert(snr != NULL);
     assert(self_addr != NULL);
-    assert(self_net_addr != NULL);
 
     memset(snr, 0, sizeof(sn_net_router_t));
     snr->self.is_set = 1;
-    snr->self.sn_net_addr = *self_addr;
-    snr->self.net_addr = *self_net_addr;
+    snr->self.addr = *self_addr;
+
+    if(self_net_addr != NULL)
+        snr->self.net_addr = *self_net_addr;
 }
 
 void sn_net_router_add(sn_net_router_t* snr, const sn_net_addr_t* addr, const sn_io_naddr_t* net_addr) {
@@ -32,7 +33,7 @@ void sn_net_router_add(sn_net_router_t* snr, const sn_net_addr_t* addr, const sn
     assert(addr != NULL);
 
     e.is_set = 1;
-    e.sn_net_addr = *addr;
+    e.addr = *addr;
 
     if(net_addr != NULL)
         e.net_addr = *net_addr;
@@ -50,7 +51,7 @@ void sn_net_router_remove(sn_net_router_t* snr, const sn_net_addr_t* addr) {
     assert(addr != NULL);
 
     e.is_set = 0;
-    e.sn_net_addr = *addr;
+    e.addr = *addr;
 
     sn_net_router_set(snr, &e);
 
@@ -87,7 +88,7 @@ void sn_net_router_nexthop(const sn_net_router_t* snr, const sn_net_addr_t* dst,
 
     //Table routing
 
-    sn_net_addr_index(&snr->self.sn_net_addr, dst, &level, &column);
+    sn_net_addr_index(&snr->self.addr, dst, &level, &column);
 
     if(level < SN_NET_ROUTER_LEVELS && column < SN_NET_ROUTER_COLUMNS)
         e = &(snr->table[level][column]);
@@ -105,8 +106,8 @@ void sn_net_router_nexthop(const sn_net_router_t* snr, const sn_net_addr_t* dst,
     //Best answer
 
     sn_net_entry_closest(dst, snr->table[level], SN_NET_ROUTER_COLUMNS, 0, 0, &(bests[1]));
-    sn_net_entry_closest(dst, snr->left_leafset, SN_NET_ROUTER_LEAFSET_SIZE, &snr->self.sn_net_addr, level, &(bests[2]));
-    sn_net_entry_closest(dst, snr->right_leafset, SN_NET_ROUTER_LEAFSET_SIZE, &snr->self.sn_net_addr, level, &(bests[3]));
+    sn_net_entry_closest(dst, snr->left_leafset, SN_NET_ROUTER_LEAFSET_SIZE, &snr->self.addr, level, &(bests[2]));
+    sn_net_entry_closest(dst, snr->right_leafset, SN_NET_ROUTER_LEAFSET_SIZE, &snr->self.addr, level, &(bests[3]));
     sn_net_entry_closest(dst, bests, 4, 0, 0, nexthop);
 
     if(sn_net_entry_cmp(nexthop, &snr->self) == 0) {
@@ -366,14 +367,14 @@ int leafset_is_on_range(const sn_net_router_t* snr, const sn_net_addr_t* addr) {
     right_count = sn_net_entry_array_len(snr->right_leafset, SN_NET_ROUTER_LEAFSET_SIZE);
 
     if(left_count)
-        left_bound = &snr->left_leafset[left_count].sn_net_addr;
+        left_bound = &snr->left_leafset[left_count].addr;
     else
-        left_bound = &snr->self.sn_net_addr;
+        left_bound = &snr->self.addr;
 
     if(right_count)
-        right_bound = &snr->right_leafset[right_count].sn_net_addr;
+        right_bound = &snr->right_leafset[right_count].addr;
     else
-        right_bound = &snr->self.sn_net_addr;
+        right_bound = &snr->self.addr;
 
     return sn_net_addr_cmp(left_bound, addr) <= 0 && sn_net_addr_cmp(addr, right_bound) <= 0;
 }
@@ -387,13 +388,13 @@ void sn_net_router_set(sn_net_router_t* snr, const sn_net_entry_t* sne) {
     assert(snr != NULL);
     assert(sne != NULL);
 
-    addr = &(sne->sn_net_addr);
+    addr = &sne->addr;
 
-    sn_net_addr_index(&snr->self.sn_net_addr, addr, &level, &column);
+    sn_net_addr_index(&snr->self.addr, addr, &level, &column);
 
     insert = &(snr->table[level][column]);
 
-    assert(sn_net_addr_cmp(&snr->self.sn_net_addr, &insert->sn_net_addr) != 0); //Should be impossible
+    assert(sn_net_addr_cmp(&snr->self.addr, &insert->addr) != 0); //Should be impossible
 
     *insert = *sne;
 }
@@ -431,7 +432,7 @@ void leafset_insert(sn_net_entry_t* leafset, const sn_net_entry_t* sne, int righ
     if(ls < SN_NET_ROUTER_LEAFSET_SIZE) {
         leafset[ls] = *sne;
     } else {
-        if((sn_net_addr_cmp(&sne->sn_net_addr, &leafset[SN_NET_ROUTER_LEAFSET_SIZE-1].sn_net_addr) < 0) ^ right)
+        if((sn_net_addr_cmp(&sne->addr, &leafset[SN_NET_ROUTER_LEAFSET_SIZE-1].addr) < 0) ^ right)
             return;
 
         leafset[SN_NET_ROUTER_LEAFSET_SIZE-1] = *sne;

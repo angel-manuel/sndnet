@@ -19,7 +19,7 @@ typedef struct sn_net_entry_t_ sn_net_entry_t;
 
 struct sn_net_entry_t_ {
 	unsigned char is_set; /**< Is this entry set? */
-    sn_net_addr_t sn_net_addr; /**< SecondNet address */
+    sn_net_addr_t addr; /**< SecondNet address */
     sn_io_naddr_t net_addr; /**< Traditional network address */
 };
 
@@ -79,7 +79,7 @@ int sn_net_entry_equals(const sn_net_entry_t* a, const sn_net_entry_t* b);
  * */
 typedef struct sn_net_entry_ser_t_ {
 	uint8_t is_set;
-	sn_net_addr_ser_t sn_net_addr;
+	sn_net_addr_ser_t addr;
 	sn_io_naddr_ser_t net_addr;
 } sn_net_entry_ser_t;
 

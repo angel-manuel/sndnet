@@ -46,7 +46,7 @@ void sn_default_forward_callback(int argc, void* argv[]) {
     assert(sns != NULL);
     assert(nexthop != NULL);
 
-    sn_net_addr_to_str(&nexthop->sn_net_addr, nh_addr);
+    sn_net_addr_to_str(&nexthop->addr, nh_addr);
     sn_io_naddr_to_str(&nexthop->net_addr, nh_raddr);
     sn_net_packet_header_to_str(packet, packet_str);
 

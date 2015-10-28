@@ -21,7 +21,7 @@ SCENARIO("routing is correct", "[router]") {
             sn_net_router_nexthop(&r, &dst, &nexthop);
 
             REQUIRE(nexthop.is_set == 0); //No nexthop, deliver to self
-            REQUIRE(sn_net_addr_cmp(&self, &(nexthop.sn_net_addr)) == 0);
+            REQUIRE(sn_net_addr_cmp(&self, &(nexthop.addr)) == 0);
         }
     }
 
@@ -46,7 +46,7 @@ SCENARIO("routing is correct", "[router]") {
             sn_net_router_nexthop(&r, &dst, &nexthop);
 
             REQUIRE(nexthop.is_set == 1);
-            REQUIRE(sn_net_addr_cmp(&rem, &(nexthop.sn_net_addr)) == 0);
+            REQUIRE(sn_net_addr_cmp(&rem, &(nexthop.addr)) == 0);
         }
 
         WHEN("Asking for next hop to 488888") {
@@ -58,7 +58,7 @@ SCENARIO("routing is correct", "[router]") {
             sn_net_router_nexthop(&r, &dst, &nexthop);
 
             REQUIRE(nexthop.is_set == 0); //No nexthop, deliver to self
-            REQUIRE(sn_net_addr_cmp(&self, &(nexthop.sn_net_addr)) == 0);
+            REQUIRE(sn_net_addr_cmp(&self, &(nexthop.addr)) == 0);
         }
 
         WHEN("Asking for next hop to 788888") {
@@ -70,7 +70,7 @@ SCENARIO("routing is correct", "[router]") {
             sn_net_router_nexthop(&r, &dst, &nexthop);
 
             REQUIRE(nexthop.is_set == 1);
-            REQUIRE(sn_net_addr_cmp(&rem, &(nexthop.sn_net_addr)) == 0);
+            REQUIRE(sn_net_addr_cmp(&rem, &(nexthop.addr)) == 0);
         }
 
         WHEN("Removing 888888 and asking 788888") {
@@ -84,7 +84,7 @@ SCENARIO("routing is correct", "[router]") {
             sn_net_router_nexthop(&r, &dst, &nexthop);
 
             REQUIRE(nexthop.is_set == 0);
-            REQUIRE(sn_net_addr_cmp(&self, &(nexthop.sn_net_addr)) == 0);
+            REQUIRE(sn_net_addr_cmp(&self, &(nexthop.addr)) == 0);
         }
     }
 }
@@ -97,7 +97,7 @@ SCENARIO("inserting into router", "[router]") {
         sn_net_addr_from_hex(&self, "1234");
         sn_net_router_init(&r, &self, NULL);
 
-        REQUIRE(sn_net_addr_cmp(&sn_net_router_leafset_get(&r, 0)->sn_net_addr, &self) == 0);
+        REQUIRE(sn_net_addr_cmp(&sn_net_router_leafset_get(&r, 0)->addr, &self) == 0);
 
         WHEN("Adding 3333 it appears on both leafset and table") {
             sn_net_addr_t addr3333;
@@ -109,11 +109,11 @@ SCENARIO("inserting into router", "[router]") {
 
             res = sn_net_router_leafset_get(&r, 1);
 
-            REQUIRE(sn_net_addr_cmp(&res->sn_net_addr, &addr3333) == 0);
+            REQUIRE(sn_net_addr_cmp(&res->addr, &addr3333) == 0);
 
             res = sn_net_router_table_get(&r, 0, 3);
 
-            REQUIRE(sn_net_addr_cmp(&res->sn_net_addr, &addr3333) == 0);
+            REQUIRE(sn_net_addr_cmp(&res->addr, &addr3333) == 0);
         }
     }
 
@@ -145,11 +145,11 @@ SCENARIO("inserting into router", "[router]") {
 
             res = sn_net_router_leafset_get(&r, 1);
 
-            REQUIRE(sn_net_addr_cmp(&res->sn_net_addr, &addr3333) == 0);
+            REQUIRE(sn_net_addr_cmp(&res->addr, &addr3333) == 0);
 
             res = sn_net_router_table_get(&r, 0, 3);
 
-            REQUIRE(sn_net_addr_cmp(&res->sn_net_addr, &addr3333) == 0);
+            REQUIRE(sn_net_addr_cmp(&res->addr, &addr3333) == 0);
         }
     }
 }
@@ -160,15 +160,15 @@ TEST_CASE("Router overwriting", "[router]") {
     sn_net_entry_t self;
 
     self.is_set = 1;
-    sn_net_addr_from_hex(&self.sn_net_addr, "0a0a0a0a");
+    sn_net_addr_from_hex(&self.addr, "0a0a0a0a");
     sn_io_naddr_from_str(&self.net_addr, "INET:1.1.1.1:1111");
 
-    sn_net_router_init(&r, &self.sn_net_addr, &self.net_addr);
+    sn_net_router_init(&r, &self.addr, &self.net_addr);
 
     REQUIRE(sn_net_entry_cmp(sn_net_router_leafset_get(&r, 0), &self) == 0);
 
     e.is_set = 1;
-    sn_net_addr_from_hex(&e.sn_net_addr, "abcdef");
+    sn_net_addr_from_hex(&e.addr, "abcdef");
     sn_io_naddr_from_str(&e.net_addr, "INET:5.6.7.8:8765");
 
     sn_net_router_table_set(&r, 1, 2, &e);
@@ -188,13 +188,13 @@ TEST_CASE("Router querying", "[router]") {
     sn_net_router_query_ser_t* query_res;
 
     self.is_set = 1;
-    sn_net_addr_from_hex(&self.sn_net_addr, "0a0a0a0a");
+    sn_net_addr_from_hex(&self.addr, "0a0a0a0a");
     sn_io_naddr_from_str(&self.net_addr, "INET:1.1.1.1:1111");
 
-    sn_net_router_init(&r, &self.sn_net_addr, &self.net_addr);
+    sn_net_router_init(&r, &self.addr, &self.net_addr);
 
     e.is_set = 1;
-    sn_net_addr_from_hex(&e.sn_net_addr, "abcdef");
+    sn_net_addr_from_hex(&e.addr, "abcdef");
     sn_io_naddr_from_str(&e.net_addr, "INET:5.6.7.8:8765");
 
     sn_net_router_table_set(&r, 1, 2, &e);

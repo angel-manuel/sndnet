@@ -7,7 +7,7 @@
 #include <string.h>
 
 int sn_net_entry_cmp(const sn_net_entry_t* A, const sn_net_entry_t* B) {
-	return sn_net_addr_cmp(&A->sn_net_addr, &B->sn_net_addr);
+	return sn_net_addr_cmp(&A->addr, &B->addr);
 }
 
 int sn_net_entry_cmp_neg(const sn_net_entry_t* A, const sn_net_entry_t* B) {
@@ -42,7 +42,7 @@ void sn_net_entry_closest(const sn_net_addr_t* dst, const sn_net_entry_t candida
 
         if(e->is_set) {
             if(self) {
-                sn_net_addr_index(self, &e->sn_net_addr, &level, 0);
+                sn_net_addr_index(self, &e->addr, &level, 0);
 
                 if(level < min_level)
                     continue;
@@ -50,11 +50,11 @@ void sn_net_entry_closest(const sn_net_addr_t* dst, const sn_net_entry_t candida
 
             if(!best) {
                 best = e;
-                sn_net_addr_dist(&best->sn_net_addr, dst, &min_dist);
+                sn_net_addr_dist(&best->addr, dst, &min_dist);
                 continue;
             }
 
-            sn_net_addr_dist(&e->sn_net_addr, dst, &tmp_dist);
+            sn_net_addr_dist(&e->addr, dst, &tmp_dist);
 
             if(sn_net_addr_cmp(&tmp_dist, &min_dist) < 0) {
                 best = e;
@@ -70,13 +70,13 @@ void sn_net_entry_closest(const sn_net_addr_t* dst, const sn_net_entry_t candida
     }
 }
 
-int sn_net_entry_to_str(const sn_net_entry_t* sne, char* out_str, size_t sn_net_addr_precision) {
-    char sn_net_addr_str[SN_NET_ADDR_PRINTABLE_LEN];
+int sn_net_entry_to_str(const sn_net_entry_t* sne, char* out_str, size_t addr_precision) {
+    char addr_str[SN_NET_ADDR_PRINTABLE_LEN];
     char net_addr_str[SN_IO_NADDR_PRINTABLE_LEN];
 
     assert(sne != 0);
     assert(out_str != 0);
-    assert(sn_net_addr_precision < SN_NET_ADDR_PRINTABLE_LEN);
+    assert(addr_precision < SN_NET_ADDR_PRINTABLE_LEN);
 
     if(sne->is_set == 0) {
         if(snprintf(out_str, SN_NET_ENTRY_PRINTABLE_LEN, "NULL") < 4)
@@ -85,16 +85,16 @@ int sn_net_entry_to_str(const sn_net_entry_t* sne, char* out_str, size_t sn_net_
         return 0;
     }
 
-    sn_net_addr_to_str(&sne->sn_net_addr, sn_net_addr_str);
-    if(sn_net_addr_precision)
-        sn_net_addr_str[sn_net_addr_precision] = '\0';
+    sn_net_addr_to_str(&sne->addr, addr_str);
+    if(addr_precision)
+        addr_str[addr_precision] = '\0';
 
     if(sn_io_naddr_to_str(&sne->net_addr, net_addr_str))
         return -1;
 
 
-    if(snprintf(out_str, SN_NET_ENTRY_PRINTABLE_LEN, "%s@%s", sn_net_addr_str, net_addr_str)
-        < (ssize_t)(strlen(sn_net_addr_str) + strlen(net_addr_str) + 1))
+    if(snprintf(out_str, SN_NET_ENTRY_PRINTABLE_LEN, "%s@%s", addr_str, net_addr_str)
+        < (ssize_t)(strlen(addr_str) + strlen(net_addr_str) + 1))
         return -1;
 
     return 0;
@@ -107,7 +107,7 @@ int sn_net_entry_equals(const sn_net_entry_t* a, const sn_net_entry_t* b) {
 	if(a->is_set != b->is_set)
 		return 0;
 
-	if(sn_net_addr_cmp(&a->sn_net_addr, &b->sn_net_addr) != 0)
+	if(sn_net_addr_cmp(&a->addr, &b->addr) != 0)
 		return 0;
 
 	/*if(sn_netaddr_cmp(&a->net_addr, &b->net_addr) != 0)
@@ -122,7 +122,7 @@ int sn_net_entry_ser(const sn_net_entry_t* sne, sn_net_entry_ser_t* ser) {
 
 	ser->is_set = (uint8_t)sne->is_set;
 
-	if(sn_net_addr_ser(&sne->sn_net_addr, &ser->sn_net_addr) < 0)
+	if(sn_net_addr_ser(&sne->addr, &ser->addr) < 0)
 		return -1;
 
 	if(sn_io_naddr_ser(&sne->net_addr, &ser->net_addr) < 0)
@@ -137,7 +137,7 @@ int sn_net_entry_deser(sn_net_entry_t* sne, const sn_net_entry_ser_t* ser) {
 
 	sne->is_set = (unsigned char)ser->is_set;
 
-	if(sn_net_addr_deser(&sne->sn_net_addr, &ser->sn_net_addr) < 0)
+	if(sn_net_addr_deser(&sne->addr, &ser->addr) < 0)
 		return -1;
 
 	if(sn_io_naddr_deser(&sne->net_addr, &ser->net_addr) < 0)
