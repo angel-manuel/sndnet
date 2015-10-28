@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 
     sn_crypto_sign_keypair(&pk, &sk);
 
-    if(sn_node_at_port(&sns, &sk, &pk, port) == -1) {
+    if(sn_node_at_port(&sns, &sk, &pk, port, 1) == -1) {
         fprintf(stderr, "Error initializing\n");
         return 1;
     }

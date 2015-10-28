@@ -33,9 +33,9 @@ TEST_CASE("Emulated network #1", "[network]") {
     REQUIRE((sockB = sn_io_sock_named(&addrB)) != SN_IO_SOCK_INVALID);
     REQUIRE((sockC = sn_io_sock_named(&addrC)) != SN_IO_SOCK_INVALID);
 
-    REQUIRE(sn_node_at_socket(&A, &a3f4, sockA) == 0);
-    REQUIRE(sn_node_at_socket(&B, &b567, sockB) == 0);
-    REQUIRE(sn_node_at_socket(&C, &b666, sockC) == 0);
+    REQUIRE(sn_node_at_socket(&A, NULL, (sn_crypto_sign_pubkey_t*)&a3f4, sockA, 0) == 0);
+    REQUIRE(sn_node_at_socket(&B, NULL, (sn_crypto_sign_pubkey_t*)&b567, sockB, 0) == 0);
+    REQUIRE(sn_node_at_socket(&C, NULL, (sn_crypto_sign_pubkey_t*)&b666, sockC, 0) == 0);
     sn_node_set_log_callback(&A, &silent);
     sn_node_set_log_callback(&B, &silent);
     sn_node_set_log_callback(&C, &silent);

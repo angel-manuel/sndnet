@@ -31,21 +31,30 @@ void call_log_cb(sn_node_t* sns, char* packet);
 void call_forward_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop);
 void call_deliver_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
 
-int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket) {
+int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket, int check_sign) {
     sn_io_naddr_t self_net;
 
     assert(sns != NULL);
-    assert(sk != NULL);
+    assert(sk != NULL || pk != NULL);
     assert(socket != SN_IO_SOCK_INVALID);
 
     /* Copying */
 
-    sns->sk = *sk;
+    sns->check_sign = check_sign;
+
+    if(sk != NULL) {
+        sns->sign = 1;
+        sns->sk = *sk;
+    } else {
+        sns->sign = 0;
+    }
 
     if(pk != NULL)
         sns->self = *((sn_net_addr_t*)pk);
-    else
+    else if(sk != NULL)
         sn_crypto_sign_pk_from_sk(sk, (sn_crypto_sign_pubkey_t*)&sns->self);
+    else
+        return -1;
 
     sns->socket = socket;
 
@@ -78,7 +87,7 @@ int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_c
     return 0;
 }
 
-int sn_node_at_port(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, uint16_t port) {
+int sn_node_at_port(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, uint16_t port, int check_sign) {
     sn_io_naddr_t net_self;
     sn_io_sock_t socket;
 
@@ -91,7 +100,7 @@ int sn_node_at_port(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_cry
     if((socket = sn_io_sock_named(&net_self)) == SN_IO_SOCK_INVALID)
         goto error;
 
-    if(sn_node_at_socket(sns, sk, pk, socket) == -1)
+    if(sn_node_at_socket(sns, sk, pk, socket, check_sign) == -1)
         goto error_lib_socket;
 
     return 0;
@@ -216,10 +225,13 @@ int sn_node_send(sn_node_t* sns, const sn_net_addr_t* dst, size_t len, const cha
     assert(dst != NULL);
     assert(payload != NULL || len == 0);
 
-    packet = sn_net_packet_pack(dst, &sns->self, &sns->sk, 0, len, payload);
+    packet = sn_net_packet_pack(dst, &sns->self, 0, len, payload);
 
     if(!packet)
         return -1;
+
+    if(sns->sign)
+        sn_net_packet_sign(packet, &sns->sk);
 
     if(forward(sns, packet, NULL) == -1)
         return -1;
@@ -291,6 +303,23 @@ void* background(void* arg) {
 
         if(!packet)
             continue;
+
+        if(sns->check_sign && sn_net_packet_check_sign(packet) != 0) {
+            char rem_addr_str[SN_IO_NADDR_PRINTABLE_LEN];
+            char packet_str[SN_NET_PACKET_PRINTABLE_LEN];
+
+            sn_io_naddr_to_str(&rem_addr, rem_addr_str);
+
+            sn_net_packet_header_to_str(packet, packet_str);
+
+            sn_node_log(sns,
+                "Bad signed msg:\n"
+                "sent from %s\n"
+                "%s"
+                "REJECTED\n",
+                rem_addr_str, packet_str);
+            continue;
+        }
 
         forward(sns, packet, &rem_addr);
 

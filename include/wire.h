@@ -100,5 +100,6 @@ typedef struct {
 } sn_wire_net_header_t;
 
 SN_ASSERT_COMPILE(sizeof(sn_wire_net_header_t) == SN_WIRE_NET_HEADER_SIZE);
+SN_ASSERT_COMPILE(offsetof(sn_wire_net_header_t, len) == 0);
 
 #endif/*SN_WIRE_H_*/

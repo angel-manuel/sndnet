@@ -37,9 +37,10 @@ typedef void (*sn_upcall_t)(const unsigned char msg[], unsigned long long msg_le
  * @param sk Node secret key
  * @param pk Node public key and SecondNet address
  * @param socket Listening socket
+ * @param check_sign If set messages not signed will be rejected
  * @return 0 if OK, -1 otherwise
  * */
-int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket);
+int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket, int check_sign);
 
 /**
  * Initializes a node from a string address and a listening port
@@ -47,9 +48,10 @@ int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_c
  * @param sk Node secret key
  * @param pk Node public key and SecondNet address
  * @param port Listening port number.
+ * @param check_sign If set messages not signed will be rejected
  * @return 0 if OK, -1 otherwise
  * */
-int sn_node_at_port(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, uint16_t port);
+int sn_node_at_port(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, uint16_t port, int check_sign);
 
 /**
  * Destroys a node
@@ -120,6 +122,8 @@ struct sn_node_t_ {
     sn_net_router_t router; /**< Routing state */
     pthread_t bg_thrd; /**< Background thread for routing */
     sn_io_sock_t socket; /**< Listening socket file descriptor */
+    int sign; /**< Are signatures active? */
+    int check_sign; /**< Are signature checks active? */
     /* Shared state */
     mint_atomicPtr_t upcall; /**< General upcall, received messages go up using this*/
     /**
