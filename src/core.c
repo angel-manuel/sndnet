@@ -10,25 +10,17 @@
 #include <stdint.h>
 
 int sn_core_deliver(sn_node_t* state, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr) {
-    unsigned char type;
-
     assert(state != NULL);
     assert(packet != NULL);
 
     SN_UNUSED(rem_addr);
 
-    if(packet->header.len < 1)
-        return -1;
-
-    type = packet->payload[0];
-
-    switch (type) {
-        case 0: /*User msg*/
-            sn_node_upcall(state, packet->payload + 1, packet->header.len - 1);
-            break;
+    switch (packet->header.type) {
+        case SN_WIRE_NET_TYPE_USER: /*User msg*/
+            return sn_node_upcall(state, packet->payload, packet->header.len);
     }
 
-    return 0;
+    return -1;
 }
 
 int sn_core_forward(sn_node_t* state, sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop) {

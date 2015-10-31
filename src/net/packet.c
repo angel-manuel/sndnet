@@ -1,5 +1,7 @@
 #include "net/packet.h"
 
+#include "common.h"
+
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -86,7 +88,7 @@ void sn_net_packet_sign(sn_net_packet_t* packet, const sn_crypto_sign_key_t* key
     sn_crypto_sign(
         key,
         (unsigned char*)&packet->header.dst,
-        packet->header.len + (sizeof(sn_wire_net_header_t) - offsetof(sn_wire_net_header_t, dst)),
+        packet->header.len + sizeof(sn_wire_net_header_t) - offsetof(sn_wire_net_header_t, sign) - SN_SIZEOF_MEMBER(sn_wire_net_header_t, sign),
         &packet->header.sign);
 }
 
@@ -97,7 +99,7 @@ int sn_net_packet_check_sign(const sn_net_packet_t* packet) {
         &packet->header.sign,
         (sn_crypto_sign_pubkey_t*)&packet->header.src,
         (unsigned char*)&packet->header.dst,
-        packet->header.len + (sizeof(sn_wire_net_header_t) - offsetof(sn_wire_net_header_t, dst))
+        packet->header.len + sizeof(sn_wire_net_header_t) - offsetof(sn_wire_net_header_t, sign) - SN_SIZEOF_MEMBER(sn_wire_net_header_t, sign)
     );
 }
 

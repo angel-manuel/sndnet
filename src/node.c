@@ -131,7 +131,7 @@ void sn_node_set_upcall(sn_node_t* sns, sn_upcall_t upcall) {
     mint_thread_fence_release();
 }
 
-void sn_node_upcall(const sn_node_t* sns, const unsigned char msg[], unsigned long long msg_len) {
+int sn_node_upcall(const sn_node_t* sns, const unsigned char msg[], unsigned long long msg_len) {
     sn_upcall_t up;
 
     assert(sns != NULL);
@@ -141,7 +141,9 @@ void sn_node_upcall(const sn_node_t* sns, const unsigned char msg[], unsigned lo
     up = (sn_upcall_t)mint_load_ptr_relaxed(&sns->upcall);
 
     if(up)
-        up(msg, msg_len);
+        return up(msg, msg_len);
+
+    return -1;
 }
 
 void sn_node_set_log_callback(sn_node_t* sns, sn_util_closure_t* closure) {
@@ -284,8 +286,6 @@ int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
         call_forward_cb(sns, packet, rem_addr, &nexthop);
 
         return sn_core_forward(sns, packet, rem_addr, &nexthop);
-
-        return 0;
     } else {
         return deliver(sns, packet, rem_addr);
     }

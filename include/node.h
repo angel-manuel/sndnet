@@ -29,7 +29,7 @@ typedef struct sn_node_t_ sn_node_t;
 /**
  * Upcall callback type. Called when a message is received.
  * */
-typedef void (*sn_upcall_t)(const unsigned char msg[], unsigned long long msg_len);
+typedef int (*sn_upcall_t)(const unsigned char msg[], unsigned long long msg_len);
 
 /**
  * Initializes a node
@@ -71,8 +71,9 @@ void sn_node_set_upcall(sn_node_t* sns, sn_upcall_t upcall);
  * @param sns Node state
  * @param msg Message
  * @param msg_len Message length
+ * @return Upcall return, -1 if upcall is NULL
  * */
-void sn_node_upcall(const sn_node_t* sns, const unsigned char msg[], unsigned long long msg_len);
+int sn_node_upcall(const sn_node_t* sns, const unsigned char msg[], unsigned long long msg_len);
 
 /**
  * Changes the logging callback
