@@ -82,6 +82,11 @@ int sn_node_upcall(const sn_node_t* sns, const unsigned char msg[], unsigned lon
  * */
 void sn_node_set_log_callback(sn_node_t* sns, sn_util_closure_t* cb);
 
+/**
+ * Logs a message using the log callback
+ * @param sns Node state
+ * @param format printf-like format string.
+ * */
 void sn_node_log(sn_node_t* sns, const char* format, ...);
 
 /**
