@@ -26,13 +26,6 @@ void sn_named_log_callback(int argc, void* argv[]) {
     fprintf(stderr, "%s: %s\n", (char*)argv[0], (char*)argv[1]);
 }
 
-void sn_default_log_callback(int argc, void* argv[]) {
-    assert(argc >= 2);
-    assert(argv[1] != NULL);
-
-    fprintf(stderr, "sndnet: %s\n", (char*)argv[1]);
-}
-
 void sn_default_forward_callback(int argc, void* argv[]) {
     char nh_addr[SN_NET_ADDR_PRINTABLE_LEN];
     char nh_raddr[SN_IO_NADDR_PRINTABLE_LEN];

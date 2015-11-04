@@ -62,7 +62,8 @@ int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_c
     sn_node_set_upcall(sns, NULL);
 
     void* c_argv[] = { NULL };
-    sn_util_closure_init_curried(&sns->default_log_closure, sn_default_log_callback, 1, c_argv);
+    void* log_argv[] = { "sndnet" };
+    sn_util_closure_init_curried(&sns->default_log_closure, sn_named_log_callback, 1, log_argv);
     sn_util_closure_init_curried(&sns->default_forward_closure, sn_default_forward_callback, 1, c_argv);
     sn_util_closure_init_curried(&sns->default_deliver_closure, sn_default_deliver_callback, 1, c_argv);
     sn_node_set_log_callback(sns, NULL);
