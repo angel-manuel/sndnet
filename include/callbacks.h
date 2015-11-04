@@ -12,8 +12,6 @@ extern "C" {
 
 void sn_silent_log_callback(int argc, void* argv[]);
 void sn_named_log_callback(int argc, void* argv[]);
-void sn_default_forward_callback(int argc, void* argv[]);
-void sn_default_deliver_callback(int argc, void* argv[]);
 
 #ifdef __cplusplus
 } /*extern "C"*/

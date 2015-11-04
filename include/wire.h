@@ -102,6 +102,11 @@ typedef struct {
 SN_ASSERT_COMPILE(sizeof(sn_wire_net_header_t) == SN_WIRE_NET_HEADER_SIZE);
 SN_ASSERT_COMPILE(offsetof(sn_wire_net_header_t, len) == 0);
 
+//net/packet types
+
 #define SN_WIRE_NET_TYPE_USER 0
+#define SN_WIRE_NET_TYPE_PING 1
+#define SN_WIRE_NET_TYPE_PONG 2
+#define SN_WIRE_NET_TYPES 3
 
 #endif/*SN_WIRE_H_*/

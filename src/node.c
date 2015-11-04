@@ -22,13 +22,34 @@
 #include "common.h"
 #include "net/packet.h"
 
+typedef int (*sn_forward_fn_t)(sn_node_t* sns, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop);
+typedef int (*sn_deliver_fn_t)(sn_node_t* sns, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr);
+
 int deliver(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
 int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
 void* background(void* arg);
 
+int upcall_wrapper(sn_node_t* sns, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr);
+
 void call_log_cb(sn_node_t* sns, char* packet);
 void call_forward_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop);
 void call_deliver_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
+
+sn_forward_fn_t forward_handlers[] = {
+    NULL,
+    NULL,
+    NULL
+};
+
+//SN_ASSERT_COMPILE(sizeof(forward_handlers) == SN_WIRE_NET_TYPES);
+
+sn_deliver_fn_t deliver_handlers[] = {
+    upcall_wrapper, //SN_NET_WIRE_USER_TYPE
+    NULL,
+    NULL
+};
+
+//SN_ASSERT_COMPILE(sizeof(deliver_handlers)*sizeof(sn_deliver_fn_t) == SN_WIRE_NET_TYPES);
 
 int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket, int check_sign) {
     sn_io_naddr_t self_net;
@@ -61,14 +82,9 @@ int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_c
 
     sn_node_set_upcall(sns, NULL);
 
-    void* c_argv[] = { NULL };
     void* log_argv[] = { "sndnet" };
     sn_util_closure_init_curried(&sns->default_log_closure, sn_named_log_callback, 1, log_argv);
-    sn_util_closure_init_curried(&sns->default_forward_closure, sn_default_forward_callback, 1, c_argv);
-    sn_util_closure_init_curried(&sns->default_deliver_closure, sn_default_deliver_callback, 1, c_argv);
     sn_node_set_log_callback(sns, NULL);
-    sn_node_set_forward_callback(sns, NULL);
-    sn_node_set_deliver_callback(sns, NULL);
 
     /* Initializing */
 
@@ -179,47 +195,6 @@ void sn_node_log(sn_node_t* sns, const char* format, ...) {
     call_log_cb(sns, str);
 }
 
-void sn_node_set_forward_callback(sn_node_t* sns, sn_util_closure_t* closure) {
-    sn_util_closure_t *new_closure;
-
-    assert(sns != NULL);
-
-    new_closure = closure ? closure : &sns->default_forward_closure;
-    mint_store_ptr_relaxed(&sns->forward_closure, new_closure);
-    mint_thread_fence_release();
-}
-
-inline void call_forward_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop) {
-    void* argv[] = { packet, sns, rem_addr, nexthop };
-
-    assert(packet != NULL);
-    assert(sns != NULL);
-    assert(nexthop != NULL);
-
-    mint_thread_fence_acquire();
-    sn_util_closure_call(mint_load_ptr_relaxed(&sns->forward_closure), 4, argv);
-}
-
-void sn_node_set_deliver_callback(sn_node_t* sns, sn_util_closure_t* closure) {
-    sn_util_closure_t *new_closure;
-
-    assert(sns != NULL);
-
-    new_closure = closure ? closure : &sns->default_deliver_closure;
-    mint_store_ptr_relaxed(&sns->deliver_closure, new_closure);
-    mint_thread_fence_release();
-}
-
-inline void call_deliver_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
-    void* argv[] = { packet, sns, rem_addr };
-
-    assert(packet != NULL);
-    assert(sns != NULL);
-
-    mint_thread_fence_acquire();
-    sn_util_closure_call(mint_load_ptr_relaxed(&sns->deliver_closure), 3, argv);
-}
-
 int sn_node_send(sn_node_t* sns, const sn_net_addr_t* dst, size_t len, const char* payload) {
     sn_net_packet_t* packet;
 
@@ -263,27 +238,108 @@ int sn_node_join(sn_node_t* sns, const sn_io_naddr_t* gateway) {
 /*Private functions*/
 
 int deliver(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
+    char packet_str[SN_NET_PACKET_PRINTABLE_LEN];
+    char rem_addr_str[SN_IO_NADDR_PRINTABLE_LEN];
+    sn_deliver_fn_t d_fn;
+
     assert(sns != NULL);
     assert(packet != NULL);
 
-    call_deliver_cb(sns, packet, rem_addr);
+    sn_net_packet_header_to_str(packet, packet_str);
+
+    if(rem_addr != NULL)
+        sn_io_naddr_to_str(rem_addr, rem_addr_str);
+    else
+        strncpy(rem_addr_str, "THIS", SN_IO_NADDR_PRINTABLE_LEN);
+
+    sn_node_log(sns,
+        "packet deliver\n"
+        "came from %s\n"
+        "%s"
+        "\n%s\n",
+    rem_addr_str, packet_str, packet->payload);
+
+    //TODO: logic
+
+    if(packet->header.type >= SN_WIRE_NET_TYPES)
+        return -1;
+
+    d_fn = deliver_handlers[packet->header.type];
+
+    if(d_fn)
+        return d_fn(sns, packet, rem_addr);
 
     return 0;
 }
 
 int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
+    char nh_addr_str[SN_NET_ADDR_PRINTABLE_LEN];
+    char nh_rem_addr_str[SN_IO_NADDR_PRINTABLE_LEN];
+    char src_str[SN_NET_ADDR_PRINTABLE_LEN];
+    char dst_str[SN_NET_ADDR_PRINTABLE_LEN];
+    char rem_addr_str[SN_IO_NADDR_PRINTABLE_LEN];
+    sn_net_addr_t src;
     sn_net_addr_t dst;
     sn_net_entry_t nexthop;
 
     assert(sns != NULL);
     assert(packet != NULL);
 
+    sn_net_packet_get_src(packet, &src);
+    sn_net_addr_to_str(&src, src_str);
     sn_net_packet_get_dst(packet, &dst);
+    sn_net_addr_to_str(&dst, dst_str);
+
+    if(rem_addr != NULL)
+        sn_io_naddr_to_str(rem_addr, rem_addr_str);
+    else
+        strncpy(rem_addr_str, "THIS", SN_IO_NADDR_PRINTABLE_LEN);
+
+    if(!packet->header.ttl) {
+        sn_node_log(sns,
+        "packet without TTL\n"
+        "came from %s\n"
+        "src: %s\n"
+        "dst: %s\n",
+        rem_addr_str, src_str, dst_str);
+        return -1;
+    }
+
+    packet->header.ttl--;
 
     sn_net_router_nexthop(&(sns->router), &dst, &nexthop);
 
     if(nexthop.is_set) {
-        call_forward_cb(sns, packet, rem_addr, &nexthop);
+        sn_forward_fn_t f_fn;
+
+        if(packet->header.type >= SN_WIRE_NET_TYPES)
+            return -1;
+
+        f_fn = forward_handlers[packet->header.type];
+
+        if(f_fn) {
+            if(f_fn(sns, packet, rem_addr, &nexthop) != 0)
+                return -1;
+
+            if(!nexthop.is_set)
+                return deliver(sns, packet, rem_addr);
+        }
+
+        if(sn_net_packet_send(packet, sns->socket, &nexthop.net_addr) == -1) {
+            sn_node_log(sns, "ERROR sending packet to %s\n", rem_addr_str);
+            return -1;
+        } else {
+            char packet_str[SN_NET_PACKET_PRINTABLE_LEN];
+
+            sn_net_packet_header_to_str(packet, packet_str);
+        
+            sn_node_log(sns,
+            "packet forward\n"
+            "came from %s\n"
+            "%s"
+            "Forwarded to %s @ %s\n",
+            rem_addr_str, packet_str, nh_addr_str, nh_rem_addr_str);
+        }
 
         return 0;
     } else {
@@ -328,3 +384,14 @@ void* background(void* arg) {
 
     return sns;
 }
+
+/*Deliver handlers*/
+
+int upcall_wrapper(sn_node_t* sns, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr) {
+    assert(sns != NULL);
+    assert(packet != NULL);
+    assert(rem_addr != NULL);
+
+    return sn_node_upcall(sns, packet->payload, packet->header.len);
+}
+

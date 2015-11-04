@@ -139,27 +139,8 @@ struct sn_node_t_ {
      * msg -> Log message
      * */
     mint_atomicPtr_t log_closure;
-    /**
-     * Callback for forward
-     * Forward callback format is (void* extra, const sn_net_packet_t* msg, sn_node_t* sns, sn_net_entry_t* nexthop) where
-     * extra -> User-defined data
-     * msg -> Message to be forwarded
-     * sns -> Node state
-     * nexthop -> Default nexthop, can be overwritten
-     * */
-    mint_atomicPtr_t forward_closure;
-    /**
-     * Callback for delivery
-     * Forward callback format is (void* extra, const sn_net_packet_t* msg, sn_node_t* sns, sn_net_entry_t* nexthop) where
-     * extra -> User-defined data
-     * msg -> Message to be delivered
-     * sns -> Node state
-     * */
-    mint_atomicPtr_t deliver_closure;
     /* Default closures */
     sn_util_closure_t default_log_closure; /**< Default log closure */
-    sn_util_closure_t default_forward_closure; /**< Default forward closure */
-    sn_util_closure_t default_deliver_closure; /**< Default deliver closure */
 };
 
 #ifdef __cplusplus
