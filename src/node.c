@@ -21,7 +21,6 @@
 #include "net/addr.h"
 #include "common.h"
 #include "net/packet.h"
-#include "core.h"
 
 int deliver(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
 int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
@@ -268,7 +267,7 @@ int deliver(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
 
     call_deliver_cb(sns, packet, rem_addr);
 
-    return sn_core_deliver(sns, packet, rem_addr);
+    return 0;
 }
 
 int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
@@ -285,7 +284,7 @@ int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
     if(nexthop.is_set) {
         call_forward_cb(sns, packet, rem_addr, &nexthop);
 
-        return sn_core_forward(sns, packet, rem_addr, &nexthop);
+        return 0;
     } else {
         return deliver(sns, packet, rem_addr);
     }
