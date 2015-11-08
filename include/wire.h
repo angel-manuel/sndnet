@@ -109,8 +109,8 @@ typedef enum {
     SN_WIRE_NET_TYPE_PING = 1,
     SN_WIRE_NET_TYPE_PONG = 2,
     SN_WIRE_NET_TYPES
-} sn_wire_net_type_t; 
+} sn_wire_net_type_t;
 
-SN_ASSERT_COMPILE(SN_WIRE_NET_TYPES <= 256);
+SN_ASSERT_COMPILE(SN_WIRE_NET_TYPES <= UINT8_MAX + 1);
 
 #endif/*SN_WIRE_H_*/
