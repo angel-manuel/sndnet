@@ -21,9 +21,7 @@
 #include "net/addr.h"
 #include "common.h"
 #include "net/packet.h"
-
-typedef int (*sn_forward_fn_t)(sn_node_t* sns, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop);
-typedef int (*sn_deliver_fn_t)(sn_node_t* sns, const sn_net_packet_t* packet, const sn_io_naddr_t* rem_addr);
+#include "handler.h"
 
 int deliver(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
 int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
@@ -34,22 +32,6 @@ int upcall_wrapper(sn_node_t* sns, const sn_net_packet_t* packet, const sn_io_na
 void call_log_cb(sn_node_t* sns, char* packet);
 void call_forward_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop);
 void call_deliver_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
-
-sn_forward_fn_t forward_handlers[] = {
-    NULL,
-    NULL,
-    NULL
-};
-
-SN_ASSERT_COMPILE(sizeof(forward_handlers) == SN_WIRE_NET_TYPES*sizeof(sn_forward_fn_t));
-
-sn_deliver_fn_t deliver_handlers[] = {
-    upcall_wrapper, //SN_NET_WIRE_USER_TYPE
-    NULL,
-    NULL
-};
-
-SN_ASSERT_COMPILE(sizeof(deliver_handlers) == SN_WIRE_NET_TYPES*sizeof(sn_deliver_fn_t));
 
 int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket, int check_sign) {
     sn_io_naddr_t self_net;
@@ -240,7 +222,7 @@ int sn_node_join(sn_node_t* sns, const sn_io_naddr_t* gateway) {
 int deliver(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
     char packet_str[SN_NET_PACKET_PRINTABLE_LEN];
     char rem_addr_str[SN_IO_NADDR_PRINTABLE_LEN];
-    sn_deliver_fn_t d_fn;
+    sn_deliver_handler_t d_fn;
 
     assert(sns != NULL);
     assert(packet != NULL);
@@ -264,7 +246,7 @@ int deliver(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
     if(packet->header.type >= SN_WIRE_NET_TYPES)
         return -1;
 
-    d_fn = deliver_handlers[packet->header.type];
+    d_fn = sn_default_deliver_handlers[packet->header.type];
 
     if(d_fn)
         return d_fn(sns, packet, rem_addr);
@@ -310,12 +292,12 @@ int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
     sn_net_router_nexthop(&(sns->router), &dst, &nexthop);
 
     if(nexthop.is_set) {
-        sn_forward_fn_t f_fn;
+        sn_forward_handler_t f_fn;
 
         if(packet->header.type >= SN_WIRE_NET_TYPES)
             return -1;
 
-        f_fn = forward_handlers[packet->header.type];
+        f_fn = sn_default_forward_handlers[packet->header.type];
 
         if(f_fn) {
             if(f_fn(sns, packet, rem_addr, &nexthop) != 0)
