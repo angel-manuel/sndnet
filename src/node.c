@@ -178,13 +178,18 @@ void sn_node_log(sn_node_t* sns, const char* format, ...) {
 }
 
 int sn_node_send(sn_node_t* sns, const sn_net_addr_t* dst, size_t len, const char* payload) {
+    return sn_node_send_typed(sns, dst, 0, len, payload);
+}
+
+int sn_node_send_typed(sn_node_t* sns, const sn_net_addr_t* dst, uint8_t type, size_t len, const char* payload) {
     sn_net_packet_t* packet;
 
     assert(sns != NULL);
     assert(dst != NULL);
     assert(payload != NULL || len == 0);
+    assert(type < SN_WIRE_NET_TYPES);
 
-    packet = sn_net_packet_pack(dst, &sns->self, 0, len, payload);
+    packet = sn_net_packet_pack(dst, &sns->self, type, len, payload);
 
     if(!packet)
         return -1;

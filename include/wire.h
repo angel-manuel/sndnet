@@ -106,11 +106,59 @@ SN_ASSERT_COMPILE(offsetof(sn_wire_net_header_t, len) == 0);
 
 typedef enum {
     SN_WIRE_NET_TYPE_USER = 0,
-    SN_WIRE_NET_TYPE_PING = 1,
-    SN_WIRE_NET_TYPE_PONG = 2,
+    SN_WIRE_NET_TYPE_REPLY = 1,
+    SN_WIRE_NET_TYPE_PING = 2,
     SN_WIRE_NET_TYPES
 } sn_wire_net_type_t;
 
 SN_ASSERT_COMPILE(SN_WIRE_NET_TYPES <= UINT8_MAX + 1);
+
+/*******************************************************************
+    reply header
+
+     0               1               2               3
+     0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  0 |                           Reply ID                            |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    
+*******************************************************************/
+
+#define SN_WIRE_REPLY_HEADER_SIZE 4
+
+typedef struct {
+    uint32_t reply_id;
+} sn_wire_reply_header_t;
+
+SN_ASSERT_COMPILE(sizeof(sn_wire_reply_header_t) == SN_WIRE_REPLY_HEADER_SIZE);
+
+/*******************************************************************
+    ping message
+
+     0               1               2               3
+     0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  0 |                           Reply to                            |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  4 |                                                               |
+    +                                                               +
+  8 |                                                               |
+    +                       Arbitrary content                       +
+ 12 |                                                               |
+    +                                                               +
+ 16 |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    
+*******************************************************************/
+
+#define SN_WIRE_PING_MSG_CONTENT 16
+#define SN_WIRE_PING_MSG_SIZE (4 + SN_WIRE_PING_MSG_CONTENT)
+
+typedef struct {
+    uint32_t reply_to;
+    unsigned char cnt[SN_WIRE_PING_MSG_CONTENT];
+} sn_wire_ping_msg_t;
+
+SN_ASSERT_COMPILE(sizeof(sn_wire_ping_msg_t) == SN_WIRE_PING_MSG_SIZE);
 
 #endif/*SN_WIRE_H_*/

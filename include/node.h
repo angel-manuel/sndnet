@@ -12,6 +12,7 @@
 #include "util/closure.h"
 #include "crypto/sign.h"
 
+#include <stdint.h>
 #include <pthread.h>
 #define asm __asm
 #include <mintomic/mintomic.h>
@@ -104,7 +105,7 @@ void sn_node_set_forward_callback(sn_node_t* sns, sn_util_closure_t* cb);
 void sn_node_set_deliver_callback(sn_node_t* sns, sn_util_closure_t* cb);
 
 /**
- * Sends a message without need for acknowledgement
+ * Sends a message
  * @param sns Node state
  * @param dst Destination address
  * @param len Message length
@@ -112,6 +113,17 @@ void sn_node_set_deliver_callback(sn_node_t* sns, sn_util_closure_t* cb);
  * @return -1 if error
  */
 int sn_node_send(sn_node_t* sns, const sn_net_addr_t* dst, size_t len, const char* payload);
+
+/**
+ * Sends a typed message
+ * @param sns Node state
+ * @param dst Destination address
+ * @aram type Message type
+ * @param len Message length
+ * @param payload Message payload
+ * @return -1 if error
+ */
+int sn_node_send_typed(sn_node_t* sns, const sn_net_addr_t* dst, uint8_t type, size_t len, const char* payload);
 
 /**
  * Joins a SecondNet network using a know gateway
