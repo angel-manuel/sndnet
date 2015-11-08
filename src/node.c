@@ -41,7 +41,7 @@ sn_forward_fn_t forward_handlers[] = {
     NULL
 };
 
-//SN_ASSERT_COMPILE(sizeof(forward_handlers) == SN_WIRE_NET_TYPES);
+SN_ASSERT_COMPILE(sizeof(forward_handlers) == SN_WIRE_NET_TYPES*sizeof(sn_forward_fn_t));
 
 sn_deliver_fn_t deliver_handlers[] = {
     upcall_wrapper, //SN_NET_WIRE_USER_TYPE
@@ -49,7 +49,7 @@ sn_deliver_fn_t deliver_handlers[] = {
     NULL
 };
 
-//SN_ASSERT_COMPILE(sizeof(deliver_handlers)*sizeof(sn_deliver_fn_t) == SN_WIRE_NET_TYPES);
+SN_ASSERT_COMPILE(sizeof(deliver_handlers) == SN_WIRE_NET_TYPES*sizeof(sn_deliver_fn_t));
 
 int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket, int check_sign) {
     sn_io_naddr_t self_net;
