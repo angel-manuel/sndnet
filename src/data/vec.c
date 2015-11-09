@@ -94,7 +94,7 @@ int sn_data_vec_remove_at(sn_data_vec_t* vec, size_t at, void* out) {
     if(vec->size != at)
         memcpy(&vec->vec[at*vec->elem_size], &vec->vec[vec->size*vec->elem_size], vec->elem_size);
 
-    if(vec->capacity/2 >= SN_DATA_VEC_DEFAULT_CAPACITY && vec->size < vec->capacity/2) {
+    if(vec->capacity/2 >= SN_DATA_VEC_DEFAULT_CAPACITY && vec->size <= vec->capacity/2) {
         char* new_vec;
 
         vec->capacity /= 2;
