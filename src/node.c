@@ -260,8 +260,7 @@ int deliver(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
 }
 
 int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
-    char nh_addr_str[SN_NET_ADDR_PRINTABLE_LEN];
-    char nh_rem_addr_str[SN_IO_NADDR_PRINTABLE_LEN];
+    char nh_str[SN_NET_ENTRY_PRINTABLE_LEN];
     char src_str[SN_NET_ADDR_PRINTABLE_LEN];
     char dst_str[SN_NET_ADDR_PRINTABLE_LEN];
     char rem_addr_str[SN_IO_NADDR_PRINTABLE_LEN];
@@ -295,6 +294,7 @@ int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
     packet->header.ttl--;
 
     sn_net_router_nexthop(&(sns->router), &dst, &nexthop);
+    sn_net_entry_to_str(&nexthop, nh_str, SN_NET_ADDR_HEX_LEN);
 
     if(nexthop.is_set) {
         sn_forward_handler_t f_fn;
@@ -324,8 +324,8 @@ int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr) {
             "packet forward\n"
             "came from %s\n"
             "%s"
-            "Forwarded to %s @ %s\n",
-            rem_addr_str, packet_str, nh_addr_str, nh_rem_addr_str);
+            "Forwarded to %s\n",
+            rem_addr_str, packet_str, nh_str);
         }
 
         return 0;

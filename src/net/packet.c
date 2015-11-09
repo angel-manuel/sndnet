@@ -75,6 +75,8 @@ sn_net_packet_t* sn_net_packet_pack(const sn_net_addr_t* dst, const sn_net_addr_
     sn_net_addr_ser(src, &packet->header.src);
     sn_net_addr_ser(dst, &packet->header.dst);
 
+    memset(&packet->header.sign, 0, sizeof(packet->header.sign));
+
     memcpy(packet->payload, payload, len);
     packet->payload[len] = '\0';
 
