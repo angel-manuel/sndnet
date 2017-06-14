@@ -11,6 +11,7 @@
 #include "io/sock.h"
 #include "util/closure.h"
 #include "crypto/sign.h"
+#include "data/vec.h"
 
 #include <stdint.h>
 #include <pthread.h>
@@ -151,6 +152,9 @@ struct sn_node_t_ {
      * msg -> Log message
      * */
     mint_atomicPtr_t log_closure;
+        //Reply listeners
+        pthread_mutex_t reply_mut;
+        sn_data_vec_t reply_vec;
     /* Default closures */
     sn_util_closure_t default_log_closure; /**< Default log closure */
 };

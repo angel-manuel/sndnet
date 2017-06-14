@@ -32,6 +32,7 @@ solution "sndnet"
         location "build/test"
         kind "ConsoleApp"
         language "C++"
+        buildoptions { "-std=c++11" }
         links { "sndnet", "pthread", "sodium" }
         includedirs {"include", "third_party/include"}
         files { "test/**.hpp", "test/**.cpp", "third_party/src/**.c" }

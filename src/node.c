@@ -23,6 +23,12 @@
 #include "net/packet.h"
 #include "handler.h"
 
+typedef struct {
+    uint32_t reply_id;
+    sn_util_closure_t closure;
+    int once;
+} sn_reply_sub_t;
+
 int deliver(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
 int forward(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
 void* background(void* arg);
@@ -32,6 +38,9 @@ int upcall_wrapper(sn_node_t* sns, const sn_net_packet_t* packet, const sn_io_na
 void call_log_cb(sn_node_t* sns, char* packet);
 void call_forward_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr, sn_net_entry_t* nexthop);
 void call_deliver_cb(sn_node_t* sns, sn_net_packet_t* packet, sn_io_naddr_t* rem_addr);
+
+int sn_node_register_reply(sn_node_t* sns, uint32_t reply_id, const sn_util_closure_t* closure, int once);
+int sn_node_call_reply(sn_node_t* sns, uint32_t reply_id, const char* reply_cnt, unsigned long long reply_cnt_len);
 
 int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_crypto_sign_pubkey_t* pk, const sn_io_sock_t socket, int check_sign) {
     sn_io_naddr_t self_net;
@@ -70,15 +79,24 @@ int sn_node_at_socket(sn_node_t* sns, const sn_crypto_sign_key_t* sk, const sn_c
 
     /* Initializing */
 
-    if(sn_io_sock_get_name(socket, &self_net) == -1)
+    if(sn_io_sock_get_name(socket, &self_net) != 0)
         return -1;
 
     sn_net_router_init(&sns->router, &sns->self, &self_net);
+
+    /*Reply vector*/
+
+    if(sn_data_vec_init(&sns->reply_vec, sizeof(sn_reply_sub_t)) != 0)
+        return -1;
+
+    pthread_mutex_init(&sns->reply_mut, NULL);
 
     /* Background thread initialization */
 
     if(pthread_create(&(sns->bg_thrd), 0, background, sns)) {
         sn_node_log(sns, "Error while starting thread");
+        pthread_mutex_destroy(&sns->reply_mut);
+        sn_data_vec_destroy(&sns->reply_vec);
         return -1;
     }
 
@@ -116,6 +134,9 @@ void sn_node_destroy(sn_node_t* sns) {
 
     pthread_cancel(sns->bg_thrd);
     pthread_join(sns->bg_thrd, 0);
+
+    pthread_mutex_destroy(&sns->reply_mut);
+    sn_data_vec_destroy(&sns->reply_vec);
 
     /* Socket closing */
 
